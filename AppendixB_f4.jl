@@ -1,4 +1,3 @@
-using ForwardDiff
 using Roots
 using Plots
 using PlotlyJS

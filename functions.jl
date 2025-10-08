@@ -98,6 +98,14 @@ function f₁θ(θ, κ, μ)
 end
 
 
+function brackets_f₁(κ, μ; n::Integer=400, margin::Real=0.0)
+    θmin = -sqrt(κ) * q₁(κ, μ)
+    θmax = sqrt(κ) * q₂(κ, μ)
+    δ = margin * (θmax - θmin)
+    a, b = θmin + δ, θmax - δ
+    brackets_signchanges(θ -> f₁(θ, κ, μ), a, b; n=n)
+end
+
 function brackets_f₂(κ, μ; n::Integer=400, margin::Real=0.0)
     θmin = Intθ_2(κ, μ)[1]
     θmax = Intθ_2(κ, μ)[2]
@@ -159,11 +167,5 @@ function brackets_signchanges(f, a::Real, b::Real; n::Integer=400)
     return br
 end
 
-function brackets_f₁(κ, μ; n::Integer=400, margin::Real=0.0)
-    θmin = -sqrt(κ) * q₁(κ, μ)
-    θmax = sqrt(κ) * q₂(κ, μ)
-    δ = margin * (θmax - θmin)
-    a, b = θmin + δ, θmax - δ
-    brackets_signchanges(θ -> f₁(θ, κ, μ), a, b; n=n)
-end
+
 

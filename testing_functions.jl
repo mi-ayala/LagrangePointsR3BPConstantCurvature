@@ -1,9 +1,6 @@
 using IntervalArithmetic
 using ForwardDiff
 
-
-
-
 ### Testing interval IntervalArithmetic
 κ = interval(0.5)
 μ = interval(0.5)
@@ -48,7 +45,7 @@ using ForwardDiff
 # find_zero(θ -> f₁(θ, κ, μ), br[1])
 
 
-br = brackets_f₂(κ, μ; n=800)
+# br = brackets_f₂(κ, μ; n=800)
 
 # rts = refine_brackets(f, br)
 # println(rts)
