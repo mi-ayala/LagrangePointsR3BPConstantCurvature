@@ -41,8 +41,6 @@ f₁(interval(root - delta), interval(κ), interval(μ))
 f₁θ(interval(root, delta; format=:midpoint), interval(κ), interval(μ))
 
 
-
-
 parameter_delta = 0.00001
 
 f₁(interval(root + delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
@@ -52,15 +50,14 @@ f₁(interval(root - delta), interval(κ, parameter_delta; format=:midpoint), in
 f₁θ(interval(root, delta; format=:midpoint), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
 
 
-# θ_max(κ, μ) = atan( tan(√κ * q₂) / (1 + μ) )
 function θ_max(κ, μ)
     κ, μ = promote(κ, μ)
-    r  = sqrt(κ)
-    y  = tan(r * q₂(κ, μ))     # numerator
-    x  = one(μ) + μ            # denominator (kept as same type)
-    return atan(y, x)          
+    r = sqrt(κ)
+    y = tan(r * q₂(κ, μ))     # numerator
+    x = one(μ) + μ            # denominator (kept as same type)
+    return atan(y, x)
 end
 
 
 
-f₁θ(interval(0,θ_max(interval(κ), interval(μ))), interval(κ),interval(μ))
+f₁θ(interval(0, θ_max(interval(κ), interval(μ))), interval(κ), interval(μ))
