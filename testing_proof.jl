@@ -61,3 +61,11 @@ end
 
 
 f₁θ(interval(0, θ_max(interval(κ), interval(μ))), interval(κ), interval(μ))
+
+
+# # bounds for the box
+# μT = 0.0886765
+# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+# μ_lo, μ_hi = 0.0, μT
+
+
