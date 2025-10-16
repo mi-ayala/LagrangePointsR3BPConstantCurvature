@@ -8,11 +8,11 @@ include("functions.jl")
 # setprecision(BigFloat, 113) 
 
 
-κ = 0.5
+κ = 1.33
 μ = 0.02
 
 
-interior_linspace(lo, hi, n; margin=0.1) = begin
+interior_linspace(lo, hi, n; margin=0.01) = begin
     a = lo + margin * (hi - lo)
     b = hi - margin * (hi - lo)
     range(a, b; length=n)
@@ -192,4 +192,4 @@ end
 
 κ0, μ = 0.5, 0.02
 
-Iκ_final, root_final = push_kappa_interval(BigFloat(κ0), BigFloat(μ), BigFloat(root); Δκ=1e-3, r_κ=1e-8, verbose=true)
+Iκ_final, root_final = push_kappa_interval(κ0, μ, root; Δκ=1e-3, r_κ=1e-8, verbose=true)
