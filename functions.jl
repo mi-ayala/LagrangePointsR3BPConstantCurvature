@@ -36,6 +36,15 @@ function Intθ_1(κ, μ)
     return (-sqrt(κ) * q₁(κ, μ), sqrt(κ) * q₂(κ, μ))
 end
 
+function θ1_max(κ, μ)
+    κ, μ = promote(κ, μ)
+    r = sqrt(κ)
+    y = tan(r * q₂(κ, μ))     # numerator
+    x = one(μ) + μ            # denominator (kept as same type)
+    return atan(y, x)
+end
+
+
 function f₂(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     r = sqrt(κ)
