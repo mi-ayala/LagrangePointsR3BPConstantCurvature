@@ -5,10 +5,8 @@ using Roots
 plotlyjs()
 
 include("functions.jl")
-# setprecision(BigFloat, 113) 
 
-
-κ = 1.33
+κ = 0.5
 μ = 0.02
 
 
@@ -23,8 +21,8 @@ theta_range = interior_linspace(Intθ_1(κ, μ)[1], Intθ_1(κ, μ)[2], 100)
 # f₁(θ, κ, μ)
 # f₁θ(θ, κ, μ)
 Plots.plot(
-Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
-Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
+    Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
+    Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
 
 
 ### A single root example
@@ -63,7 +61,7 @@ end
 
 
 
-f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ)) 
+f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ))
 
 
 # # bounds for the box
@@ -150,9 +148,9 @@ r_μ = 0.001
 validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=true)
 
 function push_kappa_interval(κ_center, μ_center, root;
-        Δκ = 1e-3, κmax = (π/2)^2,
-        r_κ = 1e-8, r_μ = 1e-8,
-        verbose = false)
+    Δκ=1e-3, κmax=(π / 2)^2,
+    r_κ=1e-8, r_μ=1e-8,
+    verbose=false)
 
     # first validation
     ok = validate_f1_root(root, κ_center, μ_center, r_κ, r_μ; verbose)
@@ -165,8 +163,8 @@ function push_kappa_interval(κ_center, μ_center, root;
         κ_center_next = κ_center + Δκ
 
         # build intervals for rigorous check
-        Iκ = interval(κ_center_next, r_κ; format = :midpoint)
-        Iμ = interval(μ_center, r_μ; format = :midpoint)
+        Iκ = interval(κ_center_next, r_κ; format=:midpoint)
+        Iμ = interval(μ_center, r_μ; format=:midpoint)
 
         # compute the root at midpoint values (for seeding)
         root_next = find_zero(θ -> f₁(θ, mid(Iκ), mid(Iμ)), root)
@@ -186,10 +184,130 @@ function push_kappa_interval(κ_center, μ_center, root;
         end
     end
 
-    return interval(κ_best, r_κ; format = :midpoint), root_best
+    return interval(κ_best, r_κ; format=:midpoint), root_best
 end
 
 
 κ0, μ = 0.5, 0.02
 
 Iκ_final, root_final = push_kappa_interval(κ0, μ, root; Δκ=1e-3, r_κ=1e-8, verbose=true)
+
+
+ispos(I) = isfinite(I) && inf(I) > 0
+isneg(I) = isfinite(I) && sup(I) < 0
+
+
+# Certify sign of f₁θ on a centered sub-interval around θc, clipped to stay inside Iθ
+function certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; min_width=1e-12, verbose=false)
+
+    Iκ = interval(κ, rκ; format=:midpoint)
+    Iμ = interval(μ, rμ; format=:midpoint)
+
+    Iθ = interval(0, θ1_max(Iκ, Iμ))
+    inf(Iθ) < θc < sup(Iθ) || return (:unknown, interval(θc), Interval(0))  # θc must be inside
+
+
+
+    # maximum admissible radius that keeps [θc - r, θc + r] ⊆ Iθ
+    rmax = min(θc - inf(Iθ), sup(Iθ) - θc)
+    r = rmax
+
+    # shrink-by-halves until strict sign is certified or too small
+    for _ in 0:60
+        Ic = interval(θc, r; format=:midpoint)
+        dI = f₁θ(Ic, Iκ, Iμ)
+        if ispos(dI)
+            verbose && println("f₁θ > 0 on ", Ic)
+            return (:pos, Ic, dI)
+        elseif isneg(dI)
+            verbose && println("f₁θ < 0 on ", Ic)
+            return (:neg, Ic, dI)
+        end
+        if 2r <= min_width
+            verbose && println("inconclusive at width≈", 2r, "  dI=", dI)
+            return (:unknown, Ic, dI)
+        end
+        r *= 0.5
+    end
+    Ic = interval(θc, r; format=:midpoint)
+    return (:unknown, Ic, f₁θ(Ic, Iκ, Iμ))
+end
+
+
+
+θc = root
+rθ = interval(0, θ1_max(interval(κ), interval(μ)))
+κ = 0.5
+μ = 0.02
+rκ = 1e-8
+rμ = 1e-8
+
+status, Iθ_cert, dI_cert = certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; verbose=true)
+
+
+
+ispos(I) = isfinite(I) && inf(I) > 0
+isneg(I) = isfinite(I) && sup(I) < 0
+nonzero(I) = ispos(I) || isneg(I)
+
+"""
+    validate_complements(I, J, κ, μ, rκ, rμ; verbose=false)
+
+Checks if J == I. If not, verifies f₁(θ, κ, μ) ≠ 0 on both complements:
+left [a,c] and right [d,b].
+
+Returns `true` if:
+  • J == I, or
+  • f₁ is certified nonzero on both complement intervals.
+
+Otherwise returns `false`.
+"""
+function validate_complements(I, J, κ, μ, rκ, rμ; verbose=false)
+    a, b = inf(I), sup(I)
+    c, d = inf(J), sup(J)
+    a ≤ c ≤ d ≤ b || error("J must be contained in I")
+
+    # If exactly equal → done
+    if a == c && b == d
+        verbose && println("J equals I — nothing to check.")
+        return true
+    end
+
+    Iκ = interval(κ, rκ; format=:midpoint)
+    Iμ = interval(μ, rμ; format=:midpoint)
+
+    # Left and right complements (skip if empty)
+    left = (a < c) ? interval(a, c) : nothing
+    right = (d < b) ? interval(d, b) : nothing
+
+    ok_left = true
+    ok_right = true
+
+    if left !== nothing
+        valL = f₁(left, Iκ, Iμ)
+        ok_left = nonzero(valL)
+        verbose && println("Left [a,c] = $left → f₁(left) = $valL")
+    end
+
+    if right !== nothing
+        valR = f₁(right, Iκ, Iμ)
+        ok_right = nonzero(valR)
+        verbose && println("Right [d,b] = $right → f₁(right) = $valR")
+    end
+
+    result = ok_left && ok_right
+    verbose && println("Complements nonzero? ", result)
+    return result
+end
+
+
+Iκ = interval(κ, rκ; format=:midpoint)
+Iμ = interval(μ, rμ; format=:midpoint)
+
+Iθ = interval(0, θ1_max(Iκ, Iμ))
+
+Jθ = Iθ_cert
+κ, μ = 0.5, 0.02
+rκ, rμ = 1e-8, 1e-8
+
+ok = validate_complements(Iθ, Jθ, κ, μ, rκ, rμ; verbose=true)
