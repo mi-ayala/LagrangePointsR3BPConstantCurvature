@@ -1,5 +1,5 @@
-ispos(I) = isfinite(I) && inf(I) > 0
-isneg(I) = isfinite(I) && sup(I) < 0
+ispos(I) = inf(I) > 0
+isneg(I) =  sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
 # ispos(I) = inf(I) > 0

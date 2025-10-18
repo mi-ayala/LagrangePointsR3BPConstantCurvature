@@ -6,8 +6,8 @@ plotlyjs()
 
 include("functions.jl")
 
-κ = 0.5
-μ = 0.02
+κ = 0.002
+μ = 0.002
 
 interior_linspace(lo, hi, n; margin=0.01) = begin
     a = lo + margin * (hi - lo)
@@ -17,10 +17,10 @@ end
 
 theta_range = interior_linspace(Intθ_1(κ, μ)[1], Intθ_1(κ, μ)[2], 100)
 
-Plots.plot(
-    Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
-    Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
-
+# ### Plot function and derivative
+# Plots.plot(
+#     Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
+#     Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
 
 ### A single root example
 ### Estimate by sign changes
@@ -30,23 +30,29 @@ end
 br = brackets_f₁(κ, μ; n=800)
 root = find_zero(θ -> f₁(θ, κ, μ), br[1])
 
-delta = 0.0001
+delta = 0.00001
 
 f₁(interval(root + delta), interval(κ), interval(μ))
 f₁(interval(root - delta), interval(κ), interval(μ))
 f₁θ(interval(root, delta; format=:midpoint), interval(κ), interval(μ))
 
 
-parameter_delta = 0.00001
-
+parameter_delta = 0.0000001
 f₁(interval(root + delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
 
 f₁(interval(root - delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
 
 f₁θ(interval(root, delta; format=:midpoint), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
 
-
 f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ))
+
+### Testing validation function
+parameter_delta_kappa = 0.000001
+parameter_delta_mu = 0.0001
+validate_f1_root(root, κ, μ, 
+parameter_delta_kappa , 
+parameter_delta_mu ; verbose=true)
+
 
 
 # # bounds for the box
@@ -54,78 +60,129 @@ f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(
 # κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 # μ_lo, μ_hi = 0.0, μT
 
+# # example
+# κ = 0.5
+# μ = 0.08
+# r_κ = 0.001
+# r_μ = 0.00001
 
-# example
-κ = 0.5
-μ = 0.02
-r_κ = 0.001
-r_μ = 0.001
+# validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=true)
 
-validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=true)
+# function push_kappa_interval(κ_center, μ_center, root;
+#     Δκ=1e-3, κmax=(π / 2)^2,
+#     r_κ=1e-8, r_μ=1e-8,
+#     verbose=false)
 
-function push_kappa_interval(κ_center, μ_center, root;
-    Δκ=1e-3, κmax=(π / 2)^2,
-    r_κ=1e-8, r_μ=1e-8,
-    verbose=false)
+#     # first validation
+#     ok = validate_f1_root(root, κ_center, μ_center, r_κ, r_μ; verbose)
+#     ok || error("initial point not valid")
 
-    # first validation
-    ok = validate_f1_root(root, κ_center, μ_center, r_κ, r_μ; verbose)
-    ok || error("initial point not valid")
+#     κ_best, root_best = κ_center, root
 
-    κ_best, root_best = κ_center, root
+#     while κ_center < κmax
+#         # next center value (float)
+#         κ_center_next = κ_center + Δκ
 
-    while κ_center < κmax
-        # next center value (float)
-        κ_center_next = κ_center + Δκ
+#         # build intervals for rigorous check
+#         Iκ = interval(κ_center_next, r_κ; format=:midpoint)
+#         Iμ = interval(μ_center, r_μ; format=:midpoint)
 
-        # build intervals for rigorous check
-        Iκ = interval(κ_center_next, r_κ; format=:midpoint)
-        Iμ = interval(μ_center, r_μ; format=:midpoint)
+#         # compute the root at midpoint values (for seeding)
+#         root_next = find_zero(θ -> f₁(θ, mid(Iκ), mid(Iμ)), root)
 
-        # compute the root at midpoint values (for seeding)
-        root_next = find_zero(θ -> f₁(θ, mid(Iκ), mid(Iμ)), root)
+#         if !isfinite(root_next)
+#             verbose && println("nonfinite root at κ=$(mid(Iκ))")
+#             break
+#         end
 
-        if !isfinite(root_next)
-            verbose && println("nonfinite root at κ=$(mid(Iκ))")
-            break
-        end
+#         if validate_f1_root(root_next, mid(Iκ), mid(Iμ), r_κ, r_μ; verbose)
+#             κ_center, root = mid(Iκ), root_next
+#             κ_best, root_best = κ_center, root
+#             verbose && println("✓ valid at κ=$(round(κ_center, sigdigits=6))")
+#         else
+#             verbose && println("✗ failed at κ=$(round(mid(Iκ), sigdigits=6))")
+#             break
+#         end
+#     end
 
-        if validate_f1_root(root_next, mid(Iκ), mid(Iμ), r_κ, r_μ; verbose)
-            κ_center, root = mid(Iκ), root_next
-            κ_best, root_best = κ_center, root
-            verbose && println("✓ valid at κ=$(round(κ_center, sigdigits=6))")
-        else
-            verbose && println("✗ failed at κ=$(round(mid(Iκ), sigdigits=6))")
-            break
-        end
-    end
+#     return interval(κ_best, r_κ; format=:midpoint), root_best
+# end
 
-    return interval(κ_best, r_κ; format=:midpoint), root_best
-end
+# κ0, μ = 0.5, 0.08
+# Iκ_final, root_final = push_kappa_interval(κ0, μ, root; Δκ=1e-3, r_κ=1e-8, verbose=true)
 
+# θc = root
+# rθ = interval(0, θ1_max(interval(κ), interval(μ)))
+# κ = 0.5
+# μ = 0.08
+# rκ = 1e-8
+# rμ = 1e-8
 
-κ0, μ = 0.5, 0.02
+# status, Iθ_cert, dI_cert = certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; verbose=true)
 
-Iκ_final, root_final = push_kappa_interval(κ0, μ, root; Δκ=1e-3, r_κ=1e-8, verbose=true)
+# Iκ = interval(κ, rκ; format=:midpoint)
+# Iμ = interval(μ, rμ; format=:midpoint)
+# Iθ = interval(0, θ1_max(Iκ, Iμ))
 
+# Jθ = Iθ_cert
+# κ, μ = 0.5, 0.08
+# rκ, rμ = 1e-8, 1e-9
 
-θc = root
-rθ = interval(0, θ1_max(interval(κ), interval(μ)))
-κ = 0.5
-μ = 0.02
-rκ = 1e-8
-rμ = 1e-8
+# ok = validate_complements(Iθ, Jθ, κ, μ, rκ, rμ; verbose=true)
 
-status, Iθ_cert, dI_cert = certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; verbose=true)
+# # tiny helpers (if you don't already have them in scope)
+# ispos(I) = isfinite(I) && inf(I) > 0
+# isneg(I) = isfinite(I) && sup(I) < 0
 
+# function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
+#     # parameter intervals
+#     Iκ = interval(κ, r_κ; format=:midpoint)
+#     Iμ = interval(μ, r_μ; format=:midpoint)
 
-Iκ = interval(κ, rκ; format=:midpoint)
-Iμ = interval(μ, rμ; format=:midpoint)
+#     # theta interval [0, θ1_max] (conservative upper bound)
+#     a = zero(κ)
+#     b = θ1_max(Iκ, Iμ)
+#     Iθ = interval(a, sup(b))
 
-Iθ = interval(0, θ1_max(Iκ, Iμ))
+#     # guard: root ∈ Iθ
+#     if !(inf(Iθ) ≤ root ≤ sup(Iθ))
+#         verbose && println("root=$root not inside θ-interval $Iθ")
+#         return false
+#     end
 
-Jθ = Iθ_cert
-κ, μ = 0.5, 0.02
-rκ, rμ = 1e-8, 1e-8
+#     # --- your existence test (left/right midpoints) ---
+#     leftθ  = (inf(Iθ) + root) / 2
+#     rightθ = (root + sup(Iθ)) / 2
+#     fL = f₁(interval(leftθ),  Iκ, Iμ)
+#     fR = f₁(interval(rightθ), Iκ, Iμ)
+#     left_neg_right_pos = isneg(fL) && ispos(fR)
+#     left_pos_right_neg = ispos(fL) && isneg(fR)
+#     exists = left_neg_right_pos || left_pos_right_neg
+#     if !exists
+#         verbose && println("Existence not certified by sign change: fL=$fL, fR=$fR")
+#         return false
+#     end
 
-ok = validate_complements(Iθ, Jθ, κ, μ, rκ, rμ; verbose=true)
+#     # --- replace old derivative check with your two functions ---
+#     # 1) certify strict sign of f₁θ on a centered sub-interval J around root
+#     status, J, dI = certify_deriv_sign_centered(root, κ, μ, r_κ, r_μ)
+#     if status === :unknown
+#         verbose && println("Could not certify strict sign of f₁θ near root. dI = $dI")
+#         return false
+#     end
+
+#     # 2) prove f₁ ≠ 0 on the complements Iθ \ J
+#     uniq = validate_complements(Iθ, J, κ, μ, r_κ, r_μ; verbose=verbose)
+
+#     if verbose
+#         println("θ-interval Iθ     = $Iθ")
+#         println("leftθ=$leftθ  fL  = $fL  (neg? ", isneg(fL), ", pos? ", ispos(fL), ")")
+#         println("rightθ=$rightθ fR = $fR  (neg? ", isneg(fR), ", pos? ", ispos(fR), ")")
+#         println("certified J       = $J (status = $status)")
+#         println("uniqueness via complements? ", uniq)
+#     end
+
+#     return uniq
+# end
+
+# validate_f1_root(root, κ, μ, r_κ, r_μ)
