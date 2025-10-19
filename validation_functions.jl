@@ -2,65 +2,6 @@ ispos(I) = inf(I) > 0
 isneg(I) =  sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
-# ispos(I) = inf(I) > 0
-# isneg(I) = sup(I) < 0
-"""
-    validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false, shrink=1e-12)
-
-Validate that `root` is a simple root of f₁(·; κ, μ) in θ ∈ [0, θ1_max(κ, μ)].
-`κ` and `μ` are centered to intervals via radii `r_κ`, `r_μ` (midpoint format).
-
-Checks:
-  - f₁(left) and f₁(right) have opposite signs (using thin intervals at midpoints)
-  - the derivative f₁θ is monotone over the full θ-interval (strictly >0 or <0)
-
-Returns `true`/`false`. If `verbose=true`, prints diagnostic info.
-"""
-function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
-    # parameter intervals
-    Iκ = interval(κ, r_κ; format=:midpoint)
-    Iμ = interval(μ, r_μ; format=:midpoint)
-
-    # theta interval [0, b], slightly shrunk to avoid boundary singularities
-    a = zero(κ)
-    b = θ1_max(Iκ, Iμ)
-    A = interval(a, sup(b))  # conservative
-
-    # guard: root inside [A]?
-    if !(inf(A) ≤ root ≤ sup(A))
-        verbose && println("root=$root not inside θ-interval $A")
-        return false
-    end
-
-    # midpoints on each side of root
-    leftθ = (inf(A) + root) / 2
-    rightθ = (root + sup(A)) / 2
-
-    # thin-interval evaluations
-    fL = f₁(interval(leftθ), Iκ, Iμ)
-    fR = f₁(interval(rightθ), Iκ, Iμ)
-
-    # derivative over the full interval
-    dI = f₁θ(A, Iκ, Iμ)
-
-    left_neg_right_pos = isneg(fL) && ispos(fR)
-    left_pos_right_neg = ispos(fL) && isneg(fR)
-    deriv_pos = ispos(dI)
-    deriv_neg = isneg(dI)
-
-    ok = (left_neg_right_pos && deriv_pos) || (left_pos_right_neg && deriv_neg)
-
-    if verbose
-        println("θ-interval A       = $A")
-        println("leftθ=$leftθ  fL   = $fL  (neg? ", isneg(fL), ", pos? ", ispos(fL), ")")
-        println("rightθ=$rightθ fR  = $fR  (neg? ", isneg(fR), ", pos? ", ispos(fR), ")")
-        println("f₁θ over A         = $dI  (deriv>0? ", deriv_pos, ", deriv<0? ", deriv_neg, ")")
-        println("VALID? ", ok)
-    end
-
-    return ok
-end
-
 
 function check_uniqueness(κ, μ, r_κ, r_μ; verbose=false)
     Iκ = interval(κ, r_κ; format=:midpoint)
@@ -166,42 +107,50 @@ function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
     Iκ = interval(κ, r_κ; format=:midpoint)
     Iμ = interval(μ, r_μ; format=:midpoint)
 
-    # theta interval [0, b], slightly shrunk to avoid boundary singularities
+    # theta interval [0, θ1_max] (conservative upper bound)
     a = zero(κ)
     b = θ1_max(Iκ, Iμ)
-    A = interval(a, sup(b))  # conservative
+    Iθ = interval(a, sup(b))
 
-    # guard: root inside [A]?
-    if !(inf(A) ≤ root ≤ sup(A))
-        verbose && println("root=$root not inside θ-interval $A")
+    # guard: root ∈ Iθ
+    if !(inf(Iθ) ≤ root ≤ sup(Iθ))
+        verbose && println("root=$root not inside θ-interval $Iθ")
         return false
     end
 
-    # midpoints on each side of root
-    leftθ = (inf(A) + root) / 2
-    rightθ = (root + sup(A)) / 2
-
-    # thin-interval evaluations
-    fL = f₁(interval(leftθ), Iκ, Iμ)
+    leftθ  = (inf(Iθ) + root) / 2
+    rightθ = (root + sup(Iθ)) / 2
+    fL = f₁(interval(leftθ),  Iκ, Iμ)
     fR = f₁(interval(rightθ), Iκ, Iμ)
-
-    # derivative over the full interval
-    dI = f₁θ(A, Iκ, Iμ)
-
     left_neg_right_pos = isneg(fL) && ispos(fR)
     left_pos_right_neg = ispos(fL) && isneg(fR)
-    deriv_pos = ispos(dI)
-    deriv_neg = isneg(dI)
-
-    ok = (left_neg_right_pos && deriv_pos) || (left_pos_right_neg && deriv_neg)
-
-    if verbose
-        println("θ-interval A       = $A")
-        println("leftθ=$leftθ  fL   = $fL  (neg? ", isneg(fL), ", pos? ", ispos(fL), ")")
-        println("rightθ=$rightθ fR  = $fR  (neg? ", isneg(fR), ", pos? ", ispos(fR), ")")
-        println("f₁θ over A         = $dI  (deriv>0? ", deriv_pos, ", deriv<0? ", deriv_neg, ")")
-        println("VALID? ", ok)
+    exists = left_neg_right_pos || left_pos_right_neg
+    if !exists
+        verbose && println("Existence not certified by sign change: fL=$fL, fR=$fR")
+        return false
     end
 
-    return ok
+    # --- replace old derivative check with your two functions ---
+    # 1) certify strict sign of f₁θ on a centered sub-interval J around root
+    status, J, dI = certify_deriv_sign_centered(root, κ, μ, r_κ, r_μ)
+    if status === :unknown
+        verbose && println("Could not certify strict sign of f₁θ near root. dI = $dI")
+        return false
+    end
+
+    # 2) prove f₁ ≠ 0 on the complements Iθ \ J
+    uniq = validate_complements(Iθ, J, κ, μ, r_κ, r_μ; verbose=verbose)
+
+    if verbose
+        println("θ-interval Iθ     = $Iθ")
+        println("leftθ=$leftθ  fL  = $fL  (neg? ", isneg(fL), ", pos? ", ispos(fL), ")")
+        println("rightθ=$rightθ fR = $fR  (neg? ", isneg(fR), ", pos? ", ispos(fR), ")")
+        println("certified J       = $J (status = $status)")
+        println("uniqueness via complements? ", uniq)
+    end
+
+    # return (uniq, κ, μ, r_κ, r_μ)
+    return uniq
 end
+
+

@@ -5,6 +5,7 @@ using Roots
 plotlyjs()
 
 include("functions.jl")
+include("validation_functions.jl")
 
 κ = 0.002
 μ = 0.002
@@ -36,7 +37,6 @@ f₁(interval(root + delta), interval(κ), interval(μ))
 f₁(interval(root - delta), interval(κ), interval(μ))
 f₁θ(interval(root, delta; format=:midpoint), interval(κ), interval(μ))
 
-
 parameter_delta = 0.0000001
 f₁(interval(root + delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
 
@@ -49,24 +49,9 @@ f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(
 ### Testing validation function
 parameter_delta_kappa = 0.000001
 parameter_delta_mu = 0.0001
-validate_f1_root(root, κ, μ, 
-parameter_delta_kappa , 
-parameter_delta_mu ; verbose=true)
+validate_f1_root(root, κ, μ, parameter_delta_kappa,
+    parameter_delta_mu; verbose=true)
 
-
-
-# # bounds for the box
-# μT = 0.0886765
-# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
-# μ_lo, μ_hi = 0.0, μT
-
-# # example
-# κ = 0.5
-# μ = 0.08
-# r_κ = 0.001
-# r_μ = 0.00001
-
-# validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=true)
 
 # function push_kappa_interval(κ_center, μ_center, root;
 #     Δκ=1e-3, κmax=(π / 2)^2,
@@ -111,78 +96,361 @@ parameter_delta_mu ; verbose=true)
 # κ0, μ = 0.5, 0.08
 # Iκ_final, root_final = push_kappa_interval(κ0, μ, root; Δκ=1e-3, r_κ=1e-8, verbose=true)
 
-# θc = root
-# rθ = interval(0, θ1_max(interval(κ), interval(μ)))
-# κ = 0.5
-# μ = 0.08
-# rκ = 1e-8
-# rμ = 1e-8
+# Maximize rμ so that validate_f1_root(root, κ, μ, rκ_fixed, rμ) == true
+function maximize_delta_mu(root, κ, μ,
+    rκ_fixed;
+    rμ0=1e-8,       # starting radius for μ
+    rμ_max=1.0,     # hard cap
+    grow=1.8,       # multiplicative growth
+    tol=1e-12,      # final bisection tolerance
+    max_steps=200,
+    verbose=false)
 
-# status, Iθ_cert, dI_cert = certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; verbose=true)
+    # helper: predicate we’re maximizing against
+    ok(rμ) = validate_f1_root(root, κ, μ, rκ_fixed, rμ; verbose=false)
 
-# Iκ = interval(κ, rκ; format=:midpoint)
-# Iμ = interval(μ, rμ; format=:midpoint)
-# Iθ = interval(0, θ1_max(Iκ, Iμ))
+    # normalize types
+    T = promote_type(typeof(root), typeof(κ), typeof(μ), typeof(rκ_fixed),
+        typeof(rμ0), typeof(rμ_max), typeof(tol))
+    rμ = T(rμ0)
+    rμ_cap = T(rμ_max)
+    tolT = T(tol)
 
-# Jθ = Iθ_cert
-# κ, μ = 0.5, 0.08
-# rκ, rμ = 1e-8, 1e-9
+    # 0) ensure we start from a valid radius (shrink if needed)
+    steps = 0
+    while steps < max_steps && !ok(rμ) && rμ > tolT
+        rμ /= 2
+        steps += 1
+    end
+    if !ok(rμ)
+        verbose && println("No valid μ-radius found (even below tol).")
+        return (false, κ, μ, rκ_fixed, zero(T))
+    end
 
-# ok = validate_complements(Iθ, Jθ, κ, μ, rκ, rμ; verbose=true)
+    # 1) grow until it fails or hits rμ_cap
+    last_good = rμ
+    first_bad = T(NaN)
+    while steps < max_steps && rμ < rμ_cap
+        rμ_try = min(rμ * T(grow), rμ_cap)
+        if ok(rμ_try)
+            last_good = rμ = rμ_try
+            verbose && println("✓ rμ = ", rμ)
+        else
+            first_bad = rμ_try
+            verbose && println("✗ fail at rμ = ", rμ_try)
+            break
+        end
+        steps += 1
+    end
 
-# # tiny helpers (if you don't already have them in scope)
-# ispos(I) = isfinite(I) && inf(I) > 0
-# isneg(I) = isfinite(I) && sup(I) < 0
+    # 2) if we never failed, we’re done (hit cap)
+    if !isfinite(first_bad)
+        return (true, κ, μ, rκ_fixed, last_good)
+    end
 
-# function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
-#     # parameter intervals
-#     Iκ = interval(κ, r_κ; format=:midpoint)
-#     Iμ = interval(μ, r_μ; format=:midpoint)
+    # 3) bisect between last_good and first_bad
+    lo, hi = last_good, first_bad
+    while (hi - lo) > tolT && steps < max_steps
+        mid = (lo + hi) / 2
+        if ok(mid)
+            lo = mid
+        else
+            hi = mid
+        end
+        steps += 1
+    end
+    return (true, κ, μ, rκ_fixed, lo)
+end
 
-#     # theta interval [0, θ1_max] (conservative upper bound)
-#     a = zero(κ)
-#     b = θ1_max(Iκ, Iμ)
-#     Iθ = interval(a, sup(b))
 
-#     # guard: root ∈ Iθ
-#     if !(inf(Iθ) ≤ root ≤ sup(Iθ))
-#         verbose && println("root=$root not inside θ-interval $Iθ")
-#         return false
-#     end
+function maximize_delta_kappa(root, κ, μ,
+    rμ_fixed;
+    rκ0::Real=1e-8,     # starting radius for κ
+    rκ_max::Real=1.0,   # hard cap you allow
+    grow::Real=1.8,     # multiplicative growth
+    tol::Real=1e-12,   # final bisection tolerance
+    max_steps::Int=200,
+    verbose::Bool=false)
 
-#     # --- your existence test (left/right midpoints) ---
-#     leftθ  = (inf(Iθ) + root) / 2
-#     rightθ = (root + sup(Iθ)) / 2
-#     fL = f₁(interval(leftθ),  Iκ, Iμ)
-#     fR = f₁(interval(rightθ), Iκ, Iμ)
-#     left_neg_right_pos = isneg(fL) && ispos(fR)
-#     left_pos_right_neg = ispos(fL) && isneg(fR)
-#     exists = left_neg_right_pos || left_pos_right_neg
-#     if !exists
-#         verbose && println("Existence not certified by sign change: fL=$fL, fR=$fR")
-#         return false
-#     end
+    # predicate: does the validator still certify with this κ-radius?
+    ok(rκ) = validate_f1_root(root, κ, μ, rκ, rμ_fixed; verbose=false)
 
-#     # --- replace old derivative check with your two functions ---
-#     # 1) certify strict sign of f₁θ on a centered sub-interval J around root
-#     status, J, dI = certify_deriv_sign_centered(root, κ, μ, r_κ, r_μ)
-#     if status === :unknown
-#         verbose && println("Could not certify strict sign of f₁θ near root. dI = $dI")
-#         return false
-#     end
+    # normalize numeric type
+    T = promote_type(typeof(root), typeof(κ), typeof(μ),
+        typeof(rμ_fixed), typeof(rκ0), typeof(rκ_max), typeof(tol))
+    rκ = T(rκ0)
+    rκ_cap = T(rκ_max)
+    tolT = T(tol)
+    gT = T(grow)
 
-#     # 2) prove f₁ ≠ 0 on the complements Iθ \ J
-#     uniq = validate_complements(Iθ, J, κ, μ, r_κ, r_μ; verbose=verbose)
+    # 0) ensure starting point is valid (shrink if needed)
+    steps = 0
+    while steps < max_steps && !ok(rκ) && rκ > tolT
+        rκ /= 2
+        steps += 1
+    end
+    if !ok(rκ)
+        verbose && println("No valid κ-radius found (even below tol).")
+        return (false, κ, μ, zero(T), rμ_fixed)
+    end
 
-#     if verbose
-#         println("θ-interval Iθ     = $Iθ")
-#         println("leftθ=$leftθ  fL  = $fL  (neg? ", isneg(fL), ", pos? ", ispos(fL), ")")
-#         println("rightθ=$rightθ fR = $fR  (neg? ", isneg(fR), ", pos? ", ispos(fR), ")")
-#         println("certified J       = $J (status = $status)")
-#         println("uniqueness via complements? ", uniq)
-#     end
+    # 1) grow until first failure or cap
+    last_good = rκ
+    first_bad = T(NaN)
+    while steps < max_steps && rκ < rκ_cap
+        rκ_try = min(rκ * gT, rκ_cap)
+        if ok(rκ_try)
+            last_good = rκ = rκ_try
+            verbose && println("✓ rκ = ", rκ)
+        else
+            first_bad = rκ_try
+            verbose && println("✗ fail at rκ = ", rκ_try)
+            break
+        end
+        steps += 1
+    end
 
-#     return uniq
-# end
+    # 2) if never failed, we hit the cap
+    if !isfinite(first_bad)
+        return (true, κ, μ, last_good, rμ_fixed)
+    end
 
-# validate_f1_root(root, κ, μ, r_κ, r_μ)
+    # 3) bisect between last_good and first_bad
+    lo, hi = last_good, first_bad
+    while (hi - lo) > tolT && steps < max_steps
+        mid = (lo + hi) / 2
+        if ok(mid)
+            lo = mid
+        else
+            hi = mid
+        end
+        steps += 1
+    end
+
+    return (true, κ, μ, lo, rμ_fixed)
+end
+
+
+### Testing validation function
+parameter_delta_kappa = 0.000001
+parameter_delta_mu = 0.000001
+validate_f1_root(root, κ, μ, parameter_delta_kappa,
+    parameter_delta_mu; verbose=true)
+
+
+ok, κc, μc, rκ_star, rμ = maximize_delta_mu(root, κ, μ,
+    parameter_delta_kappa;
+    rμ0=parameter_delta_mu,   # starting radius for μ
+    rμ_max=0.0886765,                  # hard cap (set as you like)
+    grow=1.8,                   # multiplicative growth
+    tol=1e-12,             # final bisection tolerance
+    max_steps=200,
+    verbose=true)
+
+
+validate_f1_root(root, κc, μc, rκ_star, rμ; verbose=true)
+
+ok, κc, μc, rκ, rμ = maximize_delta_kappa(root, κ, μ, rμ;
+    rκ0=rκ_star,     # starting radius for κ
+    rκ_max=(0.5 * pi)^2,   # hard cap 
+    grow=1.8,     # multiplicative growth
+    tol=1e-12,   # final bisection tolerance
+    max_steps=200,
+    verbose=true)
+
+
+"""
+    push_forward_mu(initial_root, κc, μc, rκ;
+                    rμ_init=1e-8, μT=0.0886765, rμ_cap=0.1,
+                    grow=1.8, tol=1e-12, max_steps=200, verbose=true)
+
+Walk forward in μ. At each step:
+  1) maximize Δμ with `maximize_delta_mu` (cap so μ never exceeds μT),
+  2) record the validated box (true, κc, μ_old, rκ, rμ_step),
+  3) move μc ← μ_old + rμ_step,
+  4) find the new root at (κc, μc) using a bracket (falls back to Newton),
+  5) reset rμ ← rμ_init and repeat.
+
+Returns: `boxes, κc, μc, root`
+  where `boxes :: Vector{Tuple{Bool,Real,Real,Real,Real}}`.
+"""
+function push_forward_mu(initial_root, κc, μc, rκ;
+    rμ_init::Real=1e-8,
+    μT::Real=0.0886765,
+    rμ_cap::Real=0.1,        # per-step hard cap (before μT clipping)
+    grow::Real=1.8,
+    tol::Real=1e-12,
+    max_steps::Int=200,
+    verbose::Bool=true)
+
+    # numeric type hygiene (works for Float64 / BigFloat)
+    T = promote_type(typeof(initial_root), typeof(κc), typeof(μc),
+        typeof(rκ), typeof(rμ_init), typeof(μT), typeof(tol))
+    root = T(initial_root)
+    rμ = T(rμ_init)
+
+    boxes = Vector{Tuple{Bool,T,T,T,T}}()
+
+    stepno = 0
+    while μc < μT
+        stepno += 1
+
+        # don’t allow step to push past μT
+        rμ_max_allowed = min(T(rμ_cap), T(μT - μc))
+        if rμ_max_allowed ≤ T(0)
+            verbose && println("Reached μT = ", μT)
+            break
+        end
+
+        # maximize μ-radius for this center
+        ok, κc_ret, μc_ret, rκ_ret, rμ_star =
+            maximize_delta_mu(root, κc, μc,
+                rκ;
+                rμ0=rμ,
+                rμ_max=rμ_max_allowed,
+                grow=grow,
+                tol=tol,
+                max_steps=max_steps,
+                verbose=verbose)
+
+        if !ok || rμ_star ≤ T(0)
+            verbose && println("Stopping: cannot certify μ-radius at μ = ", μc)
+            break
+        end
+
+        # save current validated box at the *old* center (plot later)
+        push!(boxes, (true, T(κc), T(μc), T(rκ), T(rμ_star)))
+
+        # advance μ-center by the certified radius
+        μc_old = μc
+        μc = μc_old + rμ_star
+        verbose && println("→ step ", stepno, ": μ ← ", μc)
+
+        # find new root at the new center
+        br = brackets_f₁(κc, μc; n=800)
+        if isempty(br)
+            verbose && println("Stopping: could not refine root at μ = ", μc)
+            break
+        end
+
+        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+        # reset μ-radius for the next step
+        rμ = T(rμ_init)
+    end
+
+    return boxes, κc, μc, root
+end
+
+
+
+"""
+    sweep_bands_kappa(initial_root, κc0, μ0, rκ;
+        μT = 0.0886765,
+        κ_hi = (0.5*π)^2,
+        rμ_init = 1e-8,
+        rμ_cap  = 0.1,
+        rκ_init = 1e-8,        # starting κ-radius for κ-steps
+        rκ_cap  = 0.1,         # per-step cap when growing κ
+        grow = 1.8,
+        tol  = 1e-12,
+        max_steps = 200,
+        verbose = true)
+
+Make consecutive μ-bands while increasing κ. For each band:
+  1) Run `push_forward_mu` from (κc, μ_start) with fixed rκ → collect boxes along μ.
+  2) Increase κ by maximizing κ-radius (holding rμ fixed at rμ_init), don’t exceed κ_hi.
+  3) Recompute the root at (κc_new, μ_start). Repeat.
+
+Returns `(all_boxes, κc, μ_start, last_root)`, where `all_boxes` is a
+Vector{Tuple{Bool,Real,Real,Real,Real}} ready for `plot_validated_boxes`.
+"""
+function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
+    μT::Real=0.0886765,
+    κ_hi::Real=(0.5 * π)^2,
+    rμ_init::Real=1e-8,
+    rμ_cap::Real=0.1,
+    rκ_init::Real=1e-8,
+    rκ_cap::Real=0.1,
+    grow::Real=1.8,
+    tol::Real=1e-12,
+    max_steps::Int=200,
+    verbose::Bool=true)
+
+    T = promote_type(typeof(initial_root), typeof(κc0), typeof(μ0),
+        typeof(rκ), typeof(rμ_init), typeof(μT), typeof(κ_hi), typeof(tol))
+    κc = T(κc0)
+    μ_start = T(μ0)
+    root = T(initial_root)
+
+    all_boxes = Vector{Tuple{Bool,T,T,T,T}}()
+
+    band = 0
+    while κc < κ_hi
+        band += 1
+        verbose && println("\n=== Band $band @ κ = $(κc) ===")
+
+        # 1) μ-push at current κ (collect validated rectangles along μ)
+        boxes, κc_out, μ_end, root_out = push_forward_mu(root, κc, μ_start, rκ;
+            rμ_init=T(rμ_init), μT=T(μT), rμ_cap=T(rμ_cap),
+            grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
+
+        append!(all_boxes, boxes)
+        root = root_out  # last root in this band
+
+        # stop if we already reached μT inside push_forward_mu (common case)
+        if μ_end < μT && verbose
+            println("Band ended early at μ=$(μ_end).")
+        end
+
+        # 2) grow κ-radius (hold a small fixed rμ during this κ step)
+        rκ_max_allowed = min(T(rκ_cap), T(κ_hi - κc))
+        if rκ_max_allowed ≤ T(0)
+            verbose && println("Reached κ_hi = ", κ_hi)
+            break
+        end
+
+        # move κ center
+        κc_old = κc
+        κc = κc_old + rκ
+        verbose && println("→ advance κ: $(κc_old) → $(κc)")
+
+        # 3) re-find root at the new (κc, μ_start) to seed next band
+        br = brackets_f₁(κc, μ_start; n=800)
+        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+
+        if isempty(br)
+            verbose && println("Stopping: could not refine root at (κ,μ) = ($(κc), $(μ_start))")
+            break
+        end
+
+        okκ, κc_ret, μc_ret, rκ_star, rμ_fixed =
+            maximize_delta_kappa(root, κc, μ_start,
+                T(rμ_init);      # keep μ-radius tiny during κ move
+                rκ0=T(rκ_init),
+                rκ_max=rκ_max_allowed,
+                grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
+
+        if !okκ || rκ_star ≤ T(0)
+            verbose && println("Stopping: cannot certify κ-radius at κ = ", κc)
+            break
+        end
+
+
+        # next while-iteration: new band at (κc, μ_start)
+    end
+
+    return all_boxes
+end
+
+
+
+boxes = sweep_bands_kappa(root, κc, μc, 1e-8;
+    μT=0.0886765, κ_hi=(0.5 * π)^2, rμ_init=rμ, rμ_cap=0.02,
+    rκ_init=1e-8, rκ_cap=0.05, grow=1.8, tol=1e-12, verbose=true)
+
+# then plot:
+boxes = plot_validated_boxes(boxes; color=:green, alpha=0.5, title="Validated bands in (κ, μ)")
+
+
+# plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")
+

@@ -50,3 +50,11 @@ using ForwardDiff
 # rts = refine_brackets(f, br)
 # println(rts)
 # find_zero(θ -> f₁(θ, κ, μ), br[1])
+
+
+### Testing plotting function
+boxes = [
+    (true, 0.02, 0.02, 1e-3, 2e-3),
+    # skipped
+]
+plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")

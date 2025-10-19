@@ -177,4 +177,51 @@ function brackets_signchanges(f, a::Real, b::Real; n::Integer=400)
 end
 
 
+### Plotting function 
+
+
+"""
+    plot_validated_boxes(boxes;
+        color=:green, alpha=0.4, edgecolor=:black,
+        markersize=4, title="Validated boxes",
+        show_bounding_box=true)
+
+Plot validated boxes of the form (ok::Bool, κ, μ, rκ, rμ),
+centered at (κ, μ) with half-width rκ and half-height rμ.
+
+Adds the bounding parameter region:
+    κ ∈ [0, (0.5π)^2],  μ ∈ [0, μT≈0.0886765].
+"""
+function plot_validated_boxes(boxes;
+        color=:green, alpha=0.4, edgecolor=:black,
+        markersize=4, title="Validated boxes",
+        show_bounding_box=true)
+
+    μT   = 0.0886765
+    κ_lo, κ_hi = 0.0, (0.5 * π)^2
+    μ_lo, μ_hi = 0.0, μT
+
+    plt = Plots.plot(; xlabel="κ", ylabel="μ",
+     title=title, legend=false,
+        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
+
+    # draw all validated boxes
+    for (ok, κ, μ, rκ, rμ) in boxes
+        ok || continue
+        xs = [κ - rκ, κ + rκ, κ + rκ, κ - rκ, κ - rκ]
+        ys = [μ - rμ, μ - rμ, μ + rμ, μ + rμ, μ - rμ]
+        Plots.plot!(plt, xs, ys; color=color, alpha=alpha, linecolor=edgecolor, lw=0.5)
+        # Plots.scatter!(plt, [κ], [μ]; color=edgecolor, ms=markersize)
+    end
+
+    # bounding box
+    if show_bounding_box
+        Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
+        Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
+        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3, label="Bounding region")
+    end
+
+    Plots.display(plt)
+    return plt
+end
 
