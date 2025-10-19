@@ -385,7 +385,7 @@ function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
     all_boxes = Vector{Tuple{Bool,T,T,T,T}}()
 
     band = 0
-    while κc < κ_hi
+    while κc < κ_hi && band < 1000
         band += 1
         verbose && println("\n=== Band $band @ κ = $(κc) ===")
 
@@ -415,7 +415,7 @@ function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
         verbose && println("→ advance κ: $(κc_old) → $(κc)")
 
         # 3) re-find root at the new (κc, μ_start) to seed next band
-        br = brackets_f₁(κc, μ_start; n=800)
+        br = brackets_f₁(κc, μ_start; n=200)
         root = find_zero(θ -> f₁(θ, κc, μc), br[1])
 
         if isempty(br)
@@ -430,6 +430,7 @@ function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
                 rκ_max=rκ_max_allowed,
                 grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
 
+                rκ = rκ_star
         if !okκ || rκ_star ≤ T(0)
             verbose && println("Stopping: cannot certify κ-radius at κ = ", κc)
             break
@@ -445,11 +446,11 @@ end
 
 
 boxes = sweep_bands_kappa(root, κc, μc, 1e-8;
-    μT=0.0886765, κ_hi=(0.5 * π)^2, rμ_init=rμ, rμ_cap=0.02,
-    rκ_init=1e-8, rκ_cap=0.05, grow=1.8, tol=1e-12, verbose=true)
+    μT=0.0886765, κ_hi=(0.5 * π)^2, rμ_init=rμ, rμ_cap=0.2,
+    rκ_init=1e-8, rκ_cap=0.5, grow=1.8, tol=1e-12, verbose=false)
 
 # then plot:
-boxes = plot_validated_boxes(boxes; color=:green, alpha=0.5, title="Validated bands in (κ, μ)")
+plot_validated_boxes(boxes; color=:green, alpha=0.5, title="Validated bands in (κ, μ)")
 
 
 # plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")
