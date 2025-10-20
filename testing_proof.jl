@@ -7,8 +7,8 @@ plotlyjs()
 include("functions.jl")
 include("validation_functions.jl")
 
-κ = 0.002
-μ = 0.002
+κ = 2.0
+μ = 0.05
 
 interior_linspace(lo, hi, n; margin=0.01) = begin
     a = lo + margin * (hi - lo)
@@ -18,10 +18,10 @@ end
 
 theta_range = interior_linspace(Intθ_1(κ, μ)[1], Intθ_1(κ, μ)[2], 100)
 
-# ### Plot function and derivative
-# Plots.plot(
-#     Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
-#     Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
+### Plot function and derivative
+Plots.plot(
+    Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
+    Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
 
 ### A single root example
 ### Estimate by sign changes
@@ -47,8 +47,8 @@ f₁θ(interval(root, delta; format=:midpoint), interval(κ, parameter_delta; fo
 f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ))
 
 ### Testing validation function
-parameter_delta_kappa = 0.000001
-parameter_delta_mu = 0.0001
+parameter_delta_kappa = 0.0000001
+parameter_delta_mu = 0.0000001
 validate_f1_root(root, κ, μ, parameter_delta_kappa,
     parameter_delta_mu; verbose=true)
 
@@ -259,199 +259,274 @@ ok, κc, μc, rκ, rμ = maximize_delta_kappa(root, κ, μ, rμ;
     verbose=true)
 
 
-"""
-    push_forward_mu(initial_root, κc, μc, rκ;
-                    rμ_init=1e-8, μT=0.0886765, rμ_cap=0.1,
-                    grow=1.8, tol=1e-12, max_steps=200, verbose=true)
+# """
+#     push_forward_mu(initial_root, κc, μc, rκ;
+#                     rμ_init=1e-8, μT=0.0886765, rμ_cap=0.1,
+#                     grow=1.8, tol=1e-12, max_steps=200, verbose=true)
 
-Walk forward in μ. At each step:
-  1) maximize Δμ with `maximize_delta_mu` (cap so μ never exceeds μT),
-  2) record the validated box (true, κc, μ_old, rκ, rμ_step),
-  3) move μc ← μ_old + rμ_step,
-  4) find the new root at (κc, μc) using a bracket (falls back to Newton),
-  5) reset rμ ← rμ_init and repeat.
+# Walk forward in μ. At each step:
+#   1) maximize Δμ with `maximize_delta_mu` (cap so μ never exceeds μT),
+#   2) record the validated box (true, κc, μ_old, rκ, rμ_step),
+#   3) move μc ← μ_old + rμ_step,
+#   4) find the new root at (κc, μc) using a bracket (falls back to Newton),
+#   5) reset rμ ← rμ_init and repeat.
 
-Returns: `boxes, κc, μc, root`
-  where `boxes :: Vector{Tuple{Bool,Real,Real,Real,Real}}`.
-"""
-function push_forward_mu(initial_root, κc, μc, rκ;
-    rμ_init::Real=1e-8,
-    μT::Real=0.0886765,
-    rμ_cap::Real=0.1,        # per-step hard cap (before μT clipping)
-    grow::Real=1.8,
-    tol::Real=1e-12,
-    max_steps::Int=200,
-    verbose::Bool=true)
+# Returns: `boxes, κc, μc, root`
+#   where `boxes :: Vector{Tuple{Bool,Real,Real,Real,Real}}`.
+# """
+# function push_forward_mu(initial_root, κc, μc, rκ;
+#     rμ_init::Real=1e-8,
+#     μT::Real=0.0886765,
+#     rμ_cap::Real=0.1,        # per-step hard cap (before μT clipping)
+#     grow::Real=1.8,
+#     tol::Real=1e-12,
+#     max_steps::Int=200,
+#     verbose::Bool=true)
 
-    # numeric type hygiene (works for Float64 / BigFloat)
-    T = promote_type(typeof(initial_root), typeof(κc), typeof(μc),
-        typeof(rκ), typeof(rμ_init), typeof(μT), typeof(tol))
-    root = T(initial_root)
-    rμ = T(rμ_init)
+#     # numeric type hygiene (works for Float64 / BigFloat)
+#     T = promote_type(typeof(initial_root), typeof(κc), typeof(μc),
+#         typeof(rκ), typeof(rμ_init), typeof(μT), typeof(tol))
+#     root = T(initial_root)
+#     rμ = T(rμ_init)
 
-    boxes = Vector{Tuple{Bool,T,T,T,T}}()
+#     boxes = Vector{Tuple{Bool,T,T,T,T}}()
 
-    stepno = 0
-    while μc < μT
-        stepno += 1
+#     stepno = 0
+#     while μc < μT
+#         stepno += 1
 
-        # don’t allow step to push past μT
-        rμ_max_allowed = min(T(rμ_cap), T(μT - μc))
-        if rμ_max_allowed ≤ T(0)
-            verbose && println("Reached μT = ", μT)
-            break
-        end
+#         # don’t allow step to push past μT
+#         rμ_max_allowed = min(T(rμ_cap), T(μT - μc))
+#         if rμ_max_allowed ≤ T(0)
+#             verbose && println("Reached μT = ", μT)
+#             break
+#         end
 
-        # maximize μ-radius for this center
-        ok, κc_ret, μc_ret, rκ_ret, rμ_star =
-            maximize_delta_mu(root, κc, μc,
-                rκ;
-                rμ0=rμ,
-                rμ_max=rμ_max_allowed,
-                grow=grow,
-                tol=tol,
-                max_steps=max_steps,
-                verbose=verbose)
+#         # maximize μ-radius for this center
+#         ok, κc_ret, μc_ret, rκ_ret, rμ_star =
+#             maximize_delta_mu(root, κc, μc,
+#                 rκ;
+#                 rμ0=rμ,
+#                 rμ_max=rμ_max_allowed,
+#                 grow=grow,
+#                 tol=tol,
+#                 max_steps=max_steps,
+#                 verbose=verbose)
 
-        if !ok || rμ_star ≤ T(0)
-            verbose && println("Stopping: cannot certify μ-radius at μ = ", μc)
-            break
-        end
+#         if !ok || rμ_star ≤ T(0)
+#             verbose && println("Stopping: cannot certify μ-radius at μ = ", μc)
+#             break
+#         end
 
-        # save current validated box at the *old* center (plot later)
-        push!(boxes, (true, T(κc), T(μc), T(rκ), T(rμ_star)))
+#         # save current validated box at the *old* center (plot later)
+#         push!(boxes, (true, T(κc), T(μc), T(rκ), T(rμ_star)))
 
-        # advance μ-center by the certified radius
-        μc_old = μc
-        μc = μc_old + rμ_star
-        verbose && println("→ step ", stepno, ": μ ← ", μc)
+#         # advance μ-center by the certified radius
+#         μc_old = μc
+#         μc = μc_old + rμ_star
+#         verbose && println("→ step ", stepno, ": μ ← ", μc)
 
-        # find new root at the new center
-        br = brackets_f₁(κc, μc; n=800)
-        if isempty(br)
-            verbose && println("Stopping: could not refine root at μ = ", μc)
-            break
-        end
+#         # find new root at the new center
+#         br = brackets_f₁(κc, μc; n=800)
+#         if isempty(br)
+#             verbose && println("Stopping: could not refine root at μ = ", μc)
+#             break
+#         end
 
-        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
-        # reset μ-radius for the next step
-        rμ = T(rμ_init)
-    end
+#         root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+#         # reset μ-radius for the next step
+#         rμ = T(rμ_init)
+#     end
 
-    return boxes, κc, μc, root
-end
-
-
-
-"""
-    sweep_bands_kappa(initial_root, κc0, μ0, rκ;
-        μT = 0.0886765,
-        κ_hi = (0.5*π)^2,
-        rμ_init = 1e-8,
-        rμ_cap  = 0.1,
-        rκ_init = 1e-8,        # starting κ-radius for κ-steps
-        rκ_cap  = 0.1,         # per-step cap when growing κ
-        grow = 1.8,
-        tol  = 1e-12,
-        max_steps = 200,
-        verbose = true)
-
-Make consecutive μ-bands while increasing κ. For each band:
-  1) Run `push_forward_mu` from (κc, μ_start) with fixed rκ → collect boxes along μ.
-  2) Increase κ by maximizing κ-radius (holding rμ fixed at rμ_init), don’t exceed κ_hi.
-  3) Recompute the root at (κc_new, μ_start). Repeat.
-
-Returns `(all_boxes, κc, μ_start, last_root)`, where `all_boxes` is a
-Vector{Tuple{Bool,Real,Real,Real,Real}} ready for `plot_validated_boxes`.
-"""
-function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
-    μT::Real=0.0886765,
-    κ_hi::Real=(0.5 * π)^2,
-    rμ_init::Real=1e-8,
-    rμ_cap::Real=0.1,
-    rκ_init::Real=1e-8,
-    rκ_cap::Real=0.1,
-    grow::Real=1.8,
-    tol::Real=1e-12,
-    max_steps::Int=200,
-    verbose::Bool=true)
-
-    T = promote_type(typeof(initial_root), typeof(κc0), typeof(μ0),
-        typeof(rκ), typeof(rμ_init), typeof(μT), typeof(κ_hi), typeof(tol))
-    κc = T(κc0)
-    μ_start = T(μ0)
-    root = T(initial_root)
-
-    all_boxes = Vector{Tuple{Bool,T,T,T,T}}()
-
-    band = 0
-    while κc < κ_hi && band < 1000
-        band += 1
-        verbose && println("\n=== Band $band @ κ = $(κc) ===")
-
-        # 1) μ-push at current κ (collect validated rectangles along μ)
-        boxes, κc_out, μ_end, root_out = push_forward_mu(root, κc, μ_start, rκ;
-            rμ_init=T(rμ_init), μT=T(μT), rμ_cap=T(rμ_cap),
-            grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
-
-        append!(all_boxes, boxes)
-        root = root_out  # last root in this band
-
-        # stop if we already reached μT inside push_forward_mu (common case)
-        if μ_end < μT && verbose
-            println("Band ended early at μ=$(μ_end).")
-        end
-
-        # 2) grow κ-radius (hold a small fixed rμ during this κ step)
-        rκ_max_allowed = min(T(rκ_cap), T(κ_hi - κc))
-        if rκ_max_allowed ≤ T(0)
-            verbose && println("Reached κ_hi = ", κ_hi)
-            break
-        end
-
-        # move κ center
-        κc_old = κc
-        κc = κc_old + rκ
-        verbose && println("→ advance κ: $(κc_old) → $(κc)")
-
-        # 3) re-find root at the new (κc, μ_start) to seed next band
-        br = brackets_f₁(κc, μ_start; n=200)
-        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
-
-        if isempty(br)
-            verbose && println("Stopping: could not refine root at (κ,μ) = ($(κc), $(μ_start))")
-            break
-        end
-
-        okκ, κc_ret, μc_ret, rκ_star, rμ_fixed =
-            maximize_delta_kappa(root, κc, μ_start,
-                T(rμ_init);      # keep μ-radius tiny during κ move
-                rκ0=T(rκ_init),
-                rκ_max=rκ_max_allowed,
-                grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
-
-                rκ = rκ_star
-        if !okκ || rκ_star ≤ T(0)
-            verbose && println("Stopping: cannot certify κ-radius at κ = ", κc)
-            break
-        end
-
-
-        # next while-iteration: new band at (κc, μ_start)
-    end
-
-    return all_boxes
-end
+#     return boxes, κc, μc, root
+# end
 
 
 
-boxes = sweep_bands_kappa(root, κc, μc, 1e-8;
-    μT=0.0886765, κ_hi=(0.5 * π)^2, rμ_init=rμ, rμ_cap=0.2,
-    rκ_init=1e-8, rκ_cap=0.5, grow=1.8, tol=1e-12, verbose=false)
+# """
+#     sweep_bands_kappa(initial_root, κc0, μ0, rκ;
+#         μT = 0.0886765,
+#         κ_hi = (0.5*π)^2,
+#         rμ_init = 1e-8,
+#         rμ_cap  = 0.1,
+#         rκ_init = 1e-8,        # starting κ-radius for κ-steps
+#         rκ_cap  = 0.1,         # per-step cap when growing κ
+#         grow = 1.8,
+#         tol  = 1e-12,
+#         max_steps = 200,
+#         verbose = true)
 
-# then plot:
-plot_validated_boxes(boxes; color=:green, alpha=0.5, title="Validated bands in (κ, μ)")
+# Make consecutive μ-bands while increasing κ. For each band:
+#   1) Run `push_forward_mu` from (κc, μ_start) with fixed rκ → collect boxes along μ.
+#   2) Increase κ by maximizing κ-radius (holding rμ fixed at rμ_init), don’t exceed κ_hi.
+#   3) Recompute the root at (κc_new, μ_start). Repeat.
+
+# Returns `(all_boxes, κc, μ_start, last_root)`, where `all_boxes` is a
+# Vector{Tuple{Bool,Real,Real,Real,Real}} ready for `plot_validated_boxes`.
+# """
+# function sweep_bands_kappa(initial_root, κc0, μ0, rκ;
+#     μT::Real=0.0886765,
+#     κ_hi::Real=(0.5 * π)^2,
+#     rμ_init::Real=1e-8,
+#     rμ_cap::Real=0.1,
+#     rκ_init::Real=1e-8,
+#     rκ_cap::Real=0.1,
+#     grow::Real=1.8,
+#     tol::Real=1e-12,
+#     max_steps::Int=200,
+#     verbose::Bool=true)
+
+#     T = promote_type(typeof(initial_root), typeof(κc0), typeof(μ0),
+#         typeof(rκ), typeof(rμ_init), typeof(μT), typeof(κ_hi), typeof(tol))
+#     κc = T(κc0)
+#     μ_start = T(μ0)
+#     root = T(initial_root)
+
+#     all_boxes = Vector{Tuple{Bool,T,T,T,T}}()
+
+#     band = 0
+#     while κc < κ_hi && band < 1000
+#         band += 1
+#         verbose && println("\n=== Band $band @ κ = $(κc) ===")
+
+#         # 1) μ-push at current κ (collect validated rectangles along μ)
+#         boxes, κc_out, μ_end, root_out = push_forward_mu(root, κc, μ_start, rκ;
+#             rμ_init=T(rμ_init), μT=T(μT), rμ_cap=T(rμ_cap),
+#             grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
+
+#         append!(all_boxes, boxes)
+#         root = root_out  # last root in this band
+
+#         # stop if we already reached μT inside push_forward_mu (common case)
+#         if μ_end < μT && verbose
+#             println("Band ended early at μ=$(μ_end).")
+#         end
+
+#         # 2) grow κ-radius (hold a small fixed rμ during this κ step)
+#         rκ_max_allowed = min(T(rκ_cap), T(κ_hi - κc))
+#         if rκ_max_allowed ≤ T(0)
+#             verbose && println("Reached κ_hi = ", κ_hi)
+#             break
+#         end
+
+#         # move κ center
+#         κc_old = κc
+#         κc = κc_old + rκ
+#         verbose && println("→ advance κ: $(κc_old) → $(κc)")
+
+#         # 3) re-find root at the new (κc, μ_start) to seed next band
+#         br = brackets_f₁(κc, μ_start; n=200)
+#         root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+
+#         if isempty(br)
+#             verbose && println("Stopping: could not refine root at (κ,μ) = ($(κc), $(μ_start))")
+#             break
+#         end
+
+#         okκ, κc_ret, μc_ret, rκ_star, rμ_fixed =
+#             maximize_delta_kappa(root, κc, μ_start,
+#                 T(rμ_init);      # keep μ-radius tiny during κ move
+#                 rκ0=T(rκ_init),
+#                 rκ_max=rκ_max_allowed,
+#                 grow=T(grow), tol=T(tol), max_steps=max_steps, verbose=verbose)
+
+#                 rκ = rκ_star
+#         if !okκ || rκ_star ≤ T(0)
+#             verbose && println("Stopping: cannot certify κ-radius at κ = ", κc)
+#             break
+#         end
 
 
-# plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")
+#         # next while-iteration: new band at (κc, μ_start)
+#     end
 
+#     return all_boxes
+# end
+
+# # boxes = sweep_bands_kappa(root, κc, μc, 1e-8;
+# #     μT=0.0886765, κ_hi=(0.5 * π)^2, rμ_init=rμ, rμ_cap=0.2,
+# #     rκ_init=1e-8, rκ_cap=0.5, grow=1.8, tol=1e-12, verbose=false)
+
+# # # then plot:
+# # plot_validated_boxes(boxes; color=:green, alpha=0.5, title="Validated bands in (κ, μ)")
+
+
+# # plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")
+
+# """
+#     maximize_box(root, κc, μc; rκ0=1e-8, rμ0=1e-8,
+#                  κ_hi=(0.5*π)^2, μT=0.0886765,
+#                  grow=1.8, tol=1e-12, itmax=20, verbose=false)
+
+# Alternating maximization of (rκ, rμ) around (κc, μc), stopping when neither radius improves.
+# Returns (ok, κc, μc, rκ, rμ).
+# """
+# function maximize_box(root, κc, μc;
+#         rκ0=1e-9, rμ0=1e-9,
+#         κ_hi=(0.5*π)^2, μT=0.0886765,
+#         grow=1.2, tol=1e-12, itmax=20, verbose=false)
+
+#     rκ, rμ = rκ0, rμ0
+#     for t in 1:itmax
+#         # cap by remaining distance to boundary
+#         rκ_cap = min((κ_hi - κc), κ_hi)  # mild cap; tweak as you wish
+#         rμ_cap = min((μT - μc),  μT)
+
+#         # κ step (hold rμ)
+#         okκ, _, _, rκ_new, _ = maximize_delta_kappa(root, κc, μc,
+#             rμ; rκ0=rκ, rκ_max=rκ_cap, grow=grow, tol=tol, verbose=false)
+
+#         # μ step (hold rκ)
+#         okμ, _, _, _, rμ_new = maximize_delta_mu(root, κc, μc,
+#             rκ_new; rμ0=rμ, rμ_max=rμ_cap, grow=grow, tol=tol, verbose=false)
+
+#         # stop if nothing improved meaningfully
+#         if (!okκ && !okμ) || (abs(rκ_new - rκ) ≤ 1e-3*max(rκ,1e-30) &&
+#                               abs(rμ_new - rμ) ≤ 1e-3*max(rμ,1e-30))
+#             rκ, rμ = max(rκ,0.0), max(rμ,0.0)
+#             ok = rκ > 0 && rμ > 0
+#             return (ok, κc, μc, rκ, rμ)
+#         end
+
+#         rκ, rμ = rκ_new, rμ_new
+#     end
+#     (true, κc, μc, rκ, rμ)
+# end
+
+# using Roots
+
+# """
+#     cover_rectangle(κ_hi=(0.5*π)^2, μT=0.0886765;
+#         nx=12, ny=12, rκ0=1e-8, rμ0=1e-8, verbose=true)
+
+# Coarse seeds + local box maximization, returns a vector of (ok, κc, μc, rκ, rμ)
+# suitable for plot_validated_boxes().
+# """
+# function cover_rectangle(κ_hi=(0.5*π)^2, μT=0.0886765;
+#         nx=100, ny=100, rκ0=1e-9, rμ0=1e-9, verbose=true)
+
+#     κs = range(0.02, κ_hi; length=nx)
+#     μs = range(0.0, μT;  length=ny)
+
+#     boxes = Tuple{Bool,Float64,Float64,Float64,Float64}[]
+
+#     for κc in κs, μc in μs
+#         # find a root to seed the local box (skip if bracketing fails)
+#         br = brackets_f₁(κc, μc; n=200)
+#         if isempty(br)
+#             # try a neutral theta guess if you like; otherwise skip
+#             verbose && @debug "No bracket at (κ,μ)=($κc,$μc); skipping seed."
+#             continue
+#         end
+#         root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+
+#         ok, κc2, μc2, rκ, rμ = maximize_box(root, κc, μc;
+#                                 rκ0=rκ0, rμ0=rμ0, κ_hi=κ_hi, μT=μT, verbose=false)
+#         ok && push!(boxes, (ok, κc2, μc2, rκ, rμ))
+#     end
+#     boxes
+# end
+
+
+# boxes = cover_rectangle()
+# plot_validated_boxes(boxes; color=:teal, alpha=0.45, title="Validated cover of (κ, μ)")
