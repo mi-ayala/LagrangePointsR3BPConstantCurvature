@@ -33,6 +33,8 @@ root = find_zero(θ -> f₁(θ, κ, μ), br[1])
 
 delta = 0.00001
 
+f₁(interval(0.901893), interval(κ), interval(μ))
+
 f₁(interval(root + delta), interval(κ), interval(μ))
 f₁(interval(root - delta), interval(κ), interval(μ))
 f₁θ(interval(root, delta; format=:midpoint), interval(κ), interval(μ))
@@ -229,6 +231,7 @@ function maximize_delta_kappa(root, κ, μ,
 
     return (true, κ, μ, lo, rμ_fixed)
 end
+
 
 
 ### Testing validation function
