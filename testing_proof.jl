@@ -188,14 +188,11 @@ function maximize_delta_kappa(root, κ, μ,
     return (true, κ, μ, lo, rμ_fixed)
 end
 
-
-
 ### Testing validation function
 parameter_delta_kappa = 0.000001
 parameter_delta_mu = 0.000001
 validate_f1_root(root, κ, μ, parameter_delta_kappa,
     parameter_delta_mu; verbose=true)
-
 
 ok, κc, μc, rκ_star, rμ = maximize_delta_mu(root, κ, μ,
     parameter_delta_kappa;
@@ -217,15 +214,6 @@ ok, κc, μc, rκ, rμ = maximize_delta_kappa(root, κ, μ, rμ;
     max_steps=200,
     verbose=true)
 
-
-"""
-    maximize_box(root, κc, μc; rκ0=1e-8, rμ0=1e-8,
-                 κ_hi=(0.5*π)^2, μT=0.0886765,
-                 grow=1.8, tol=1e-12, itmax=20, verbose=false)
-
-Alternating maximization of (rκ, rμ) around (κc, μc), stopping when neither radius improves.
-Returns (ok, κc, μc, rκ, rμ).
-"""
 function maximize_box(root, κc, μc;
     rκ0=1e-9, rμ0=1e-9,
     κ_hi=(0.5 * π)^2, μT=0.0886765,
@@ -258,17 +246,8 @@ function maximize_box(root, κc, μc;
     (true, κc, μc, rκ, rμ)
 end
 
-
-
-"""
-    cover_rectangle(κ_hi=(0.5*π)^2, μT=0.0886765;
-        nx=12, ny=12, rκ0=1e-8, rμ0=1e-8, verbose=true)
-
-Coarse seeds + local box maximization, returns a vector of (ok, κc, μc, rκ, rμ)
-suitable for plot_validated_boxes().
-"""
 function cover_rectangle(κ_hi=(0.5 * π)^2, μT=0.0886765;
-    nx=200, ny=200, rκ0=1e-9, rμ0=1e-9, verbose=true)
+    nx=50, ny=50, rκ0=1e-9, rμ0=1e-9, verbose=true)
 
     κs = range(0.02, κ_hi; length=nx)
     μs = range(0.0, μT; length=ny)
@@ -292,6 +271,6 @@ function cover_rectangle(κ_hi=(0.5 * π)^2, μT=0.0886765;
     boxes
 end
 
-
 boxes = cover_rectangle()
 plot_validated_boxes(boxes; color=:teal, alpha=0.45, title="Validated cover of (κ, μ)")
+
