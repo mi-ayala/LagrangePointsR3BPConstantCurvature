@@ -1,13 +1,9 @@
+
+using IntervalArithmetic
 ispos(I) = inf(I) > 0
 isneg(I) = sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
-# using IntervalArithmetic
-
-# # helpers (only if not already in your code)
-# ispos(I) = isfinite(I) && inf(I) > 0
-# isneg(I) = isfinite(I) && sup(I) < 0
-# nonzero(I) = ispos(I) || isneg(I)
 
 """
     certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; min_width=1e-12, verbose=false)
@@ -114,7 +110,6 @@ function validate_complements(I, J, κ, μ, rκ, rμ; verbose=false)
 end
 
 
-using IntervalArithmetic
 
 # ---- f₁θ version ----
 function eval_f₁θ_subdiv(Iθ::Interval, Iκ::Interval, Iμ::Interval; ntiles::Int=16)
