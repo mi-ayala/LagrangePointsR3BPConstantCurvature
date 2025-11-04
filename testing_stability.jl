@@ -10,10 +10,25 @@ include("validation_functions.jl")
 κ = 2.0
 μ = 0.05
 
-# helpers for interval sign tagging
-sign_tag(I) = ispos(I) ? :pos :
-              isneg(I) ? :neg :
-              (0 ∈ I ? :zero_or_mixed : :unknown)
+using IntervalArithmetic
+
+# [0,0] with the same numeric type as I
+@inline zero_interval_like(I::Interval) = Interval(zero(inf(I)))
+
+# Robust sign tagging with no `==` on intervals and no `in` fallback
+@inline function sign_tag(I::Interval)
+    if ispos(I)
+        return :pos
+    elseif isneg(I)
+        return :neg
+    elseif isequal_interval(I, zero_interval_like(I))
+        return :zero
+    elseif (inf(I) ≤ 0) && (0 ≤ sup(I))
+        return :mixed   # contains 0 but not thin zero
+    else
+        return :unknown
+    end
+end
 
 """
     classify_equilibrium(Iθ, Iκ, Iμ; verbose=false)

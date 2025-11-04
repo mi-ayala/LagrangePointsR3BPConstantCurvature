@@ -54,6 +54,11 @@ parameter_delta_mu = 0.0000001
 validate_f1_root(root, κ, μ, parameter_delta_kappa,
     parameter_delta_mu; verbose=true)
 
+
+validate_and_classify(root, κ, μ,
+    parameter_delta_kappa,
+    parameter_delta_mu; verbose=true)
+
 # Maximize rμ so that validate_f1_root(root, κ, μ, rκ_fixed, rμ) == true
 function maximize_delta_mu(root, κ, μ,
     rκ_fixed;
@@ -328,9 +333,6 @@ function maximize_box(root, κc, μc;
 
     return (rκ > 0 && rμ > 0, κc, μc, rκ, rμ)
 end
-
-
-
 
 function cover_rectangle(κ_hi=(0.5 * π)^2, μT=0.0886765;
     nx=50, ny=50, rκ0=1e-9, rμ0=1e-9, verbose=true)

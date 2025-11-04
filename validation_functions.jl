@@ -279,3 +279,68 @@ function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
 end
 
 
+function validate_and_classify(root, κ, μ, rκ, rμ; verbose::Bool=false, return_intervals::Bool=false)
+    Iκ = interval(κ, rκ; format=:midpoint)
+    Iμ = interval(μ, rμ; format=:midpoint)
+    Iθ_full = interval(zero(κ), sup(θ1_max(Iκ, Iμ)))
+
+    # root must lie inside
+    if !(inf(Iθ_full) ≤ root ≤ sup(Iθ_full))
+        verbose && println("Root=$root not inside θ-interval $Iθ_full")
+        if return_intervals
+            return (false, κ, μ, rκ, rμ, :unknown, Interval(0), Interval(0), Interval(0), Iθ_full)
+        else
+            return (false, κ, μ, rκ, rμ, :unknown)
+        end
+    end
+
+    # check existence by sign change
+    leftθ  = root - 1e-6
+    rightθ = root + 1e-6
+    fL = f₁(interval(leftθ),  Iκ, Iμ)
+    fR = f₁(interval(rightθ), Iκ, Iμ)
+    exists = (isneg(fL) && ispos(fR)) || (ispos(fL) && isneg(fR))
+    if !exists
+        verbose && println("Existence not certified: fL=$fL, fR=$fR")
+        if return_intervals
+            return (false, κ, μ, rκ, rμ, :unknown, Interval(0), Interval(0), Interval(0), Iθ_full)
+        else
+            return (false, κ, μ, rκ, rμ, :unknown)
+        end
+    end
+
+    # uniqueness
+    status, J, _dI = certify_deriv_sign_centered(root, κ, μ, rκ, rμ; verbose=false)
+    if status === :unknown
+        verbose && println("Could not certify strict sign of f₁θ near root.")
+        if return_intervals
+            return (false, κ, μ, rκ, rμ, :unknown, Interval(0), Interval(0), Interval(0), Iθ_full)
+        else
+            return (false, κ, μ, rκ, rμ, :unknown)
+        end
+    end
+
+    uniq = validate_complements(Iθ_full, J, κ, μ, rκ, rμ; verbose=false)
+    if !uniq
+        verbose && println("Uniqueness on complements failed.")
+        if return_intervals
+            return (false, κ, μ, rκ, rμ, :unknown, Interval(0), Interval(0), Interval(0), J)
+        else
+            return (false, κ, μ, rκ, rμ, :unknown)
+        end
+    end
+
+    # stability classification
+    okc, label, Idet, Ilam2, IΔ = classify_equilibrium(J, Iκ, Iμ; verbose=false)
+    if verbose
+        println("Certified J = $J")
+        println("Classification: ", label)
+        println("det∈$Idet, λ₂∈$Ilam2, Δ∈$IΔ")
+    end
+
+    if return_intervals
+        return (okc, κ, μ, rκ, rμ, label, Idet, Ilam2, IΔ, J)
+    else
+        return (okc, κ, μ, rκ, rμ, label)
+    end
+end
