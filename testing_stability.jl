@@ -74,9 +74,7 @@ function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
 
     if tgΔ === :pos
         return true, :elliptic, Idet, Ilam2, IΔ
-    elseif tgΔ === :neg
-        return true, :linearly_unstable, Idet, Ilam2, IΔ
     else
-        return false, :unknown, Idet, Ilam2, IΔ
+        return true, :linearly_unstable, Idet, Ilam2, IΔ
     end
 end

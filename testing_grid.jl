@@ -149,7 +149,7 @@ end
 
 # e.g., ~0.001×0.001 inside full rectangle 
 nx, ny = 2464, 89  
-boxes, stats = cover_rectangle_grid_rect(cells[1]; nx=nx, ny=ny, verbose=true)
+boxes, stats = cover_rectangle_grid_rect(cells[9]; nx=nx, ny=ny, verbose=true)
 
 println("Validated boxes: ", length(boxes))
 

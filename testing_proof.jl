@@ -7,8 +7,8 @@ plotlyjs()
 include("functions.jl")
 include("validation_functions.jl")
 
-κ = 2.0
-μ = 0.05
+κ = 0.1
+μ = 0.01
 
 interior_linspace(lo, hi, n; margin=0.01) = begin
     a = lo + margin * (hi - lo)
@@ -49,8 +49,8 @@ f₁θ(interval(root, delta; format=:midpoint), interval(κ, parameter_delta; fo
 f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ))
 
 ### Testing validation function
-parameter_delta_kappa = 0.0000001
-parameter_delta_mu = 0.0000001
+parameter_delta_kappa = 0.00000001
+parameter_delta_mu = 0.00000001
 validate_f1_root(root, κ, μ, parameter_delta_kappa,
     parameter_delta_mu; verbose=true)
 
@@ -59,7 +59,7 @@ validate_and_classify(root, κ, μ,
     parameter_delta_kappa,
     parameter_delta_mu; verbose=true)
 
-# Maximize rμ so that validate_f1_root(root, κ, μ, rκ_fixed, rμ) == true
+# Maximize rμ 
 function maximize_delta_mu(root, κ, μ,
     rκ_fixed;
     rμ0=1e-8,       # starting radius for μ
