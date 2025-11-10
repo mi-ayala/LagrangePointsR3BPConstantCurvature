@@ -1,4 +1,3 @@
-
 using IntervalArithmetic
 ispos(I) = inf(I) > 0
 isneg(I) = sup(I) < 0
