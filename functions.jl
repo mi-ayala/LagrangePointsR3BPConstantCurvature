@@ -53,18 +53,18 @@ function θ4_min(κ, μ)
     q2 = one(q1) - q1
     G = Γ(κ, μ)
 
-    πT = π * one(κ)                    # π in the promoted type
+    πT = π * one(κ)                    #
 
     # sqrt( 4Γ / (2κ q2^2 + π^2 Γ μ) )
     oneG = one(G)
     two = oneG + oneG
     four = two + two
-    denom = two * κ * q2^2 + (πT^2) * G * μ
+    denom = two * κ * (q2^2) + (πT^2) * G * μ
     rad = (four * G) / denom
     s = sqrt(rad)
 
-    ones = one(s)                      # 1 in the same type as s
-    return πT - (ones - s) * r * q2
+    ones = one(s)                      
+    return πT - (ones - s) * r * q1
 end
 
 # right endpoint of the interval
@@ -86,7 +86,7 @@ function θ4_max(κ, μ)
     s = sqrt(rad)
 
     ones = one(s)
-    return πT + (ones - (q1 / q2) * s) * r * q1
+    return πT + (ones - (q1 / q2) * s) * r * q2
 end
 
 

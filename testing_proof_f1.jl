@@ -8,8 +8,8 @@ plotlyjs()
 include("functions.jl")
 include("validation_functions.jl")
 
-κ = 0.1
-μ = 0.01
+κ = 0.8
+μ = 0.005
 
 interior_linspace(lo, hi, n; margin=0.01) = begin
     a = lo + margin * (hi - lo)
@@ -57,12 +57,12 @@ validate_f1_root(root, κ, μ, parameter_delta_kappa,
 
 
 refine_root_interval(root, κ, μ, parameter_delta_kappa,
-    parameter_delta_mu,interval(0.226063, 0.31039) )
+    parameter_delta_mu,interval(0.657224, 0.889545) )
 
-validate_and_classify(root, κ, μ,
-    parameter_delta_kappa,
-    parameter_delta_mu; verbose=true)
+# validate_and_classify(root, κ, μ,
+#     parameter_delta_kappa,
+#     parameter_delta_mu; verbose=true)
 
 Iκ = interval(κ, parameter_delta_kappa; format=:midpoint)
 Iμ = interval(μ, parameter_delta_mu; format=:midpoint)
-classify_equilibrium(interval(0.268185, 0.268268), Iκ, Iμ; verbose=true)
+classify_equilibrium(interval(0.773271, 0.773498), Iκ, Iμ; verbose=true)

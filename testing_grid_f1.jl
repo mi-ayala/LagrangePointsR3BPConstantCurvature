@@ -1,11 +1,12 @@
 using IntervalArithmetic
 using Plots
-using PlotlyJS
+# using PlotlyJS
 using Roots
 using Printf
 
 include("functions.jl")
 include("validation_functions.jl")
+include("plotting_functions.jl")
 
 struct Rect
     κlo::Float64
@@ -32,14 +33,6 @@ function grid_rect(parent::Rect; nx::Int, ny::Int, level::Int=1)
     return cells
 end
 
-# --- build inner rectangle with fixed margins, then a 3×3 grid inside it ---
-"""
-    inner_3x3(κ_lo, κ_hi, μ_lo, μ_hi; margin=0.002)
-
-Return `(inner::Rect, cells::Vector{Rect})` where `inner` is the domain
-shrunk by `margin` on all sides, and `cells` is a regular 3×3 grid (level=1)
-covering `inner`.
-"""
 function inner_3x3(κ_lo, κ_hi, μ_lo, μ_hi; margin=0.002)
     # clamp margins if user passes something too large
     Lκ = κ_hi - κ_lo
@@ -64,19 +57,6 @@ println("Last  cell: ", cells[end])
 
 
 
-"""
-    cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi;
-        nx::Int, ny::Int, bracket_n::Int=400, verbose::Bool=true)
-
-Partition the given rectangle into an `nx × ny` regular grid (no margins).
-For each cell, take (rκ, rμ) = (Δκ/2, Δμ/2), bracket & refine a root at the
-cell center, then validate with `validate_f1_root`.
-
-Returns:
-  boxes :: Vector{Tuple{Bool,Float64,Float64,Float64,Float64}}
-           (ok, κc, μc, rκ, rμ) for validated cells
-  stats :: NamedTuple with {Δκ, Δμ, rκ, rμ, total, seeded, validated}
-"""
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,
@@ -116,7 +96,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         # 3) validate this fixed box (no growth)
         ok = validate_f1_root(root, κc, μc, rκ, rμ; verbose=false)
-    
+
         keep_invalid = true  # or make it a keyword
         if ok
             push!(boxes, (true, κc, μc, rκ, rμ))
@@ -137,8 +117,6 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     return boxes, stats
 end
 
-
-# Rect(κlo, κhi, μlo, μhi, ok=false, level=0)
 function cover_rectangle_grid_rect(R::Rect; nx::Int, ny::Int, bracket_n::Int=400, verbose::Bool=true)
     cover_rectangle_grid_rect(R.κlo, R.κhi, R.μlo, R.μhi;
         nx=nx, ny=ny, bracket_n=bracket_n, verbose=verbose)
@@ -147,56 +125,24 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-# e.g., ~0.001×0.001 inside full rectangle 
-nx, ny = 2464, 89  
-boxes, stats = cover_rectangle_grid_rect(cells[9]; nx=nx, ny=ny, verbose=true)
+# nx, ny = 2464, 89
+# boxes, stats = cover_rectangle_grid_rect(cells[1]; nx=nx, ny=ny, verbose=true)
 
-println("Validated boxes: ", length(boxes))
+# plt = plot_invalid_centers(boxes; title ="Invalid boxes(centers) f_1")
+# for i in 2:9
+#     boxes, stats = cover_rectangle_grid_rect(cells[i]; nx=nx, ny=ny, verbose=true) 
+# plot_invalid_centers!(plt, boxes)
+# end
+# savefig(plt, "testing_grid_f1_invalid_boxes.png")
 
-plot_validated_boxes(boxes; mode=:invalid, color_invalid=:red, title="Invalid boxes")
-plot_validated_boxes(boxes; mode=:invalid, y_exaggerate=30, plot_centers_invalid=true)
-
-
-invalid_boxes(boxes) = filter(b -> !b[1], boxes)
-function show_invalid_summary(boxes; preview=10)
-    bad = invalid_boxes(boxes)
-    println("Invalid boxes: ", length(bad))
-    for (k, b) in enumerate(bad[1:min(preview, end)])
-        ok, κ, μ, rκ, rμ = b
-        @printf "%3d) κ=[%.6g, %.6g], μ=[%.6g, %.6g]\n" k  (κ-rκ) (κ+rκ) (μ-rμ) (μ+rμ)
-    end
-    return bad
-end
-
-
-function plot_invalid_centers(boxes; ms=3, color=:red, title="Invalid boxes (centers)")
-    bad = invalid_boxes(boxes)
-    κs = getindex.(bad, 2)   # centers
-    μs = getindex.(bad, 3)
-    μT = 0.0886765
-    κ_lo, κ_hi = 0.0, (0.5 * π)^2
-    μ_lo, μ_hi = 0.0, μT
-    plt = Plots.scatter(κs, μs; ms=ms, color=color, xlabel="κ", ylabel="μ",
-            title=title, legend=false, xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-                    Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
-        Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
-        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3, label="Bounding region")
-end
-
-bad = show_invalid_summary(boxes)
-plot_invalid_centers(boxes)            
-
-
-
-
+### Stability functions
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
-                                   μ_lo::Float64, μ_hi::Float64;
-                                   nx::Int, ny::Int,
-                                   bracket_n::Int=400,
-                                   refine_steps::Int=8,
-                                   keep_invalid::Bool=true,
-                                   verbose::Bool=true)
+    μ_lo::Float64, μ_hi::Float64;
+    nx::Int, ny::Int,
+    bracket_n::Int=400,
+    refine_steps::Int=8,
+    keep_invalid::Bool=true,
+    verbose::Bool=true)
 
     @assert κ_hi > κ_lo "κ_hi must be > κ_lo"
     @assert μ_hi > μ_lo "μ_hi must be > μ_lo"
@@ -236,8 +182,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         # 3) validate + stability (existence, uniqueness, refined J, classification)
         ok, label, J_ref, Idet, Ilam2, IΔ =
             validate_f1_root_with_stability(root, κc, μc, rκ, rμ;
-                                            refine_steps=refine_steps,
-                                            verbose=false)
+                refine_steps=refine_steps,
+                verbose=false)
 
         if ok
             push!(boxes, (true, κc, μc, rκ, rμ, label))
@@ -257,13 +203,12 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     return boxes, stats
 end
 
-# Rect(κlo, κhi, μlo, μhi, ok=false, level=0)
 function cover_rectangle_grid_rect(R::Rect;
-                                   nx::Int, ny::Int,
-                                   bracket_n::Int=400,
-                                   refine_steps::Int=8,
-                                   keep_invalid::Bool=true,
-                                   verbose::Bool=true)
+    nx::Int, ny::Int,
+    bracket_n::Int=400,
+    refine_steps::Int=8,
+    keep_invalid::Bool=true,
+    verbose::Bool=true)
 
     cover_rectangle_grid_rect(R.κlo, R.κhi, R.μlo, R.μhi;
         nx=nx, ny=ny,
@@ -272,3 +217,17 @@ function cover_rectangle_grid_rect(R::Rect;
         keep_invalid=keep_invalid,
         verbose=verbose)
 end
+
+nx, ny = 2464, 89
+boxes, stats = cover_rectangle_grid_rect(cells[9]; nx=nx, ny=ny, verbose=true)
+plt = plot_stability_centers(boxes; labels=:elliptic)
+
+# for i in 2:9
+#     boxes, stats = cover_rectangle_grid_rect(cells[i]; nx=nx, ny=ny, verbose=true) 
+# plot_stability_centers!(plt, boxes; labels=:elliptic)
+# end
+
+# savefig(plt, "testing_grid_f1_stability_centers.png")
+
+
+stability_types(boxes)

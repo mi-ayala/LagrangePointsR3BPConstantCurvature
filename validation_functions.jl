@@ -199,7 +199,7 @@ function certify_deriv_sign_centered_f4(θc, κ, μ, rκ, rμ; min_width=1e-12, 
     Iκ = interval(κ, rκ; format=:midpoint)
     Iμ = interval(μ, rμ; format=:midpoint)
 
-    Iθ = interval(θ4_min(Iκ, Iμ), θ4_max(Iκ, Iμ))
+    Iθ = interval(inf(θ4_min(Iκ, Iμ)), sup(θ4_max(Iκ, Iμ)))
     inf(Iθ) < θc < sup(Iθ) || return (:unknown, interval(θc), Interval(0))
 
     rmax = min(θc - inf(Iθ), sup(Iθ) - θc)
@@ -322,7 +322,7 @@ function validate_f4_root(root, κ, μ, r_κ, r_μ; verbose=false)
     # theta interval [θ4_min, θ4_max] (conservative upper bound)
     a = θ4_min(Iκ, Iμ)
     b = θ4_max(Iκ, Iμ)
-    Iθ = interval(a, sup(b))
+    Iθ = interval(inf(a), sup(b))
 
     # guard: root ∈ Iθ
     if !(inf(Iθ) ≤ root ≤ sup(Iθ))
@@ -332,8 +332,8 @@ function validate_f4_root(root, κ, μ, r_κ, r_μ; verbose=false)
 
     leftθ = (inf(Iθ) + root) / 2
     rightθ = (root + sup(Iθ)) / 2
-    fL = f₄(interval(leftθ), Iκ, Iμ)
-    fR = f₄(interval(rightθ), Iκ, Iμ)
+    fL = eval_f₄_subdiv(interval(leftθ), Iκ, Iμ)
+    fR = eval_f₄_subdiv(interval(rightθ), Iκ, Iμ)
     left_neg_right_pos = isneg(fL) && ispos(fR)
     left_pos_right_neg = ispos(fL) && isneg(fR)
     exists = left_neg_right_pos || left_pos_right_neg
@@ -411,7 +411,7 @@ function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
     end
 
     if tgdet === :neg
-        return true, :saddle_hyperbolic, Idet, IntervalArithmetic.Interval(0), IntervalArithmetic.Interval(0)
+        return true, :saddle_hyperbolic, Idet, IntervalArithmetic.interval(0), IntervalArithmetic.interval(0)
     end
 
     Ilam2 = λ₂(Iθ, Iκ, Iμ)
@@ -421,7 +421,7 @@ function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
     end
 
     if tgl2 === :pos
-        return true, :lyapunov_stable, Idet, Ilam2, IntervalArithmetic.Interval(0)
+        return true, :lyapunov_stable, Idet, Ilam2, IntervalArithmetic.interval(0)
     end
 
     IΔ = Δ(Iθ, Iκ, Iμ)
@@ -525,8 +525,8 @@ Returns:
 - `Idet, Ilam2, IΔ` are the interval enclosures used in the classification.
 """
 function validate_f1_root_with_stability(root, κ, μ, rκ, rμ;
-                                         refine_steps::Int=8,
-                                         verbose::Bool=false)
+    refine_steps::Int=8,
+    verbose::Bool=false)
 
     # --- 1) parameter intervals ---
     Iκ = interval(κ, rκ; format=:midpoint)
@@ -544,9 +544,9 @@ function validate_f1_root_with_stability(root, κ, μ, rκ, rμ;
     end
 
     # --- 2) existence by sign change at midpoints ---
-    leftθ  = (inf(Iθ) + root) / 2
+    leftθ = (inf(Iθ) + root) / 2
     rightθ = (root + sup(Iθ)) / 2
-    fL = f₁(interval(leftθ),  Iκ, Iμ)
+    fL = f₁(interval(leftθ), Iκ, Iμ)
     fR = f₁(interval(rightθ), Iκ, Iμ)
 
     left_neg_right_pos = isneg(fL) && ispos(fR)
@@ -581,7 +581,7 @@ function validate_f1_root_with_stability(root, κ, μ, rκ, rμ;
 
     # --- 4) refine the existence interval around root (cheap) ---
     J_ref = refine_root_interval(root, κ, μ, rκ, rμ, J;
-                                 steps=refine_steps, verbose=verbose)
+        steps=refine_steps, verbose=verbose)
 
     # --- 5) classify stability on J_ref ---
     okc, label, Idet, Ilam2, IΔ = classify_equilibrium(J_ref, Iκ, Iμ; verbose=verbose)
@@ -592,3 +592,53 @@ function validate_f1_root_with_stability(root, κ, μ, rκ, rμ;
     return ok_total, label, J_ref, Idet, Ilam2, IΔ
 end
 
+function refine_root_interval_f4(root, κ, μ, rκ, rμ, J::Interval;
+    steps::Int=10, verbose::Bool=false)
+
+    Iκ = interval(κ, rκ; format=:midpoint)
+    Iμ = interval(μ, rμ; format=:midpoint)
+
+    left = inf(J)
+    right = sup(J)
+
+    # ensure root is inside J (it should be, if earlier code is correct)
+    if !(left ≤ root ≤ right)
+        verbose && println("root=$root not inside certified J=$J; no refinement.")
+        return J
+    end
+
+    for k in 1:steps
+        width = right - left
+        width ≤ 0 && break
+
+        # propose a symmetric shrink around root
+        δ = width / 4          # shrink factor; can tune
+        new_left = root - δ
+        new_right = root + δ
+
+        # keep new interval inside original J
+        if new_left <= left || new_right >= right
+            verbose && println("Step $k: proposed interval not inside J; stop.")
+            break
+        end
+
+        fL = f₄(interval(new_left), Iκ, Iμ)
+        fR = f₄(interval(new_right), Iκ, Iμ)
+
+        left_neg_right_pos = isneg(fL) && ispos(fR)
+        left_pos_right_neg = ispos(fL) && isneg(fR)
+        has_sign_change = left_neg_right_pos || left_pos_right_neg
+
+        if has_sign_change
+            verbose && println("Step $k: shrink to [$new_left, $new_right], fL=$fL, fR=$fR")
+            left, right = new_left, new_right
+        else
+            verbose && println("Step $k: cannot shrink further (no clean sign change).")
+            break
+        end
+    end
+
+    Jref = interval(left, right)
+    verbose && println("Refined J: ", Jref)
+    return Jref
+end
