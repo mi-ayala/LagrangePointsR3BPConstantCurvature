@@ -16,6 +16,19 @@ using ForwardDiff
 @show Intθ_3(κ, μ)
 @show f₄(interval(0.1), κ, μ)
 @show Intθ_4(κ, μ)
+@show Δ(interval(0.1), κ, μ)
+@show c₂(interval(0.1), κ, μ)
+
+# compare analytic vs automatic derivative
+κ = 0.5
+μ = 0.2
+θ = 0.7
+ad = ForwardDiff.derivative(θ -> f₄(θ, κ, μ), θ)
+an = f₄θ(θ, κ, μ)
+
+println("analytic  f₄θ = ", an)
+println("ForwardDiff = ", ad)
+println("difference  = ", ad - an)
 
 
 # # compare analytic vs automatic derivative
@@ -31,7 +44,7 @@ using ForwardDiff
 
 
 # ### A single root Example 
-κ, μ = 0.5, 0.02
+# κ, μ = 0.5, 0.02
 # ### Estimate by sign changes
 # for i in range(Intθ(κ, μ)[1],Intθ(κ, μ)[2]; length=400)
 #     println("f₁($i) = ", f₁(i, κ, μ))
@@ -52,9 +65,9 @@ using ForwardDiff
 # find_zero(θ -> f₁(θ, κ, μ), br[1])
 
 
-### Testing plotting function
-boxes = [
-    (true, 0.02, 0.02, 1e-3, 2e-3),
-    # skipped
-]
-plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")
+# ### Testing plotting function
+# boxes = [
+#     (true, 0.02, 0.02, 1e-3, 2e-3),
+#     # skipped
+# ]
+# plot_validated_boxes(boxes; color=:orange, alpha=0.5, title="Validated regions in (κ, μ)")

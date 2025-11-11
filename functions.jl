@@ -39,9 +39,54 @@ end
 function θ1_max(κ, μ)
     κ, μ = promote(κ, μ)
     r = sqrt(κ)
-    y = tan(r * q₂(κ, μ))     
-    x = one(μ) + μ            
+    y = tan(r * q₂(κ, μ))
+    x = one(μ) + μ
     return atan(y, x)
+end
+
+
+# left endpoint of the above interval
+function θ4_min(κ, μ)
+    κ, μ = promote(κ, μ)
+    r = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    G = Γ(κ, μ)
+
+    πT = π * one(κ)                    # π in the promoted type
+
+    # sqrt( 4Γ / (2κ q2^2 + π^2 Γ μ) )
+    oneG = one(G)
+    two = oneG + oneG
+    four = two + two
+    denom = two * κ * q2^2 + (πT^2) * G * μ
+    rad = (four * G) / denom
+    s = sqrt(rad)
+
+    ones = one(s)                      # 1 in the same type as s
+    return πT - (ones - s) * r * q2
+end
+
+# right endpoint of the interval
+function θ4_max(κ, μ)
+    κ, μ = promote(κ, μ)
+    r = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    G = Γ(κ, μ)
+
+    πT = π * one(κ)
+
+    # sqrt( 4Γ μ / (2κ q1^2 + π^2 Γ) )
+    oneG = one(G)
+    two = oneG + oneG
+    four = two + two
+    denom = two * κ * q1^2 + (πT^2) * G
+    rad = (four * G * μ) / denom
+    s = sqrt(rad)
+
+    ones = one(s)
+    return πT + (ones - (q1 / q2) * s) * r * q1
 end
 
 
@@ -104,6 +149,34 @@ function f₁θ(θ, κ, μ)
     d_term = (-twice(ca) * inv_sa3) + (twice(μ) * cb * inv_sb3)
 
     return d_main - Γv * d_term
+end
+
+
+# f₄θ(θ, κ, μ) = ∂f₄/∂θ
+function f₄θ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+
+    r = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    Γv = Γ(κ, μ)
+
+    a = θ + r * q1
+    b = θ - r * q2
+
+    d_main = cos(twice(θ))
+
+    sa = sin(a)
+    ca = cos(a)
+    sb = sin(b)
+    cb = cos(b)
+
+    inv_sa3 = inv(sa * sa * sa)
+    inv_sb3 = inv(sb * sb * sb)
+
+    d_term = (-twice(ca) * inv_sa3) + (twice(μ) * cb * inv_sb3)
+
+    return d_main + Γv * d_term   # note the + (for f₁θ it was -)
 end
 
 
@@ -191,16 +264,16 @@ Adds the bounding parameter region:
     κ ∈ [0, (0.5π)^2],  μ ∈ [0, μT≈0.0886765].
 """
 function plot_validated_boxes(boxes;
-        color=:green, alpha=0.4, edgecolor=:black,
-        markersize=4, title="Validated boxes",
-        show_bounding_box=true)
+    color=:green, alpha=0.4, edgecolor=:black,
+    markersize=4, title="Validated boxes",
+    show_bounding_box=true)
 
-    μT   = 0.0886765
+    μT = 0.0886765
     κ_lo, κ_hi = 0.0, (0.5 * π)^2
     μ_lo, μ_hi = 0.0, μT
 
     plt = Plots.plot(; xlabel="κ", ylabel="μ",
-     title=title, legend=false,
+        title=title, legend=false,
         xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
 
     # draw all validated boxes
@@ -239,13 +312,13 @@ Plot boxes of the form (ok::Bool, κ, μ, rκ, rμ).
 Adds the bounding region κ ∈ [0, (0.5π)^2], μ ∈ [0, μT≈0.0886765].
 """
 function plot_validated_boxes(boxes;
-        mode::Symbol=:validated,
-        color_valid=:green, color_invalid=:orange,
-        alpha::Real=0.4, edgecolor=:black, lw::Real=3,
-        markersize::Real=4, title::AbstractString="Boxes",
-        show_bounding_box::Bool=true)
+    mode::Symbol=:validated,
+    color_valid=:green, color_invalid=:orange,
+    alpha::Real=0.4, edgecolor=:black, lw::Real=3,
+    markersize::Real=4, title::AbstractString="Boxes",
+    show_bounding_box::Bool=true)
 
-    μT   = 0.0886765
+    μT = 0.0886765
     κ_lo, κ_hi = 0.0, (0.5 * π)^2
     μ_lo, μ_hi = 0.0, μT
 
@@ -324,54 +397,58 @@ Visualize boxes (ok, κ, μ, rκ, rμ). To make tiny boxes visible, set
 `y_exaggerate > 1` or `min_frac_h > 0`. These affect drawing only.
 """
 function plot_validated_boxes(boxes;
-        mode::Symbol=:validated,
-        color_valid=:green, color_invalid=:red,
-        alpha::Real=0.4, edgecolor=:black, lw::Real=0.5,
-        markersize::Real=1, title::AbstractString="Boxes",
-        show_bounding_box::Bool=true,
-        y_exaggerate::Real=1.0,
-        min_frac_h::Real=0.0,
-        plot_centers_invalid::Bool=true,
-        plot_centers_valid::Bool=false,
-        zoom::Union{Nothing,Tuple{Real,Real,Real,Real}}=nothing)
+    mode::Symbol=:validated,
+    color_valid=:green, color_invalid=:red,
+    alpha::Real=0.4, edgecolor=:black, lw::Real=0.5,
+    markersize::Real=1, title::AbstractString="Boxes",
+    show_bounding_box::Bool=true,
+    y_exaggerate::Real=1.0,
+    min_frac_h::Real=0.0,
+    plot_centers_invalid::Bool=true,
+    plot_centers_valid::Bool=false,
+    zoom::Union{Nothing,Tuple{Real,Real,Real,Real}}=nothing)
 
-    μT   = 0.0886765
+    μT = 0.0886765
     κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
     μ_lo_full, μ_hi_full = 0.0, μT
 
     # axes limits
     κ_lo, κ_hi, μ_lo, μ_hi = isnothing(zoom) ? (κ_lo_full, κ_hi_full, μ_lo_full, μ_hi_full) : zoom
     μ_span = μ_hi - μ_lo
-    min_h  = max(0.0, min_frac_h) * μ_span
+    min_h = max(0.0, min_frac_h) * μ_span
 
     plt = Plots.plot(; xlabel="κ", ylabel="μ", title=title, legend=false,
-                xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
+        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
 
     # helper: draw one rectangle with visual tweaks on height only
     function draw_box!(κ, μ, rκ, rμ; col)
-        rμ_vis = max(rμ * y_exaggerate, min_h/2)   # visual-only height
+        rμ_vis = max(rμ * y_exaggerate, min_h / 2)   # visual-only height
         xs = [κ - rκ, κ + rκ, κ + rκ, κ - rκ, κ - rκ]
         ys = [μ - rμ_vis, μ - rμ_vis, μ + rμ_vis, μ + rμ_vis, μ - rμ_vis]
         Plots.plot!(plt, xs, ys; color=col, alpha=alpha, linecolor=edgecolor, lw=lw)
     end
 
     # optionally collect centers for scatter overlays
-    κ_invalid = Float64[]; μ_invalid = Float64[]
-    κ_valid   = Float64[]; μ_valid   = Float64[]
+    κ_invalid = Float64[]
+    μ_invalid = Float64[]
+    κ_valid = Float64[]
+    μ_valid = Float64[]
 
     # draw according to mode
     if mode == :validated || mode == :both
         for (ok, κ, μ, rκ, rμ) in boxes
             ok || continue
             draw_box!(κ, μ, rκ, rμ; col=color_valid)
-            plot_centers_valid && (push!(κ_valid, κ); push!(μ_valid, μ))
+            plot_centers_valid && (push!(κ_valid, κ);
+            push!(μ_valid, μ))
         end
     end
     if mode == :invalid || mode == :both
         for (ok, κ, μ, rκ, rμ) in boxes
             ok && continue
             draw_box!(κ, μ, rκ, rμ; col=color_invalid)
-            plot_centers_invalid && (push!(κ_invalid, κ); push!(μ_invalid, μ))
+            plot_centers_invalid && (push!(κ_invalid, κ);
+            push!(μ_invalid, μ))
         end
     end
 
@@ -397,7 +474,7 @@ end
 
 # helpers (safe for Reals and Intervals)
 @inline twice(x) = x + x
-@inline csc(x)   = one(x) / sin(x)
+@inline csc(x) = one(x) / sin(x)
 @inline powabs3(x) = abs(x)^3
 
 
@@ -406,32 +483,32 @@ end
 # λ₁(θ) = -[ cos(2θ) + 2Γ(  cos(θ+√κ q₁)/|sin(θ+√κ q₁)|^3  + μ cos(θ-√κ q₂)/|sin(θ-√κ q₂)|^3 ) ]
 function λ₁(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = one(q1) - q1
-    G  = Γ(κ, μ)
+    G = Γ(κ, μ)
 
-    s1 = sin(θ + r*q1)
-    s2 = sin(θ - r*q2)
-    t1 = cos(θ + r*q1) / powabs3(s1)
-    t2 = cos(θ - r*q2) / powabs3(s2)
+    s1 = sin(θ + r * q1)
+    s2 = sin(θ - r * q2)
+    t1 = cos(θ + r * q1) / powabs3(s1)
+    t2 = cos(θ - r * q2) / powabs3(s2)
 
-    return - ( cos(twice(θ)) + twice(G) * (t1 + μ * t2) )
+    return -(cos(twice(θ)) + twice(G) * (t1 + μ * t2))
 end
 
 # λ₂(θ) = -Γ sinθ [ sin(√κ)/|sin(θ+√κ q₁)|^3  - μ sin(√κ)/|sin(θ-√κ q₂)|^3 ]
 function λ₂(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = one(q1) - q1
-    G  = Γ(κ, μ)
+    G = Γ(κ, μ)
 
-    s1 = sin(θ + r*q1)
-    s2 = sin(θ - r*q2)
+    s1 = sin(θ + r * q1)
+    s2 = sin(θ - r * q2)
     sκ = sin(r)
 
-    return - G * sin(θ) * ( sκ / powabs3(s1) - μ * (sκ / powabs3(s2)) )
+    return -G * sin(θ) * (sκ / powabs3(s1) - μ * (sκ / powabs3(s2)))
 end
 
 # det(θ) = λ₁(θ) * λ₂(θ)
@@ -440,22 +517,29 @@ detλ(θ, κ, μ) = λ₁(θ, κ, μ) * λ₂(θ, κ, μ)
 # c₂(θ) = 2 + cos(2θ) - Γ csc(θ) [ sin(2θ+√κ q₁)/|sin(θ+√κ q₁)|^3 - μ sin(2θ-√κ q₂)/|sin(θ-√κ q₂)|^3 ]
 function c₂(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = one(q1) - q1
-    G  = Γ(κ, μ)
+    G = Γ(κ, μ)
 
-    s1 = sin(θ + r*q1)
-    s2 = sin(θ - r*q2)
-    a  = sin(twice(θ) + r*q1) / powabs3(s1)
-    b  = sin(twice(θ) - r*q2) / powabs3(s2)
+    s1 = sin(θ + r * q1)
+    s2 = sin(θ - r * q2)
+    a = sin(twice(θ) + r * q1) / powabs3(s1)
+    b = sin(twice(θ) - r * q2) / powabs3(s2)
 
-    return (two = 2; two + cos(twice(θ)) - G * csc(θ) * (a - μ * b))
+    two = one(θ) + one(θ)      # “2” with the same type as θ (Float64, Interval, BigFloat,…)
+    return two + cos(twice(θ)) - G * csc(θ) * (a - μ * b)
 end
 
 # Δ(θ) = c₂(θ)^2 - 4*det(θ)/sin^2(θ)
 function Δ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     c2 = c₂(θ, κ, μ)
-    return c2^2 - (4 * detλ(θ, κ, μ)) / (sin(θ)^2)
+    four = 4 * one(c2)
+    sθ = sin(θ)
+    two = one(θ) + one(θ)
+    four = two + two
+    return c2^2 - (four * detλ(θ, κ, μ)) / (sθ^2)
 end
+
+

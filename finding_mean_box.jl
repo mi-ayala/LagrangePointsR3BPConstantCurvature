@@ -2,64 +2,15 @@ using IntervalArithmetic
 using Plots
 using PlotlyJS
 using Roots
+using Statistics
 plotlyjs()
 
 include("functions.jl")
 include("validation_functions.jl")
 
-κ = 0.1
-μ = 0.01
-
-interior_linspace(lo, hi, n; margin=0.01) = begin
-    a = lo + margin * (hi - lo)
-    b = hi - margin * (hi - lo)
-    range(a, b; length=n)
-end
-
-theta_range = interior_linspace(Intθ_1(κ, μ)[1], Intθ_1(κ, μ)[2], 100)
-
-### Plot function and derivative
-Plots.plot(
-    Plots.plot(theta_range, @. f₁(theta_range, κ, μ)),
-    Plots.plot(theta_range, @. f₁θ(theta_range, κ, μ)))
-
-### A single root example
-### Estimate by sign changes
-for i in range(Intθ_1(κ, μ)[1], Intθ_1(κ, μ)[2]; length=400)
-    println("f₁($i) = ", f₁(i, κ, μ))
-end
-br = brackets_f₁(κ, μ; n=800)
-root = find_zero(θ -> f₁(θ, κ, μ), br[1])
-
-delta = 0.00001
-
-f₁(interval(0.901893), interval(κ), interval(μ))
-
-f₁(interval(root + delta), interval(κ), interval(μ))
-f₁(interval(root - delta), interval(κ), interval(μ))
-f₁θ(interval(root, delta; format=:midpoint), interval(κ), interval(μ))
-
-parameter_delta = 0.0000001
-f₁(interval(root + delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
-
-f₁(interval(root - delta), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
-
-f₁θ(interval(root, delta; format=:midpoint), interval(κ, parameter_delta; format=:midpoint), interval(μ, parameter_delta; format=:midpoint))
-
-f₁θ(interval(0, θ1_max(interval(κ), interval(μ))), interval(κ), interval(μ))
-
-### Testing validation function
-parameter_delta_kappa = 0.00000001
-parameter_delta_mu = 0.00000001
-validate_f1_root(root, κ, μ, parameter_delta_kappa,
-    parameter_delta_mu; verbose=true)
 
 
-validate_and_classify(root, κ, μ,
-    parameter_delta_kappa,
-    parameter_delta_mu; verbose=true)
 
-# Maximize rμ 
 function maximize_delta_mu(root, κ, μ,
     rκ_fixed;
     rμ0=1e-8,       # starting radius for μ
@@ -124,7 +75,6 @@ function maximize_delta_mu(root, κ, μ,
     end
     return (true, κ, μ, rκ_fixed, lo)
 end
-
 
 function maximize_delta_kappa(root, κ, μ,
     rμ_fixed;
@@ -192,66 +142,6 @@ function maximize_delta_kappa(root, κ, μ,
 
     return (true, κ, μ, lo, rμ_fixed)
 end
-
-### Testing validation function
-parameter_delta_kappa = 0.000001
-parameter_delta_mu = 0.000001
-validate_f1_root(root, κ, μ, parameter_delta_kappa,
-    parameter_delta_mu; verbose=true)
-
-ok, κc, μc, rκ_star, rμ = maximize_delta_mu(root, κ, μ,
-    parameter_delta_kappa;
-    rμ0=parameter_delta_mu,   # starting radius for μ
-    rμ_max=0.0886765,                  # hard cap (set as you like)
-    grow=1.8,                   # multiplicative growth
-    tol=1e-12,             # final bisection tolerance
-    max_steps=200,
-    verbose=true)
-
-
-validate_f1_root(root, κc, μc, rκ_star, rμ; verbose=true)
-
-ok, κc, μc, rκ, rμ = maximize_delta_kappa(root, κ, μ, rμ;
-    rκ0=rκ_star,     # starting radius for κ
-    rκ_max=(0.5 * pi)^2,   # hard cap 
-    grow=1.8,     # multiplicative growth
-    tol=1e-12,   # final bisection tolerance
-    max_steps=200,
-    verbose=true)
-
-# function maximize_box(root, κc, μc;
-#     rκ0=1e-9, rμ0=1e-9,
-#     κ_hi=(0.5 * π)^2, μT=0.0886765,
-#     grow=1.2, tol=1e-12, itmax=20, verbose=false)
-
-#     rκ, rμ = rκ0, rμ0
-#     for t in 1:itmax
-#         # cap by remaining distance to boundary
-#         rκ_cap = min((κ_hi - κc), κ_hi)  # mild cap; tweak as you wish
-#         rμ_cap = min((μT - μc), μT)
-
-#         # κ step (hold rμ)
-#         okκ, _, _, rκ_new, _ = maximize_delta_kappa(root, κc, μc,
-#             rμ; rκ0=rκ, rκ_max=rκ_cap, grow=grow, tol=tol, verbose=false)
-
-#         # μ step (hold rκ)
-#         okμ, _, _, _, rμ_new = maximize_delta_mu(root, κc, μc,
-#             rκ_new; rμ0=rμ, rμ_max=rμ_cap, grow=grow, tol=tol, verbose=false)
-
-#         # stop if nothing improved meaningfully
-#         if (!okκ && !okμ) || (abs(rκ_new - rκ) ≤ 1e-3 * max(rκ, 1e-30) &&
-#                               abs(rμ_new - rμ) ≤ 1e-3 * max(rμ, 1e-30))
-#             rκ, rμ = max(rκ, 0.0), max(rμ, 0.0)
-#             ok = rκ > 0 && rμ > 0
-#             return (ok, κc, μc, rκ, rμ)
-#         end
-
-#         rκ, rμ = rκ_new, rμ_new
-#     end
-#     (true, κc, μc, rκ, rμ)
-# end
-# current had no `verbose` (hence the error)
-
 
 function maximize_box(root, κc, μc;
     rκ0=1e-9, rμ0=1e-9,
@@ -360,10 +250,7 @@ function cover_rectangle(κ_hi=(0.5 * π)^2, μT=0.0886765;
 end
 
 boxes = cover_rectangle()
-plot_validated_boxes(boxes; color=:teal, alpha=0.45, title="Validated cover of (κ, μ)")
 
-# boxes :: Vector{Tuple{Bool,Float64,Float64,Float64,Float64}}
-#   elements are (ok, κc, μc, rκ, rμ)
 
 # Return the largest validated box sizes (Δκ_max, Δμ_max), plus the radii used
 function max_box_sizes(boxes; only_ok::Bool=true)
@@ -381,9 +268,6 @@ function max_box_sizes(boxes; only_ok::Bool=true)
     return 2 * rκ_max, 2 * rμ_max, rκ_max, rμ_max
 end
 
-Δκ_max, Δμ_max, rκ_max, rμ_max = max_box_sizes(boxes)
-
-using Statistics
 function mean_box_sizes(boxes; only_ok::Bool=true)
     rsκ = Float64[]
     rsμ = Float64[]
@@ -400,5 +284,7 @@ function mean_box_sizes(boxes; only_ok::Bool=true)
 end
 
 
+Δκ_max, Δμ_max, rκ_max, rμ_max = max_box_sizes(boxes)
 Δκ_mean, Δμ_mean, rκ_mean, rμ_mean = mean_box_sizes(boxes)
 println("Mean box width Δκ=", Δκ_mean, " height Δμ=", Δμ_mean)
+

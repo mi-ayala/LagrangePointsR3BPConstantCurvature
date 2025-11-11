@@ -189,131 +189,86 @@ plot_invalid_centers(boxes)
 
 
 
-# """
-#     cover_rectangle_grid_rect_with_stability(κ_lo, κ_hi, μ_lo, μ_hi;
-#         nx, ny, bracket_n=400, keep_invalid=true, verbose=true,
-#         return_intervals=false)
 
-# Regular `nx×ny` grid (no margins) over [κ_lo,κ_hi]×[μ_lo,μ_hi].
-# For each cell center (κc, μc), with radii (rκ=Δκ/2, rμ=Δμ/2):
+function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
+                                   μ_lo::Float64, μ_hi::Float64;
+                                   nx::Int, ny::Int,
+                                   bracket_n::Int=400,
+                                   refine_steps::Int=8,
+                                   keep_invalid::Bool=true,
+                                   verbose::Bool=true)
 
-#   1) bracket & refine a root of f₁(θ, κc, μc),
-#   2) prove existence + uniqueness on [0, θ₁_max],
-#   3) classify stability on the certified θ-subinterval.
+    @assert κ_hi > κ_lo "κ_hi must be > κ_lo"
+    @assert μ_hi > μ_lo "μ_hi must be > μ_lo"
+    @assert nx > 0 && ny > 0 "nx, ny must be positive"
 
-# Returns:
-#   boxes, stats
+    Lκ = κ_hi - κ_lo
+    Lμ = μ_hi - μ_lo
+    Δκ = Lκ / nx
+    Δμ = Lμ / ny
+    rκ = Δκ / 2
+    rμ = Δμ / 2
 
-# - If `return_intervals=false` (default):
-#     boxes :: Vector{Tuple{Bool,Float64,Float64,Float64,Float64,Symbol}}
-#              (ok, κc, μc, rκ, rμ, label)
+    # now includes stability label :: Symbol
+    boxes = Tuple{Bool,Float64,Float64,Float64,Float64,Symbol}[]
+    total = nx * ny
+    seeded = 0
+    validated = 0
 
-# - If `return_intervals=true`:
-#     boxes :: Vector{Tuple{Bool,Float64,Float64,Float64,Float64,Symbol,
-#                           Interval,Interval,Interval,Interval}}
-#              (ok, κc, μc, rκ, rμ, label, Idet, Ilam2, IΔ, J)
+    # iterate cell centers
+    for i in 1:nx, j in 1:ny
+        κc = κ_lo + (i - 0.5) * Δκ
+        μc = μ_lo + (j - 0.5) * Δμ
 
-# `label ∈ {:saddle_hyperbolic, :lyapunov_stable, :elliptic, :linearly_unstable, :unknown}`
-# """
-# function cover_rectangle_grid_rect_with_stability(κ_lo::Float64, κ_hi::Float64,
-#                                                   μ_lo::Float64, μ_hi::Float64;
-#                                                   nx::Int, ny::Int,
-#                                                   bracket_n::Int=400,
-#                                                   keep_invalid::Bool=true,
-#                                                   verbose::Bool=true,
-#                                                   return_intervals::Bool=false)
+        # 1) try to bracket a root at this center
+        br = brackets_f₁(κc, μc; n=bracket_n)
+        if isempty(br)
+            if keep_invalid
+                push!(boxes, (false, κc, μc, rκ, rμ, :unknown))
+            end
+            continue
+        end
+        seeded += 1
 
-#     @assert κ_hi > κ_lo "κ_hi must be > κ_lo"
-#     @assert μ_hi > μ_lo "μ_hi must be > μ_lo"
-#     @assert nx > 0 && ny > 0 "nx, ny must be positive"
+        # 2) refine the root (Brent on θ)
+        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
 
-#     Lκ = κ_hi - κ_lo
-#     Lμ = μ_hi - μ_lo
-#     Δκ, Δμ = Lκ / nx, Lμ / ny
-#     rκ, rμ = Δκ / 2, Δμ / 2
+        # 3) validate + stability (existence, uniqueness, refined J, classification)
+        ok, label, J_ref, Idet, Ilam2, IΔ =
+            validate_f1_root_with_stability(root, κc, μc, rκ, rμ;
+                                            refine_steps=refine_steps,
+                                            verbose=false)
 
-#     # result container type depends on return_intervals
-#     if return_intervals
-#         boxes = Vector{Tuple{Bool,Float64,Float64,Float64,Float64,Symbol,
-#                              Interval,Interval,Interval,Interval}}()
-#     else
-#         boxes = Vector{Tuple{Bool,Float64,Float64,Float64,Float64,Symbol}}()
-#     end
+        if ok
+            push!(boxes, (true, κc, μc, rκ, rμ, label))
+            validated += 1
+        elseif keep_invalid
+            push!(boxes, (false, κc, μc, rκ, rμ, label))
+        end
+    end
 
-#     total = nx * ny
-#     seeded = 0
-#     validated = 0
+    if verbose
+        println("cover_rectangle_grid_rect (with stability):")
+        println("  Δκ=$(Δκ), Δμ=$(Δμ); rκ=$(rκ), rμ=$(rμ)")
+        println("  cells total=$(total), seeded=$(seeded), validated=$(validated)")
+    end
 
-#     # iterate cell centers
-#     for i in 1:nx, j in 1:ny
-#         κc = κ_lo + (i - 0.5) * Δκ
-#         μc = μ_lo + (j - 0.5) * Δμ
+    stats = (Δκ=Δκ, Δμ=Δμ, rκ=rκ, rμ=rμ, total=total, seeded=seeded, validated=validated)
+    return boxes, stats
+end
 
-#         # (1) try to bracket a root at this center
-#         br = brackets_f₁(κc, μc; n=bracket_n)
-#         if isempty(br)
-#             if keep_invalid
-#                 if return_intervals
-#                     push!(boxes, (false, κc, μc, rκ, rμ, :unknown, Interval(0), Interval(0), Interval(0), Interval(0)))
-#                 else
-#                     push!(boxes, (false, κc, μc, rκ, rμ, :unknown))
-#                 end
-#             end
-#             continue
-#         end
-#         seeded += 1
+# Rect(κlo, κhi, μlo, μhi, ok=false, level=0)
+function cover_rectangle_grid_rect(R::Rect;
+                                   nx::Int, ny::Int,
+                                   bracket_n::Int=400,
+                                   refine_steps::Int=8,
+                                   keep_invalid::Bool=true,
+                                   verbose::Bool=true)
 
-#         # refine the root (Brent on θ)
-#         root = find_zero(θ -> f₁(θ, κc, μc), br[1])
-
-#         # (2)+(3) validate and classify
-#         if return_intervals
-#             okc, κv, μv, rκv, rμv, label, Idet, Ilam2, IΔ, J =
-#                 validate_and_classify(root, κc, μc, rκ, rμ; verbose=false, return_intervals=true)
-#             if okc
-#                 push!(boxes, (true, κv, μv, rκv, rμv, label, Idet, Ilam2, IΔ, J))
-#                 validated += 1
-#             elseif keep_invalid
-#                 push!(boxes, (false, κc, μc, rκ, rμ, :unknown, Idet, Ilam2, IΔ, J))
-#             end
-#         else
-#             okc, κv, μv, rκv, rμv, label =
-#                 validate_and_classify(root, κc, μc, rκ, rμ; verbose=false, return_intervals=false)
-#             if okc
-#                 push!(boxes, (true, κv, μv, rκv, rμv, label))
-#                 validated += 1
-#             elseif keep_invalid
-#                 push!(boxes, (false, κc, μc, rκ, rμ, :unknown))
-#             end
-#         end
-#     end
-
-#     if verbose
-#         println("cover_rectangle_grid_rect_with_stability:")
-#         println("  Δκ=$(Δκ), Δμ=$(Δμ); rκ=$(rκ), rμ=$(rμ)")
-#         println("  cells total=$(total), seeded=$(seeded), validated=$(validated)")
-#     end
-
-#     stats = (Δκ=Δκ, Δμ=Δμ, rκ=rκ, rμ=rμ,
-#              total=total, seeded=seeded, validated=validated)
-#     return boxes, stats
-# end
-
-# function cover_rectangle_grid_rect_with_stability(R::Rect;
-#         nx::Int, ny::Int,
-#         bracket_n::Int=400,
-#         keep_invalid::Bool=true,
-#         verbose::Bool=true,
-#         return_intervals::Bool=false)
-
-#     cover_rectangle_grid_rect_with_stability(
-#         R.κlo, R.κhi, R.μlo, R.μhi;
-#         nx=nx, ny=ny,
-#         bracket_n=bracket_n,
-#         keep_invalid=keep_invalid,
-#         verbose=verbose,
-#         return_intervals=return_intervals,
-#     )
-# end
-
-# boxes, stats = cover_rectangle_grid_rect_with_stability(cells[6]; nx=2464, ny=85, keep_invalid=true)
+    cover_rectangle_grid_rect(R.κlo, R.κhi, R.μlo, R.μhi;
+        nx=nx, ny=ny,
+        bracket_n=bracket_n,
+        refine_steps=refine_steps,
+        keep_invalid=keep_invalid,
+        verbose=verbose)
+end
