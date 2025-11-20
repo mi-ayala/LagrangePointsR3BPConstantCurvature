@@ -1,5 +1,10 @@
-twice(x) = x + x
-sqr(x) = x * x
+# helpers (safe for Reals and Intervals)
+@inline twice(x) = x + x
+@inline csc(x) = one(x) / sin(x)
+@inline powabs3(x) = abs(x)^3
+@inline sqr(x) = x * x
+
+
 
 function q₁(κ, μ)
     κ, μ = promote(κ, μ)
@@ -99,9 +104,150 @@ function f₂(θ, κ, μ)
     return sin(θ) * cos(θ) - Γ(κ, μ) * term
 end
 
+
+function f₂θ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+    r  = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    Γv = Γ(κ, μ)
+
+    a = θ + r * q1
+    b = θ - r * q2
+
+    sa, ca = sin(a), cos(a)
+    sb, cb = sin(b), cos(b)
+
+    inv_sa3 = inv(sa * sa * sa)
+    inv_sb3 = inv(sb * sb * sb)
+
+    d_main = cos(twice(θ))
+    d_term = (twice(ca) * inv_sa3) + (twice(μ) * cb * inv_sb3)
+
+    return d_main + Γv * d_term
+end
+
+function f₂κ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+    oneT = one(κ); twoT = twice(oneT); fourT = twoT + twoT
+
+    r  = sqrt(κ)
+    @assert inf(r) > zero(r) "κ interval must be > 0 for ∂f₂/∂κ (1/(2r) present)."
+
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    G  = Γ(κ, μ)
+
+    inv_2r = one(r) / (twoT * r)           # 1/(2r)
+
+    # --- dq1/dκ using q1 (avoid fresh atan) ---
+    s2r = sin(twice(r))
+    c2r = cos(twice(r))
+    y   = μ * s2r
+    x   = one(μ) + μ * c2r
+
+    y′   = μ * twice(c2r) * inv_2r         # μ*(2 cos(2r))*(1/(2r))
+    x′   = -μ * twice(s2r) * inv_2r
+    denom = x*x + y*y
+    atan′ = (x*y′ - y*x′) / denom
+
+    g      = inv_2r                         # 1/(2r)
+    g_over = - one(r) / (twoT * r * r)      # (g′/g) = -1/(2 r^2)
+    dq1_dκ = g_over * q1 + g * atan′
+
+    # --- dΓ/dκ ---
+    sr, cr = sin(r), cos(r)
+    num = sr^3 * cr
+    den = sqrt( μ*μ + twoT*(μ * c2r) + one(μ) )
+
+    dnum = ( (oneT+oneT+oneT)*sr^2*cr^2 - sr^4 ) * inv_2r  # (3 s^2 c^2 - s^4)/(2r)
+    dden = ( (-fourT * μ * s2r) * inv_2r ) / (twoT * den)  # (du/dr * dr/dκ)/(2√u)
+
+    dG = (dnum*den - num*dden) / (den*den)
+
+    # --- angles, terms ---
+    a = θ + r*q1
+    b = θ - r*q2
+
+    sa, ca = sin(a), cos(a)
+    sb, cb = sin(b), cos(b)
+
+    inv_sa2 = inv(sa*sa)
+    inv_sb2 = inv(sb*sb)
+    inv_sa3 = inv(sa*sa*sa)
+    inv_sb3 = inv(sb*sb*sb)
+
+    aκ = inv_2r*q1 + r*dq1_dκ
+    bκ = -inv_2r*q2 + r*dq1_dκ
+
+    d_term = (twoT*ca*inv_sa3)*aκ + (twoT*μ*cb*inv_sb3)*bκ
+    term   = inv_sa2 + μ*inv_sb2
+
+    return -dG*term + G*d_term
+end
+
+function f₂μ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+
+    # typed “constants”
+    oneT = one(μ)
+    twoT = twice(oneT)
+
+    r  = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = one(q1) - q1
+    G  = Γ(κ, μ)
+
+    # angles
+    a = θ + r*q1
+    b = θ - r*q2
+
+    sa, ca = sin(a), cos(a)
+    sb, cb = sin(b), cos(b)
+
+    inv_sa2 = inv(sa*sa)
+    inv_sb2 = inv(sb*sb)
+    inv_sa3 = inv(sa*sa*sa)
+    inv_sb3 = inv(sb*sb*sb)
+
+    # Γ_μ: Γ = num/den, num = sin(r)^3 cos(r) (no μ), den = sqrt(μ^2 + 2μ cos(2r) + 1)
+    s2r = sin(twice(r))
+    c2r = cos(twice(r))
+    sr, cr = sin(r), cos(r)
+    num = sr^3 * cr
+    den = sqrt( μ*μ + twoT*(μ * c2r) + one(μ) )
+
+    # den_μ = (μ + cos(2r)) / den  ⇒  Γ_μ = - Γ * (μ + cos(2r)) / den^2
+    Gμ = - G * (μ + c2r) / (den*den)
+
+    # q₁_μ: q1 = (1/(2r)) * atan(y,x), with y = μ sin(2r), x = 1 + μ cos(2r)
+    y  = μ * s2r
+    x  = one(μ) + μ * c2r
+    yμ = s2r
+    xμ = c2r
+    atanμ = (x*yμ - y*xμ) / (x*x + y*y)
+    inv_2r = one(r) / (twoT * r)
+    q1μ = inv_2r * atanμ
+
+    # a_μ = r*q1_μ,  b_μ = r*q1_μ  (since q₂ = 1 - q₁)
+    aμ = r * q1μ
+    bμ = r * q1μ
+
+    # d/dμ csc²(a) = -2 cos(a)/sin^3(a) * a_μ  ;  d/dμ( μ csc²(b) ) = csc²(b) + μ * (-2 cos(b)/sin^3(b)) * b_μ
+    d_csc2_a = - twoT * ca * inv_sa3 * aμ
+    d_mu_csc2_b = inv_sb2 + ( - twoT * μ * cb * inv_sb3 * bμ )
+
+    term = inv_sa2 + μ*inv_sb2
+
+    # assemble ∂f₂/∂μ
+    return - Gμ * term - G * ( d_csc2_a + d_mu_csc2_b )
+end
+
+
 function Intθ_2(κ, μ)
     return (sqrt(κ) * q₂(κ, μ), pi - sqrt(κ) * q₁(κ, μ))
 end
+
 
 function f₃(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
@@ -248,235 +394,6 @@ function brackets_signchanges(f, a::Real, b::Real; n::Integer=400)
     end
     return br
 end
-
-
-### Plotting function 
-"""
-    plot_validated_boxes(boxes;
-        color=:green, alpha=0.4, edgecolor=:black,
-        markersize=4, title="Validated boxes",
-        show_bounding_box=true)
-
-Plot validated boxes of the form (ok::Bool, κ, μ, rκ, rμ),
-centered at (κ, μ) with half-width rκ and half-height rμ.
-
-Adds the bounding parameter region:
-    κ ∈ [0, (0.5π)^2],  μ ∈ [0, μT≈0.0886765].
-"""
-function plot_validated_boxes(boxes;
-    color=:green, alpha=0.4, edgecolor=:black,
-    markersize=4, title="Validated boxes",
-    show_bounding_box=true)
-
-    μT = 0.0886765
-    κ_lo, κ_hi = 0.0, (0.5 * π)^2
-    μ_lo, μ_hi = 0.0, μT
-
-    plt = Plots.plot(; xlabel="κ", ylabel="μ",
-        title=title, legend=false,
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-    # draw all validated boxes
-    for (ok, κ, μ, rκ, rμ) in boxes
-        ok || continue
-        xs = [κ - rκ, κ + rκ, κ + rκ, κ - rκ, κ - rκ]
-        ys = [μ - rμ, μ - rμ, μ + rμ, μ + rμ, μ - rμ]
-        Plots.plot!(plt, xs, ys; color=color, alpha=alpha, linecolor=edgecolor, lw=0.5)
-        # Plots.scatter!(plt, [κ], [μ]; color=edgecolor, ms=markersize)
-    end
-
-    # bounding box
-    if show_bounding_box
-        Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
-        Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
-        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3, label="Bounding region")
-    end
-
-    Plots.display(plt)
-    return plt
-end
-
-"""
-    plot_validated_boxes(boxes;
-        mode=:validated,                        # :validated | :invalid | :both
-        color_valid=:green, color_invalid=:orange,
-        alpha=0.4, edgecolor=:black, lw=0.5,
-        markersize=4, title="Boxes",
-        show_bounding_box=true)
-
-Plot boxes of the form (ok::Bool, κ, μ, rκ, rμ).
-`mode=:validated` (default) plots only ok=true,
-`mode=:invalid` plots only ok=false,
-`mode=:both` plots both (different colors).
-
-Adds the bounding region κ ∈ [0, (0.5π)^2], μ ∈ [0, μT≈0.0886765].
-"""
-function plot_validated_boxes(boxes;
-    mode::Symbol=:validated,
-    color_valid=:green, color_invalid=:orange,
-    alpha::Real=0.4, edgecolor=:black, lw::Real=3,
-    markersize::Real=4, title::AbstractString="Boxes",
-    show_bounding_box::Bool=true)
-
-    μT = 0.0886765
-    κ_lo, κ_hi = 0.0, (0.5 * π)^2
-    μ_lo, μ_hi = 0.0, μT
-
-    plt = Plots.plot(; xlabel="κ", ylabel="μ",
-        title=title, legend=false,
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-    # helper to draw one box
-    draw_box!(κ, μ, rκ, rμ; col) = begin
-        xs = [κ - rκ, κ + rκ, κ + rκ, κ - rκ, κ - rκ]
-        ys = [μ - rμ, μ - rμ, μ + rμ, μ + rμ, μ - rμ]
-        Plots.plot!(plt, xs, ys; color=col, alpha=alpha, linecolor=edgecolor, lw=lw)
-        # Plots.scatter!(plt, [κ], [μ]; color=edgecolor, ms=markersize)
-    end
-
-    if mode == :validated || mode == :both
-        for (ok, κ, μ, rκ, rμ) in boxes
-            ok || continue
-            draw_box!(κ, μ, rκ, rμ; col=color_valid)
-        end
-    end
-    if mode == :invalid || mode == :both
-        for (ok, κ, μ, rκ, rμ) in boxes
-            ok && continue
-            draw_box!(κ, μ, rκ, rμ; col=color_invalid)
-        end
-    end
-
-    if show_bounding_box
-        Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
-        Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
-        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3)
-    end
-
-    display(plt)
-    return plt
-end
-
-"""
-    plot_validated_boxes(
-        boxes;
-        mode=:validated,                    # :validated | :invalid | :both
-        color_valid=:green, color_invalid=:red,
-        alpha=0.4, edgecolor=:black, lw=0.5,
-        markersize=3, title="Boxes",
-        show_bounding_box=true,
-        # NEW:
-        y_exaggerate::Real=1.0,             # multiply rμ for drawing only
-        min_frac_h::Real=0.0,               # enforce min visual height = min_frac_h*(μ_hi-μ_lo)
-        plot_centers_invalid::Bool=true,    # scatter centers of invalid boxes
-        plot_centers_valid::Bool=false,     # (optional) centers of valid boxes
-        zoom::Union{Nothing,Tuple{Real,Real,Real,Real}}=nothing # (κlo, κhi, μlo, μhi)
-    )
-
-Visualize boxes (ok, κ, μ, rκ, rμ). To make tiny boxes visible, set
-`y_exaggerate > 1` or `min_frac_h > 0`. These affect drawing only.
-"""
-
-"""
-    plot_validated_boxes(
-        boxes;
-        mode=:validated,                    # :validated | :invalid | :both
-        color_valid=:green, color_invalid=:red,
-        alpha=0.4, edgecolor=:black, lw=0.5,
-        markersize=3, title="Boxes",
-        show_bounding_box=true,
-        # NEW:
-        y_exaggerate::Real=1.0,             # multiply rμ for drawing only
-        min_frac_h::Real=0.0,               # enforce min visual height = min_frac_h*(μ_hi-μ_lo)
-        plot_centers_invalid::Bool=true,    # scatter centers of invalid boxes
-        plot_centers_valid::Bool=false,     # (optional) centers of valid boxes
-        zoom::Union{Nothing,Tuple{Real,Real,Real,Real}}=nothing # (κlo, κhi, μlo, μhi)
-    )
-
-Visualize boxes (ok, κ, μ, rκ, rμ). To make tiny boxes visible, set
-`y_exaggerate > 1` or `min_frac_h > 0`. These affect drawing only.
-"""
-function plot_validated_boxes(boxes;
-    mode::Symbol=:validated,
-    color_valid=:green, color_invalid=:red,
-    alpha::Real=0.4, edgecolor=:black, lw::Real=0.5,
-    markersize::Real=1, title::AbstractString="Boxes",
-    show_bounding_box::Bool=true,
-    y_exaggerate::Real=1.0,
-    min_frac_h::Real=0.0,
-    plot_centers_invalid::Bool=true,
-    plot_centers_valid::Bool=false,
-    zoom::Union{Nothing,Tuple{Real,Real,Real,Real}}=nothing)
-
-    μT = 0.0886765
-    κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
-    μ_lo_full, μ_hi_full = 0.0, μT
-
-    # axes limits
-    κ_lo, κ_hi, μ_lo, μ_hi = isnothing(zoom) ? (κ_lo_full, κ_hi_full, μ_lo_full, μ_hi_full) : zoom
-    μ_span = μ_hi - μ_lo
-    min_h = max(0.0, min_frac_h) * μ_span
-
-    plt = Plots.plot(; xlabel="κ", ylabel="μ", title=title, legend=false,
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-    # helper: draw one rectangle with visual tweaks on height only
-    function draw_box!(κ, μ, rκ, rμ; col)
-        rμ_vis = max(rμ * y_exaggerate, min_h / 2)   # visual-only height
-        xs = [κ - rκ, κ + rκ, κ + rκ, κ - rκ, κ - rκ]
-        ys = [μ - rμ_vis, μ - rμ_vis, μ + rμ_vis, μ + rμ_vis, μ - rμ_vis]
-        Plots.plot!(plt, xs, ys; color=col, alpha=alpha, linecolor=edgecolor, lw=lw)
-    end
-
-    # optionally collect centers for scatter overlays
-    κ_invalid = Float64[]
-    μ_invalid = Float64[]
-    κ_valid = Float64[]
-    μ_valid = Float64[]
-
-    # draw according to mode
-    if mode == :validated || mode == :both
-        for (ok, κ, μ, rκ, rμ) in boxes
-            ok || continue
-            draw_box!(κ, μ, rκ, rμ; col=color_valid)
-            plot_centers_valid && (push!(κ_valid, κ);
-            push!(μ_valid, μ))
-        end
-    end
-    if mode == :invalid || mode == :both
-        for (ok, κ, μ, rκ, rμ) in boxes
-            ok && continue
-            draw_box!(κ, μ, rκ, rμ; col=color_invalid)
-            plot_centers_invalid && (push!(κ_invalid, κ);
-            push!(μ_invalid, μ))
-        end
-    end
-
-    # overlay centers (helps when rectangles are too thin)
-    if plot_centers_invalid && !isempty(κ_invalid)
-        Plots.scatter!(plt, κ_invalid, μ_invalid; color=color_invalid, ms=markersize)
-    end
-    if plot_centers_valid && !isempty(κ_valid)
-        Plots.scatter!(plt, κ_valid, μ_valid; color=color_valid, ms=markersize)
-    end
-
-    # outer bounding box (full region), unless zooming makes it confusing
-    if show_bounding_box
-        Xb = [κ_lo_full, κ_hi_full, κ_hi_full, κ_lo_full, κ_lo_full]
-        Yb = [μ_lo_full, μ_lo_full, μ_hi_full, μ_hi_full, μ_lo_full]
-        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3)
-    end
-
-    display(plt)
-    return plt
-end
-
-
-# helpers (safe for Reals and Intervals)
-@inline twice(x) = x + x
-@inline csc(x) = one(x) / sin(x)
-@inline powabs3(x) = abs(x)^3
-
 
 
 # ---- Notable functions ----

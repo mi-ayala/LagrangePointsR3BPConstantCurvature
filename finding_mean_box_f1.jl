@@ -10,7 +10,6 @@ include("validation_functions.jl")
 
 
 
-
 function maximize_delta_mu(root, κ, μ,
     rκ_fixed;
     rμ0=1e-8,       # starting radius for μ

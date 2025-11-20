@@ -1,6 +1,8 @@
 using IntervalArithmetic
 using ForwardDiff
 
+include("functions.jl")
+
 ### Testing interval IntervalArithmetic
 κ = interval(0.5)
 μ = interval(0.5)
@@ -18,18 +20,37 @@ using ForwardDiff
 @show Intθ_4(κ, μ)
 @show Δ(interval(0.1), κ, μ)
 @show c₂(interval(0.1), κ, μ)
+@show f₂θ(interval(0.1), κ, μ)
+@show f₂κ(interval(0.1), κ, μ)
+@show f₂μ(interval(0.1), κ, μ)
+
+
 
 # compare analytic vs automatic derivative
 κ = 0.5
 μ = 0.2
 θ = 0.7
-ad = ForwardDiff.derivative(θ -> f₄(θ, κ, μ), θ)
-an = f₄θ(θ, κ, μ)
-
+ad = ForwardDiff.derivative(θ -> f₂(θ, κ, μ), θ)
+an = f₂θ(θ, κ, μ)
 println("analytic  f₄θ = ", an)
 println("ForwardDiff = ", ad)
 println("difference  = ", ad - an)
 
+
+### kappa derivative
+ad = ForwardDiff.derivative(κ -> f₂(0.7, κ, μ), κ)
+an = f₂κ(0.7, κ, μ)
+println("analytic  f₂κ = ", an)
+println("ForwardDiff = ", ad)
+println("difference  = ", ad - an)
+
+
+### mu derivative
+ad = ForwardDiff.derivative(μ -> f₂(0.7, κ, μ), μ)
+an = f₂μ(0.7, κ, μ)
+println("analytic  f₂μ = ", an)
+println("ForwardDiff = ", ad)
+println("difference  = ", ad - an)  
 
 # # compare analytic vs automatic derivative
 # κ = 0.5
