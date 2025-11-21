@@ -42,28 +42,85 @@ function pairs_to_roots(pairs; n=400)
     return roots
 end
 
-roots = pairs_to_roots(pairs; n=400)
+# roots = pairs_to_roots(pairs; n=400)
 
-### Plotting f1
-xs = first.(pairs)           
-ys = last.(pairs)            #
+# ### Plotting f1
+# xs = first.(pairs)           
+# ys = last.(pairs)            #
 
-# collect sorted unique axes
+# # collect sorted unique axes
+# κs = sort(unique(first.(pairs)))
+# μs = sort(unique(last.(pairs)))
+# nk, nm = length(κs), length(μs)
+
+# # fill θ*(κ_i, μ_j) matrix
+# θgrid = fill(NaN, nk, nm)
+# for (i, (κ, μ)) in enumerate(pairs)
+#     ii = searchsortedfirst(κs, κ)
+#     jj = searchsortedfirst(μs, μ)
+#     θgrid[ii, jj] = roots[i]
+# end
+
+# Plots.surface(μs, κs, θgrid;
+#     xlabel="μ", ylabel="κ", zlabel="θ*",
+#     title="Root surface θ*(κ, μ)",
+#     legend=false,
+#     color=:cork, cbar_title="θ*",
+#     linewidth=0,
+#     fillalpha=0.95,
+#     camera=(30, 60),
+#     grid=:on, framestyle=:box)
+
+
+
+
+
+
+    # results₄ will hold (κ, μ, θ*, stab)
+function evaluate_grid_f₄(pairs; n=400)
+    out = Vector{Tuple{Float64,Float64,Float64,Symbol}}(undef, length(pairs))
+
+    for i in 1:length(pairs)
+        κ, μ = pairs[i]
+        br = brackets_f₄(κ, μ; n=n)
+        println("i=$i, (κ,μ)=($κ,$μ), brackets = ", br)
+
+        if isempty(br)
+            out[i] = (κ, μ, NaN, :no_root)
+            continue
+        end
+
+        θstar = find_zero(θ -> f₄(θ, κ, μ), br[1])
+
+        # floating-point stability at that root
+        stab, _, _, _ = classify_equilibrium_fp(θstar, κ, μ)
+
+        out[i] = (κ, μ, θstar, stab)
+    end
+
+    return out
+end
+
+results₄ = evaluate_grid_f₄(pairs; n=400)
+
+# unique κ, μ axes
 κs = sort(unique(first.(pairs)))
 μs = sort(unique(last.(pairs)))
 nk, nm = length(κs), length(μs)
 
-# fill θ*(κ_i, μ_j) matrix
-θgrid = fill(NaN, nk, nm)
-for (i, (κ, μ)) in enumerate(pairs)
+θgrid₄   = fill(NaN, nk, nm)
+stabgrid₄ = fill(Symbol(:none), nk, nm)
+
+for (κ, μ, θstar, stab) in results₄
     ii = searchsortedfirst(κs, κ)
     jj = searchsortedfirst(μs, μ)
-    θgrid[ii, jj] = roots[i]
+    θgrid₄[ii, jj]   = θstar
+    stabgrid₄[ii, jj] = stab
 end
 
-Plots.surface(μs, κs, θgrid;
+Plots.surface(μs, κs, θgrid₄;
     xlabel="μ", ylabel="κ", zlabel="θ*",
-    title="Root surface θ*(κ, μ)",
+    title="Root surface θ*(κ, μ) for f₄",
     legend=false,
     color=:cork, cbar_title="θ*",
     linewidth=0,
@@ -72,5 +129,11 @@ Plots.surface(μs, κs, θgrid;
     grid=:on, framestyle=:box)
 
 
+    # 2D κ–μ centers colored by stability for f₄
+plot_stability_centers(results₄;
+    ms=4,
+    title="Stability in (κ, μ) plane for f₄")
 
-
+# 3D surface θ*(κ, μ) with stability overlay for f₄
+plot_stability_surface(κs, μs, θgrid₄, stabgrid₄;
+    title="Root surface θ*(κ, μ) with stability for f₄")

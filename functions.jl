@@ -422,9 +422,10 @@ function λ₂(θ, κ, μ)
 
     s1 = sin(θ + r * q1)
     s2 = sin(θ - r * q2)
-    sκ = sin(r)
+    sκ1 = sin(r*q1)
+    sκ2 = sin(r*q2)
 
-    return -G * sin(θ) * (sκ / powabs3(s1) - μ * (sκ / powabs3(s2)))
+    return -G * sin(θ) * (sκ1 / powabs3(s1) - μ * (sκ2 / powabs3(s2)))
 end
 
 # det(θ) = λ₁(θ) * λ₂(θ)

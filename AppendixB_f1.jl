@@ -327,8 +327,8 @@ end
 # # 2D κ–μ plot colored by stability
 # plot_stability_centers(results)
 
-# # 3D surface θ*(κ, μ) with colored stability points
-# plot_stability_surface(κs, μs, θgrid, stabgrid)
+# 3D surface θ*(κ, μ) with colored stability points
+plot_stability_surface(κs, μs, θgrid, stabgrid)
 
 
 κvals = getfield.(STABILITY_LOG, :κ)
