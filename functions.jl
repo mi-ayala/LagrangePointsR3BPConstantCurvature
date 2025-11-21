@@ -5,7 +5,6 @@
 @inline sqr(x) = x * x
 
 
-
 function q₁(κ, μ)
     κ, μ = promote(κ, μ)
     r = sqrt(κ)
@@ -460,3 +459,48 @@ function Δ(θ, κ, μ)
 end
 
 
+"""
+    classify_equilibrium_fp(θ, κ, μ; verbose=false)
+
+Floating-point version of the interval classifier.
+
+Implements:
+
+1) detλ(θ) < 0                → :saddle_hyperbolic
+2) λ₂(θ)  > 0                 → :lyapunov_stable
+3) Δ(θ)   > 0                 → :elliptic
+4) Δ(θ)   < 0                 → :linearly_unstable
+5) otherwise → :unknown
+
+Returns `(label::Symbol, det_val, lam2_val, Δ_val)`.
+"""
+function classify_equilibrium_fp(θ, κ, μ; verbose::Bool=false)
+    det_val = detλ(θ, κ, μ)
+
+    if verbose
+        println("det(θ) = ", det_val)
+    end
+    if det_val < 0
+        return :saddle_hyperbolic, det_val, NaN, NaN
+    end
+
+    lam2_val = λ₂(θ, κ, μ)
+    if verbose
+        println("λ₂(θ) = ", lam2_val)
+    end
+    if lam2_val > 0
+        return :lyapunov_stable, det_val, lam2_val, NaN
+    end
+
+    Δ_val = Δ(θ, κ, μ)
+    if verbose
+        println("Δ(θ) = ", Δ_val)
+    end
+    if Δ_val > 0
+        return :elliptic, det_val, lam2_val, Δ_val
+    elseif Δ_val < 0
+        return :linearly_unstable, det_val, lam2_val, Δ_val
+    else
+        return :unknown, det_val, lam2_val, Δ_val
+    end
+end
