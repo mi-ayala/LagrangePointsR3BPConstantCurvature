@@ -52,8 +52,8 @@ end
 roots_1, roots_2 = pairs_to_roots(pairs; n=400)
 
 ### Plotting f3
-xs = first.(pairs)           
-ys = last.(pairs)            
+xs = first.(pairs)
+ys = last.(pairs)
 
 # collect sorted unique axes
 κs = sort(unique(first.(pairs)))
@@ -86,10 +86,105 @@ Plots.surface(μs, κs, θgrid;
     grid=:on, framestyle=:box)
 
 
-Plots.surface!(μs, κs, θgrid2;  
+Plots.surface!(μs, κs, θgrid2;
     color=:cork, cbar_title="θ*",
     linewidth=0,
     fillalpha=0.95,
     camera=(30, 60),
     grid=:on, framestyle=:box)
 
+
+
+"""
+    evaluate_grid_f2(pairs; n=400)
+
+Compute up to two roots of f₂ at each (κ, μ) point and classify stability
+using `classify_equilibrium_fp`.
+
+Returns a vector of tuples:
+    (κ, μ, θ1, stab1, θ2, stab2)
+
+with the convention that, when both exist,
+    θ1 ≤ θ2   (i.e. root 1 is always the smaller root).
+"""
+function evaluate_grid_f3(pairs; n=400)
+    out = Vector{Tuple{Float64,Float64,Float64,Symbol,Float64,Symbol}}(undef, length(pairs))
+
+    for i in 1:length(pairs)
+        κ, μ = pairs[i]
+
+        br = brackets_f₃(κ, μ; n=n)
+        println("i=$i, (κ,μ)=($κ,$μ), brackets = ", br)
+
+        # default: no roots
+        θ1 = NaN
+        stab1 = :no_root
+        θ2 = NaN
+        stab2 = :no_root
+
+        if isempty(br)
+            # keep defaults
+            out[i] = (κ, μ, θ1, stab1, θ2, stab2)
+            continue
+        end
+
+        # always take the first bracket
+        θa = find_zero(θ -> f₃(θ, κ, μ), br[1])
+        staba, _, _, _ = classify_equilibrium_fp(θa, κ, μ)
+
+        if length(br) == 1
+            # only one root we trust
+            θ1, stab1 = θa, staba
+            out[i] = (κ, μ, θ1, stab1, θ2, stab2)
+            continue
+        end
+
+        # second root from second bracket
+        θb = find_zero(θ -> f₃(θ, κ, μ), br[2])
+        stabb, _, _, _ = classify_equilibrium_fp(θb, κ, μ)
+
+        # reorder so that θ1 ≤ θ2
+        if θa ≤ θb
+            θ1, stab1 = θa, staba
+            θ2, stab2 = θb, stabb
+        else
+            θ1, stab1 = θb, stabb
+            θ2, stab2 = θa, staba
+        end
+
+        out[i] = (κ, μ, θ1, stab1, θ2, stab2)
+    end
+
+    return out
+end
+
+results₃ = evaluate_grid_f3(pairs; n=400)
+
+
+function plot_stability_centers_f3(results; root_index=1,
+    ms=4, title="Stability (f₂)")
+    κvals = Float64[]
+    μvals = Float64[]
+    cols = Symbol[]
+
+    for (κ, μ, θ₁, stab₁, θ₂, stab₂) in results
+        stab = (root_index == 1) ? stab₁ : stab₂
+        if !isnan((root_index == 1 ? θ₁ : θ₂))
+            push!(κvals, κ)
+            push!(μvals, μ)
+            push!(cols, stability_color(stab))
+        end
+    end
+
+    plt = Plots.scatter(κvals, μvals;
+        ms=ms, color=cols,
+        xlabel="κ", ylabel="μ",
+        title=title, legend=false)
+
+    return plt
+end
+plot_stability_centers_f3(results₃; root_index=1,
+    title="Stability for f₃ — first branch")
+
+plot_stability_centers_f3(results₃; root_index=2,
+    title="Stability for f₃ — second branch")

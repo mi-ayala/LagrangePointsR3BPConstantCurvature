@@ -444,7 +444,7 @@ function c₂(θ, κ, μ)
     a = sin(twice(θ) + r * q1) / powabs3(s1)
     b = sin(twice(θ) - r * q2) / powabs3(s2)
 
-    two = one(θ) + one(θ)      # “2” with the same type as θ (Float64, Interval, BigFloat,…)
+    two = one(θ) + one(θ)      
     return two + cos(twice(θ)) - G * csc(θ) * (a - μ * b)
 end
 
