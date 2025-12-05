@@ -7,6 +7,33 @@ function f₃(θ, κ, μ)
     return sin(θ) * cos(θ) + Γ(κ, μ) * term
 end
 
+function f₃θ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+    r  = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
+    Γv = Γ(κ, μ)
+
+    a = θ + r * q1
+    b = θ - r * q2
+
+    # derivative of sinθ cosθ
+    d_main = cos(twice(θ))      # = cos(2θ)
+
+    # pieces for the Γ-term
+    sa = sin(a); ca = cos(a)
+    sb = sin(b); cb = cos(b)
+
+    inv_sa3 = inv(sa * sa * sa) # 1 / sin(a)^3
+    inv_sb3 = inv(sb * sb * sb) # 1 / sin(b)^3
+
+    # d/dθ[ sin(a)^(-2) ] = -2 cos(a) / sin(a)^3
+    # d/dθ[ μ sin(b)^(-2) ] = -2 μ cos(b) / sin(b)^3
+    d_term = (-twice(ca) * inv_sa3) + (-twice(μ) * cb * inv_sb3)
+
+    return d_main + Γv * d_term
+end
+
 function Intθ_3(κ, μ)
     return (sqrt(κ) * q₂(κ, μ) - pi, -sqrt(κ) * q₁(κ, μ))
 end
