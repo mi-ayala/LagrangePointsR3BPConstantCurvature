@@ -1,6 +1,5 @@
 using IntervalArithmetic
 using Plots
-# using PlotlyJS
 using Roots
 using Printf
 

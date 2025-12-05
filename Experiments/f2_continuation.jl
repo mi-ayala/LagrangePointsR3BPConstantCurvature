@@ -13,7 +13,7 @@ function q₁μ(κ, μ)
     r = sqrt(κ)
 
     oneT = one(r)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     s2r = sin(twice(r))
     c2r = cos(twice(r))
@@ -24,8 +24,8 @@ function q₁μ(κ, μ)
     yμ = s2r
     xμ = c2r
 
-    denom = x*x + y*y
-    atanμ = (x*yμ - y*xμ) / denom
+    denom = x * x + y * y
+    atanμ = (x * yμ - y * xμ) / denom
 
     inv_2r = one(r) / (two * r)
 
@@ -40,7 +40,7 @@ function q₁κ(κ, μ)
     r = sqrt(κ)
 
     oneT = one(r)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     q1 = q₁(κ, μ)
 
@@ -55,13 +55,13 @@ function q₁κ(κ, μ)
     yκ = μ * twice(c2r) * dr_dκ
     xκ = -μ * twice(s2r) * dr_dκ
 
-    denom = x*x + y*y
-    atanκ = (x*yκ - y*xκ) / denom
+    denom = x * x + y * y
+    atanκ = (x * yκ - y * xκ) / denom
 
-    g      = one(r) / (two * r)
-    g_over = - one(r) / (two * r * r)     # g'/g = -1/(2r²)
+    g = one(r) / (two * r)
+    g_over = -one(r) / (two * r * r)     # g'/g = -1/(2r²)
 
-    return g_over*q1 + g*atanκ
+    return g_over * q1 + g * atanκ
 end
 
 # --------------------------------------------------------
@@ -72,17 +72,17 @@ function Γμ(κ, μ)
     r = sqrt(κ)
 
     oneT = one(κ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     s2r = sin(twice(r))
     c2r = cos(twice(r))
 
     sr, cr = sin(r), cos(r)
 
-    num = sr*sr*sr*cr
-    den = sqrt( μ*μ + two*(μ*c2r) + one(μ) )
+    num = sr * sr * sr * cr
+    den = sqrt(μ * μ + two * (μ * c2r) + one(μ))
 
-    G = num/den
+    G = num / den
     return -G * (μ + c2r) / (den * den)
 end
 
@@ -94,27 +94,27 @@ function Γκ(κ, μ)
     r = sqrt(κ)
 
     oneT = one(κ)
-    two  = twice(oneT)
+    two = twice(oneT)
     four = two + two
 
-    dr_dκ = one(r) / (two*r)
+    dr_dκ = one(r) / (two * r)
 
     s2r = sin(twice(r))
     c2r = cos(twice(r))
 
     sr, cr = sin(r), cos(r)
 
-    num = sr*sr*sr*cr
-    den = sqrt( μ*μ + two*(μ*c2r) + one(μ) )
+    num = sr * sr * sr * cr
+    den = sqrt(μ * μ + two * (μ * c2r) + one(μ))
 
     three = two + oneT
 
-    dnum = (three*sr*sr*cr*cr - sr*sr*sr*sr) * dr_dκ
+    dnum = (three * sr * sr * cr * cr - sr * sr * sr * sr) * dr_dκ
 
     uκ = -four * μ * s2r * dr_dκ
-    dden = uκ / (two*den)
+    dden = uκ / (two * den)
 
-    return (dnum*den - num*dden)/(den*den)
+    return (dnum * den - num * dden) / (den * den)
 end
 
 # --------------------------------------------------------
@@ -126,11 +126,11 @@ function f₂(θ, κ, μ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    term = inv(sqr(sin(A))) + μ*inv(sqr(sin(B)))
-    return sin(θ)*cos(θ) - Γ(κ, μ)*term
+    term = inv(sqr(sin(A))) + μ * inv(sqr(sin(B)))
+    return sin(θ) * cos(θ) - Γ(κ, μ) * term
 end
 
 # --------------------------------------------------------
@@ -139,23 +139,25 @@ end
 function f₂θ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
     Γv = Γ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA = sin(A); cA = cos(A)
-    sB = sin(B); cB = cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
-    FA = cA / (sA*sA*sA)
-    FB = cB / (sB*sB*sB)
+    FA = cA / (sA * sA * sA)
+    FB = cB / (sB * sB * sB)
 
-    return cos(twice(θ)) + two*Γv*(FA + μ*FB)
+    return cos(twice(θ)) + two * Γv * (FA + μ * FB)
 end
 
 # --------------------------------------------------------
@@ -165,37 +167,39 @@ function f₂κ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
 
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
-    r  = sqrt(κ)
-    dr = one(r)/(two*r)
+    r = sqrt(κ)
+    dr = one(r) / (two * r)
 
-    q1  = q₁(κ, μ)
-    q2  = q₂(κ, μ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
     dq1 = q₁κ(κ, μ)
     dq2 = -dq1
 
-    Γv  = Γ(κ, μ)
+    Γv = Γ(κ, μ)
     Γκv = Γκ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA = sin(A); cA = cos(A)
-    sB = sin(B); cB = cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
-    inv_sA2 = inv(sA*sA)
-    inv_sB2 = inv(sB*sB)
+    inv_sA2 = inv(sA * sA)
+    inv_sB2 = inv(sB * sB)
 
-    T0 = inv_sA2 + μ*inv_sB2
+    T0 = inv_sA2 + μ * inv_sB2
 
-    Aκ = dr*q1 + r*dq1
-    Bκ = -(dr*q2 + r*dq2)
+    Aκ = dr * q1 + r * dq1
+    Bκ = -(dr * q2 + r * dq2)
 
-    FAκ = -(two*cA/(sA*sA*sA)) * Aκ
-    FBκ = μ * (-(two*cB/(sB*sB*sB)) * Bκ)
+    FAκ = -(two * cA / (sA * sA * sA)) * Aκ
+    FBκ = μ * (-(two * cB / (sB * sB * sB)) * Bκ)
 
-    return -Γκv*T0 - Γv*(FAκ + FBκ)
+    return -Γκv * T0 - Γv * (FAκ + FBκ)
 end
 
 # --------------------------------------------------------
@@ -205,7 +209,7 @@ function f₂μ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
 
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     r = sqrt(κ)
 
@@ -214,27 +218,29 @@ function f₂μ(θ, κ, μ)
     dq1 = q₁μ(κ, μ)
     dq2 = -dq1
 
-    Γv  = Γ(κ, μ)
+    Γv = Γ(κ, μ)
     Γμv = Γμ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA=sin(A); cA=cos(A)
-    sB=sin(B); cB=cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
-    inv_sA2 = inv(sA*sA)
-    inv_sB2 = inv(sB*sB)
+    inv_sA2 = inv(sA * sA)
+    inv_sB2 = inv(sB * sB)
 
-    T0 = inv_sA2 + μ*inv_sB2
+    T0 = inv_sA2 + μ * inv_sB2
 
-    Aμ = r*dq1
-    Bμ = r*dq1
+    Aμ = r * dq1
+    Bμ = r * dq1
 
-    FAμ = -(two*cA/(sA*sA*sA))*Aμ
-    FBμ = μ * (-(two*cB/(sB*sB*sB))*Bμ) + inv_sB2
+    FAμ = -(two * cA / (sA * sA * sA)) * Aμ
+    FBμ = μ * (-(two * cB / (sB * sB * sB)) * Bμ) + inv_sB2
 
-    return -Γμv*T0 - Γv*(FAμ + FBμ)
+    return -Γμv * T0 - Γv * (FAμ + FBμ)
 end
 
 # --------------------------------------------------------
@@ -243,31 +249,33 @@ end
 function f₂θθ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
     Γv = Γ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA = sin(A); cA = cos(A)
-    sB = sin(B); cB = cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
     main = -two * sin(twice(θ))
 
-    inv_sA4 = inv(sA*sA*sA*sA)
-    inv_sB4 = inv(sB*sB*sB*sB)
+    inv_sA4 = inv(sA * sA * sA * sA)
+    inv_sB4 = inv(sB * sB * sB * sB)
 
-    two_cA2 = two*cA*cA
-    two_cB2 = two*cB*cB
+    two_cA2 = two * cA * cA
+    two_cB2 = two * cB * cB
 
-    FA′ = -(oneT + two_cA2)*inv_sA4
-    FB′ = -(oneT + two_cB2)*inv_sB4
+    FA′ = -(oneT + two_cA2) * inv_sA4
+    FB′ = -(oneT + two_cB2) * inv_sB4
 
-    return main + two*Γv*(FA′ + μ*FB′)
+    return main + two * Γv * (FA′ + μ * FB′)
 end
 
 # --------------------------------------------------------
@@ -276,47 +284,49 @@ end
 function f₂θκ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
-    r  = sqrt(κ)
-    dr = one(r)/(two*r)
+    r = sqrt(κ)
+    dr = one(r) / (two * r)
 
-    q1  = q₁(κ, μ)
-    q2  = q₂(κ, μ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
     dq1 = q₁κ(κ, μ)
     dq2 = -dq1
 
-    Γv  = Γ(κ, μ)
+    Γv = Γ(κ, μ)
     Γκv = Γκ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA=sin(A); cA=cos(A)
-    sB=sin(B); cB=cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
-    inv_sA3 = inv(sA*sA*sA)
-    inv_sB3 = inv(sB*sB*sB)
+    inv_sA3 = inv(sA * sA * sA)
+    inv_sB3 = inv(sB * sB * sB)
 
-    FA = cA*inv_sA3
-    FB = cB*inv_sB3
+    FA = cA * inv_sA3
+    FB = cB * inv_sB3
 
-    inv_sA4 = inv(sA*sA*sA*sA)
-    inv_sB4 = inv(sB*sB*sB*sB)
+    inv_sA4 = inv(sA * sA * sA * sA)
+    inv_sB4 = inv(sB * sB * sB * sB)
 
-    two_cA2 = two*cA*cA
-    two_cB2 = two*cB*cB
+    two_cA2 = two * cA * cA
+    two_cB2 = two * cB * cB
 
-    FA′ = -(oneT + two_cA2)*inv_sA4
-    FB′ = -(oneT + two_cB2)*inv_sB4
+    FA′ = -(oneT + two_cA2) * inv_sA4
+    FB′ = -(oneT + two_cB2) * inv_sB4
 
-    Aκ = dr*q1 + r*dq1
-    Bκ = -(dr*q2 + r*dq2)
+    Aκ = dr * q1 + r * dq1
+    Bκ = -(dr * q2 + r * dq2)
 
-    FAκ = FA′*Aκ
-    FBκ = FB′*Bκ
+    FAκ = FA′ * Aκ
+    FBκ = FB′ * Bκ
 
-    return two*( Γκv*(FA + μ*FB) + Γv*(FAκ + μ*FBκ) )
+    return two * (Γκv * (FA + μ * FB) + Γv * (FAκ + μ * FBκ))
 end
 
 # --------------------------------------------------------
@@ -325,46 +335,48 @@ end
 function f₂θμ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     oneT = one(θ)
-    two  = twice(oneT)
+    two = twice(oneT)
 
     r = sqrt(κ)
 
-    q1  = q₁(κ, μ)
-    q2  = q₂(κ, μ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
     dq1 = q₁μ(κ, μ)
     dq2 = -dq1
 
-    Γv  = Γ(κ, μ)
+    Γv = Γ(κ, μ)
     Γμv = Γμ(κ, μ)
 
-    A = θ + r*q1
-    B = θ - r*q2
+    A = θ + r * q1
+    B = θ - r * q2
 
-    sA=sin(A); cA=cos(A)
-    sB=sin(B); cB=cos(B)
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
 
-    inv_sA3 = inv(sA*sA*sA)
-    inv_sB3 = inv(sB*sB*sB)
+    inv_sA3 = inv(sA * sA * sA)
+    inv_sB3 = inv(sB * sB * sB)
 
-    FA = cA*inv_sA3
-    FB = cB*inv_sB3
+    FA = cA * inv_sA3
+    FB = cB * inv_sB3
 
-    inv_sA4=inv(sA*sA*sA*sA)
-    inv_sB4=inv(sB*sB*sB*sB)
+    inv_sA4 = inv(sA * sA * sA * sA)
+    inv_sB4 = inv(sB * sB * sB * sB)
 
-    two_cA2 = two*cA*cA
-    two_cB2 = two*cB*cB
+    two_cA2 = two * cA * cA
+    two_cB2 = two * cB * cB
 
-    FA′ = -(oneT + two_cA2)*inv_sA4
-    FB′ = -(oneT + two_cB2)*inv_sB4
+    FA′ = -(oneT + two_cA2) * inv_sA4
+    FB′ = -(oneT + two_cB2) * inv_sB4
 
-    Aμ = r*dq1
-    Bμ = r*dq1
+    Aμ = r * dq1
+    Bμ = r * dq1
 
-    FAμ = FA′*Aμ
-    FBμ = FB′*Bμ
+    FAμ = FA′ * Aμ
+    FBμ = FB′ * Bμ
 
-    return two*( Γμv*(FA + μ*FB) + Γv*(FAμ + μ*FBμ + FB) )
+    return two * (Γμv * (FA + μ * FB) + Γv * (FAμ + μ * FBμ + FB))
 end
 
 
@@ -373,13 +385,13 @@ function J_f₂(θ, κ, μ)
     T = typeof(one(θ))
     J = Matrix{T}(undef, 2, 3)
 
-    J[1,1] = f₂θ(θ, κ, μ)
-    J[1,2] = f₂κ(θ, κ, μ)
-    J[1,3] = f₂μ(θ, κ, μ)
+    J[1, 1] = f₂θ(θ, κ, μ)
+    J[1, 2] = f₂κ(θ, κ, μ)
+    J[1, 3] = f₂μ(θ, κ, μ)
 
-    J[2,1] = f₂θθ(θ, κ, μ)
-    J[2,2] = f₂θκ(θ, κ, μ)
-    J[2,3] = f₂θμ(θ, κ, μ)
+    J[2, 1] = f₂θθ(θ, κ, μ)
+    J[2, 2] = f₂θκ(θ, κ, μ)
+    J[2, 3] = f₂θμ(θ, κ, μ)
 
     return J
 end
@@ -389,7 +401,7 @@ end
 
 mu = 0.02
 kappa = 0.5
-theta= 1.2
+theta = 1.2
 
 g = (x) -> [f₂(x[1], x[2], x[3]); f₂θ(x[1], x[2], x[3])]
 Dᵤg = (x) -> J_f₂(x[1], x[2], x[3])
@@ -406,11 +418,11 @@ Dᵤg = (x) -> J_f₂(x[1], x[2], x[3])
 
 
 f = (u, γ) -> [f₂(u[1], u[2], mu); f₂θ(u[1], u[2], mu)]
-Dᵤf = (u, γ) -> J_f₂(u[1], u[2], mu)[1:2,1:2]
+Dᵤf = (u, γ) -> J_f₂(u[1], u[2], mu)[1:2, 1:2]
 
 
-F(x, v, w) = [f(x[1:2], x[3]) ; (x - w) ⋅ v]
-DF(x, v) = [J_f₂(x[1], x[2], x[3]) ; transpose(v)]
+F(x, v, w) = [f(x[1:2], x[3]); (x - w) ⋅ v]
+DF(x, v) = [J_f₂(x[1], x[2], x[3]); transpose(v)]
 
 
 
@@ -444,8 +456,8 @@ DF(x, v) = [J_f₂(x[1], x[2], x[3]) ; transpose(v)]
 
 
 # f(u, γ) = system in (θ, κ)
-make_f(γ) = (u -> @SVector [ f₂(u[1], u[2], γ),
-                            f₂θ(u[1], u[2], γ) ])
+make_f(γ) = (u -> @SVector [f₂(u[1], u[2], γ),
+    f₂θ(u[1], u[2], γ)])
 
 # Dᵤ f(u, γ) = 2×2 Jacobian wrt u = (θ, κ)
 make_Du_f(γ) = (u -> J_f₂(u[1], u[2], γ)[1:2, 1:2])
@@ -455,14 +467,14 @@ make_F(f, v, w) = (x -> vcat(f(x[1:2]), dot(x - w, v)))
 
 # Full Jacobian of F
 make_DF(γ, v) = (x -> vcat(J_f₂(x[1], x[2], γ),
-                           transpose(v)))
+    transpose(v)))
 
 function continue_branch(x_init;
-        γ_target::Real,
-        δ::Real = 5e-4,
-        max_steps::Int = 100,
-        newton_kwargs = (; verbose=false, maxiter=50, tol=1e-8),
-        verbose::Bool = true)
+    γ_target::Real,
+    δ::Real=5e-4,
+    max_steps::Int=100,
+    newton_kwargs=(; verbose=false, maxiter=50, tol=1e-8),
+    verbose::Bool=true)
 
     x = copy(x_init)                 # [θ, κ, γ]
     path = [copy(x)]
@@ -475,7 +487,7 @@ function continue_branch(x_init;
     sgn == 0 && error("Already at γ_target")
 
     # Build f and Du f at initial γ
-    f  = make_f(x[γ_idx])
+    f = make_f(x[γ_idx])
     Df = make_Du_f(x[γ_idx])
 
     # Initial tangent from nullspace
@@ -487,22 +499,22 @@ function continue_branch(x_init;
 
     for step in 1:max_steps
         γ = x[γ_idx]
-        if sgn*(γ_target - γ) ≤ 0
+        if sgn * (γ_target - γ) ≤ 0
             verbose && println("Reached γ_target at γ=$(x[γ_idx])")
             break
         end
 
         # --- PREDICTOR ---
-        w = x .+ δ*v
+        w = x .+ δ * v
 
         # --- UPDATE nonlinear system for this γ ---
-        f  = make_f(w[γ_idx])
+        f = make_f(w[γ_idx])
         Df = make_Du_f(w[γ_idx])
-        Ffun  = make_F(f, v, w)
+        Ffun = make_F(f, v, w)
         DFfun = make_DF(w[γ_idx], v)
 
         # --- CORRECTOR ---
-        x_new, success = newton((x->(Ffun(x), DFfun(x))), w; newton_kwargs...)
+        x_new, success = newton((x -> (Ffun(x), DFfun(x))), w; newton_kwargs...)
         if !success
             verbose && println("Newton failed at step $step")
             break
@@ -544,4 +556,4 @@ path = continue_branch(x_init; γ_target=0.0886765, δ=5e-6, max_steps=30000)
 
 # # Example Plots.jl usage:
 using Plots
-Plots.plot(γs, κs ; xlabel="γ", ylabel="κ", title="Continuation branch (κ vs γ)")
+Plots.plot(γs, κs; xlabel="γ", ylabel="κ", title="Continuation branch (κ vs γ)")

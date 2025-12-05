@@ -1,3 +1,5 @@
+
+
 invalid_boxes(boxes) = filter(b -> !b[1], boxes)
 function show_invalid_summary(boxes; preview=10)
     bad = invalid_boxes(boxes)
@@ -134,12 +136,12 @@ end
 # Overlay version:  plot_invalid_centers!
 ############################
 function plot_invalid_centers!(plt, boxes;
-        ms=3,
-        color=:red,
-        μT=0.0886765,
-        zoom=nothing,
-        title=nothing,
-        show_bounding_box=true)
+    ms=3,
+    color=:red,
+    μT=0.0886765,
+    zoom=nothing,
+    title=nothing,
+    show_bounding_box=true)
 
     bad = invalid_boxes(boxes)
     isempty(bad) && return plt
@@ -182,12 +184,12 @@ end
 # Fresh-plot wrapper: plot_invalid_centers
 ############################
 function plot_invalid_centers(boxes;
-        ms=3,
-        color=:red,
-        μT=0.0886765,
-        zoom=nothing,
-        title="Invalid boxes (centers)",
-        show_bounding_box=true)
+    ms=3,
+    color=:red,
+    μT=0.0886765,
+    zoom=nothing,
+    title="Invalid boxes (centers)",
+    show_bounding_box=true)
 
     κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
     μ_lo_full, μ_hi_full = 0.0, μT
@@ -199,8 +201,8 @@ function plot_invalid_centers(boxes;
     end
 
     plt = Plots.plot(; xlabel="κ", ylabel="μ",
-                     xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi),
-                     title=title, legend=false)
+        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi),
+        title=title, legend=false)
 
     plot_invalid_centers!(plt, boxes;
         ms=ms, color=color, μT=μT,
@@ -211,7 +213,7 @@ function plot_invalid_centers(boxes;
     return plt
 end
 
-using Plots
+
 
 """
     plot_stability_centers!(plt, boxes;
@@ -240,20 +242,20 @@ colored by the stability label (6th entry).
 - `labels = [:elliptic, :lyapunov_stable]` → only those labels
 """
 function plot_stability_centers!(plt, boxes;
-        only_ok=true,
-        show_invalid=false,
-        μT=0.0886765,
-        zoom=nothing,
-        markersize=4,
-        title=nothing,
-        colors=Dict(
-            :saddle_hyperbolic => :red,
-            :lyapunov_stable   => :green,
-            :elliptic          => :blue,
-            :linearly_unstable => :orange,
-            :unknown           => :gray
-        ),
-        labels=nothing)
+    only_ok=true,
+    show_invalid=false,
+    μT=0.0886765,
+    zoom=nothing,
+    markersize=4,
+    title=nothing,
+    colors=Dict(
+        :saddle_hyperbolic => :red,
+        :lyapunov_stable => :green,
+        :elliptic => :blue,
+        :linearly_unstable => :orange,
+        :unknown => :gray
+    ),
+    labels=nothing)
 
     # normalize labels filter to a Set{Symbol} or nothing
     labelset = if labels === nothing
@@ -278,7 +280,7 @@ function plot_stability_centers!(plt, boxes;
     end
 
     # group centers by label
-    bylabel = Dict{Symbol, Vector{Tuple{Float64,Float64}}}()
+    bylabel = Dict{Symbol,Vector{Tuple{Float64,Float64}}}()
 
     for (ok, κ, μ, rκ, rμ, label) in boxes
         if only_ok && !ok
@@ -294,13 +296,13 @@ function plot_stability_centers!(plt, boxes;
     end
 
     # scatter per label
-    for (lbl, pts) in sort(collect(bylabel); by = x -> String(x[1]))
+    for (lbl, pts) in sort(collect(bylabel); by=x -> String(x[1]))
         κs = [p[1] for p in pts]
         μs = [p[2] for p in pts]
         col = get(colors, lbl, :black)
         Plots.scatter!(plt, κs, μs;
-                       color=col, ms=markersize, alpha=0.9,
-                       label=String(lbl))
+            color=col, ms=markersize, alpha=0.9,
+            label=String(lbl))
     end
 
     return plt

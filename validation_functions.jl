@@ -3,9 +3,6 @@ ispos(I) = inf(I) > 0
 isneg(I) = sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
-################################
-#### Validation function for f₁
-################################
 
 """
     certify_deriv_sign_centered(θc, κ, μ, rκ, rμ; min_width=1e-12, verbose=false)

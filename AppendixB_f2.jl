@@ -51,7 +51,7 @@ end
 roots_1, roots_2 = pairs_to_roots(pairs; n=400)
 
 ### Plotting f1
-xs = first.(pairs)           
+xs = first.(pairs)
 ys = last.(pairs)            #
 
 # collect sorted unique axes
@@ -85,7 +85,7 @@ Plots.surface(μs, κs, θgrid;
     grid=:on, framestyle=:box)
 
 
-Plots.surface!(μs, κs, θgrid2;  
+Plots.surface!(μs, κs, θgrid2;
     color=:cork, cbar_title="θ*",
     linewidth=0,
     fillalpha=0.95,
@@ -114,8 +114,10 @@ function evaluate_grid_f2(pairs; n=400)
         println("i=$i, (κ,μ)=($κ,$μ), brackets = ", br)
 
         # default: no roots
-        θ1  = NaN;  stab1 = :no_root
-        θ2  = NaN;  stab2 = :no_root
+        θ1 = NaN
+        stab1 = :no_root
+        θ2 = NaN
+        stab2 = :no_root
 
         if isempty(br)
             # keep defaults
@@ -174,69 +176,17 @@ for (κ, μ, θ₁, stab₁, θ₂, stab₂) in results₂
     stabgrid2[ii, jj] = stab₂
 end
 
-# stability_color(sym) = Dict(
-#     :lyapunov_stable    => :blue,
-#     :elliptic           => :green,
-#     :linearly_unstable  => :red,
-#     :saddle_hyperbolic  => :black,
-#     :no_root            => :gray,
-#     :none               => :gray
-# )[sym]
 
 
-function stability_color(sym::Symbol)
-    if sym === :saddle_hyperbolic
-        return :red
-    elseif sym === :lyapunov_stable
-        return :green
-    elseif sym === :elliptic
-        return :blue
-    elseif sym === :linearly_unstable
-        return :orange
-    elseif sym === :unknown
-        return :gray
-    elseif sym === :no_root
-        return :black
-    else
-        return :black
-    end
-end
-
-
-function plot_stability_surface_f2(κs, μs, θgrid, stabgrid;
-        title="Root surface f₂")
-    colmat = [stability_color(stabgrid[i,j]) for i in 1:size(θgrid,1), j in 1:size(θgrid,2)]
-
-    plt = Plots.surface(μs, κs, θgrid;
-        color = colmat,
-        xlabel="μ", ylabel="κ", zlabel="θ",
-        title=title,
-        legend=false,
-        linewidth=0,
-        fillalpha=0.9,
-        camera=(30,60))
-
-    return plt
-end
-
-
-# plot_stability_surface_f2(κs, μs, θgrid1, stabgrid1;
-#     title="f₂ — root branch 1 with stability")
-
-#     plot_stability_surface_f2(κs, μs, θgrid2, stabgrid2;
-#     title="f₂ — root branch 1 with stability")
-
-
-
-    function plot_stability_centers_f2(results; root_index=1,
-        ms=4, title="Stability (f₂)")
+function plot_stability_centers_f2(results; root_index=1,
+    ms=4, title="Stability (f₂)")
     κvals = Float64[]
     μvals = Float64[]
-    cols  = Symbol[]
+    cols = Symbol[]
 
     for (κ, μ, θ₁, stab₁, θ₂, stab₂) in results
         stab = (root_index == 1) ? stab₁ : stab₂
-        if !isnan( (root_index==1 ? θ₁ : θ₂) )
+        if !isnan((root_index == 1 ? θ₁ : θ₂))
             push!(κvals, κ)
             push!(μvals, μ)
             push!(cols, stability_color(stab))
@@ -253,5 +203,5 @@ end
 plot_stability_centers_f2(results₂; root_index=1,
     title="Stability for f₂ — first branch")
 
-    plot_stability_centers_f2(results₂; root_index=2,
+plot_stability_centers_f2(results₂; root_index=2,
     title="Stability for f₂ — second branch")
