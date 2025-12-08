@@ -201,7 +201,7 @@ function plot_stability_centers_f2(results; root_index=1,
     return plt
 end
 plot_stability_centers_f2(results₂; root_index=1,
-    title="Stability for f₂ — first branch")
+    title="Stability for f₂ — smaller root")
 
 plot_stability_centers_f2(results₂; root_index=2,
-    title="Stability for f₂ — second branch")
+    title="Stability for f₂ — biggest root")

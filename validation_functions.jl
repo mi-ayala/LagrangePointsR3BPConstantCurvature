@@ -135,7 +135,7 @@ function validate_f1_root(root, κ, μ, r_κ, r_μ; verbose=false)
     Iκ = interval(κ, r_κ; format=:midpoint)
     Iμ = interval(μ, r_μ; format=:midpoint)
 
-    # theta interval [0, θ1_max] (conservative upper bound)
+    # theta interval [0, θ1_max] 
     a = zero(κ)
     b = θ1_max(Iκ, Iμ)
     Iθ = interval(a, sup(b))
