@@ -457,7 +457,7 @@ function refine_root_interval(root, κ, μ, rκ, rμ, J::Interval;
     left = inf(J)
     right = sup(J)
 
-    # ensure root is inside J (it should be, if earlier code is correct)
+    # ensure root is inside J 
     if !(left ≤ root ≤ right)
         verbose && println("root=$root not inside certified J=$J; no refinement.")
         return J
@@ -468,7 +468,7 @@ function refine_root_interval(root, κ, μ, rκ, rμ, J::Interval;
         width ≤ 0 && break
 
         # propose a symmetric shrink around root
-        δ = width / 4          # shrink factor; can tune
+        δ = width / 4          # shrink factor; 
         new_left = root - δ
         new_right = root + δ
 
@@ -638,4 +638,116 @@ function refine_root_interval_f4(root, κ, μ, rκ, rμ, J::Interval;
     Jref = interval(left, right)
     verbose && println("Refined J: ", Jref)
     return Jref
+end
+
+using IntervalArithmetic
+
+"""
+    validate_root_sign_mono(
+        f, fθ,
+        θc,
+        Iθ, Iκ, Iμ;
+        ntiles=16,
+        min_width=1e-12,
+        min_radius=1e-12,
+        verbose=false,
+    )
+
+General root validation for functions f(θ, κ, μ) using:
+
+  1. Monotonicity via fθ on a centered interval J around θc.
+  2. A refined sign-change interval Iexist ⊆ J for f.
+
+Inputs
+------
+  • f        : interval map  f(Iθloc, Iκ, Iμ)
+  • fθ       : interval map  ∂f/∂θ(Iθloc, Iκ, Iμ)
+  • θc       : approximate root (Float64 / BigFloat)
+  • Iθ       : θ-interval in which we want to validate (search domain)
+  • Iκ, Iμ   : parameter intervals (already built)
+
+Keywords
+--------
+  • ntiles      : tiles for the subdivision in the monotonicity check
+  • min_width   : minimal width for the monotonicity interval around θc
+  • min_radius  : minimal radius for the sign-change search
+  • verbose     : print diagnostics
+
+Returns
+-------
+(ok::Bool, data::NamedTuple)
+
+If ok == true:
+    data.J       : monotonicity interval around θc
+    data.Iexist  : refined existence interval with sign change
+    data.fL      : f at left endpoint of Iexist
+    data.fR      : f at right endpoint of Iexist
+    data.Iθ      : the θ-interval used
+    data.Iκ      : Iκ
+    data.Iμ      : Iμ
+
+If ok == false:
+    data contains partial info and a `reason` symbol.
+"""
+function validate_root_sign_mono(
+    f::Function,
+    fθ::Function,
+    θc::Real,
+    Iθ::Interval,
+    Iκ::Interval,
+    Iμ::Interval;
+    ntiles::Int      = 16,
+    min_width::Real  = 1e-12,
+    min_radius::Real = 1e-12,
+    verbose::Bool    = false,
+)
+    a, b = inf(Iθ), sup(Iθ)
+
+    # guard: θc must lie inside Iθ
+    if !(a ≤ θc ≤ b)
+        verbose && println("θc = $θc not inside Iθ = $Iθ")
+        data = (Iκ=Iκ, Iμ=Iμ, Iθ=Iθ, reason=:root_outside_theta_interval)
+        return false, data
+    end
+
+    # 1) monotonicity interval J via derivative
+    status_J, J, _dI = certify_sign_interval_centered(
+        fθ, θc, Iθ, Iκ, Iμ;
+        ntiles=ntiles,
+        min_width=min_width,
+        max_halvings=60,
+        verbose=verbose,
+    )
+
+    if status_J === :unknown
+        verbose && println("validate_root_sign_mono: could not certify monotonicity near θc.")
+        data = (Iκ=Iκ, Iμ=Iμ, Iθ=Iθ, J=J, reason=:no_monotonicity)
+        return false, data
+    end
+
+    # 2) refined existence interval Iexist via sign change inside J
+    status_sc, Iexist, fL, fR = find_sign_change_centered(
+        f, θc, J, Iκ, Iμ;
+        min_radius=min_radius,
+        max_halvings=60,
+        verbose=verbose,
+    )
+
+    if status_sc !== :ok
+        verbose && println("validate_root_sign_mono: no certified sign change in monotone interval.")
+        data = (Iκ=Iκ, Iμ=Iμ, Iθ=Iθ, J=J, Iexist=Iexist, fL=fL, fR=fR,
+                reason=:no_sign_change)
+        return false, data
+    end
+
+    data = (
+        Iκ     = Iκ,
+        Iμ     = Iμ,
+        Iθ     = Iθ,
+        J      = J,
+        Iexist = Iexist,
+        fL     = fL,
+        fR     = fR,
+    )
+    return true, data
 end
