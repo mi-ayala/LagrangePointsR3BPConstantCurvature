@@ -1,6 +1,5 @@
 using IntervalArithmetic
 using Plots
-using PlotlyJS
 using Roots
 using Statistics
 
@@ -172,4 +171,4 @@ ok, data = validate_root_sign_mono(
 # f₂(root2, κ, μ)
 # f₂(root3, κ, μ)
 
-classify_f2_rootcount(data.Iexist, Iκ, Iμ; verbose=true)
+classif = classify_f2_rootcount(data.Iexist, Iκ, Iμ; verbose=true)
