@@ -108,7 +108,7 @@ function classify_f2_regions(results; tol::Real=0.0, verbose::Bool=false)
 end
 
 
-results = evaluate_grid(grid; n=400)  # your existing function
+results = evaluate_grid(grid; n=400)  
 regions = classify_f2_regions(results; tol=1e-10, verbose=false)
 
 using Plots

@@ -30,6 +30,39 @@ function f₂θ(θ, κ, μ)
     return d_main + Γv * d_term
 end
 
+
+function f₂θθ(θ, κ, μ)
+    θ, κ, μ = promote(θ, κ, μ)
+    oneT = one(θ)
+    two = twice(oneT)
+
+    r = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
+    Γv = Γ(κ, μ)
+
+    A = θ + r * q1
+    B = θ - r * q2
+
+    sA = sin(A)
+    cA = cos(A)
+    sB = sin(B)
+    cB = cos(B)
+
+    main = -two * sin(twice(θ))
+
+    inv_sA4 = inv(sA * sA * sA * sA)
+    inv_sB4 = inv(sB * sB * sB * sB)
+
+    two_cA2 = two * cA * cA
+    two_cB2 = two * cB * cB
+
+    FA′ = -(oneT + two_cA2) * inv_sA4
+    FB′ = -(oneT + two_cB2) * inv_sB4
+
+    return main + two * Γv * (FA′ + μ * FB′)
+end
+
 function f₂κ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     oneT = one(κ); twoT = twice(oneT); fourT = twoT + twoT

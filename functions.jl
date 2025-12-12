@@ -1,5 +1,4 @@
-
-
+#### Helper functions
 
 
 @inline twice(x) = x + x
@@ -28,7 +27,7 @@ function Γ(κ, μ)
     return num / den
 end
 
-function brackets_signchanges(f, a::Real, b::Real; n::Integer=400)
+function brackets_signchanges(f, a::Real, b::Real; n::Integer=200)
     xs = collect(range(a, b; length=n + 1))
     br = Tuple{Float64,Float64}[]
 

@@ -1,5 +1,12 @@
 using IntervalArithmetic
 
+
+ispos(I) = inf(I) > 0
+isneg(I) = sup(I) < 0
+nonzero(I) = ispos(I) || isneg(I)
+
+
+
 """
     eval_subdiv(f, Iθ::Interval, Iκ::Interval, Iμ::Interval; ntiles::Int=16)
 
@@ -138,8 +145,6 @@ function certify_sign_interval_centered(
     return (:unknown, Ic, FI)
 end
 
-using IntervalArithmetic
-
 """
     find_sign_change_centered(
         f, θc, J, Iκ, Iμ;
@@ -232,7 +237,85 @@ function find_sign_change_centered(
     return (:unknown, last_Iexist, last_fL, last_fR)
 end
 
-using IntervalArithmetic
+"""
+    find_sign_change_centered_refine(
+        f, θc, J, Iκ, Iμ;
+        min_radius=1e-12,
+        max_halvings=60,
+        verbose=false,
+    )
+
+Find a symmetric sign-change bracket around θc inside J, then keep halving
+to refine it. Once a sign-change has been found, STOP at the first failure
+and return the last successful (smallest) bracket.
+
+Returns:
+    (status::Symbol, Iexist::Interval, fL::Interval, fR::Interval)
+
+status:
+  • :ok       → found (and refined) a sign-change bracket
+  • :unknown  → never found a sign-change bracket
+"""
+function find_sign_change_centered_refine(
+    f::Function,
+    θc,
+    J::Interval,
+    Iκ::Interval,
+    Iμ::Interval;
+    min_radius::Real=1e-12,
+    max_halvings::Int=60,
+    verbose::Bool=false,
+)
+    a, b = inf(J), sup(J)
+
+    # θc must lie strictly inside J
+    if !(a < θc < b)
+        verbose && println("θc = $θc not strictly inside J = $J")
+        return (:unknown, interval(θc), interval(0), interval(0))
+    end
+
+    # largest symmetric radius allowed by J
+    r = min(θc - a, b - θc)
+
+    found = false
+    best_Iexist = interval(θc)
+    best_fL = interval(0)
+    best_fR = interval(0)
+    best_r = r
+
+    for k in 1:max_halvings
+        θL = θc - r
+        θR = θc + r
+
+        fL = f(interval(θL), Iκ, Iμ)
+        fR = f(interval(θR), Iκ, Iμ)
+
+        ok_sc = (isneg(fL) && ispos(fR)) || (ispos(fL) && isneg(fR))
+
+        if ok_sc
+            found = true
+            best_Iexist = interval(θL, θR)
+            best_fL, best_fR = fL, fR
+            best_r = r
+            verbose && println("✓ sign change at r = $r")
+        else
+            verbose && println("✗ no sign change at r = $r  fL=$fL  fR=$fR")
+            if found
+                verbose && println("Stopping: sign change was lost after success; returning last good r = $best_r")
+                break
+            end
+        end
+
+        if r <= min_radius
+            break
+        end
+        r *= 0.5
+    end
+
+    return found ? (:ok, best_Iexist, best_fL, best_fR) :
+                   (:unknown, interval(θc), interval(0), interval(0))
+end
+
 
 """
     validate_root_sign_mono(
@@ -318,7 +401,7 @@ function validate_root_sign_mono(
     end
 
     # 2) refined existence interval Iexist via sign change inside J
-    status_sc, Iexist, fL, fR = find_sign_change_centered(
+    status_sc, Iexist, fL, fR = find_sign_change_centered_refine(
         f, θc, J, Iκ, Iμ;
         min_radius=min_radius,
         max_halvings=60,
@@ -342,4 +425,195 @@ function validate_root_sign_mono(
         fR=fR,
     )
     return true, data
+end
+
+
+##################################
+### Stability validation functions
+##################################
+
+# [0,0] with the same numeric type as I
+@inline zero_interval_like(I::Interval) = Interval(zero(inf(I)))
+
+# Robust sign tagging with no `==` on intervals and no `in` fallback
+# @inline function sign_tag(I::Interval)
+#     if ispos(I)
+#         return :pos
+#     elseif isneg(I)
+#         return :neg
+#     elseif isequal_interval(I, zero_interval_like(I))
+#         return :zero
+#     elseif (inf(I) ≤ 0) && (0 ≤ sup(I))
+#         return :mixed   # contains 0 but not thin zero
+#     else
+#         return :unknown
+#     end
+# end
+
+@inline function sign_tag(I::Interval)
+    a, b = inf(I), sup(I)
+
+    # guard for NaN endpoints (or anything non-finite)
+    if !(isfinite(a) && isfinite(b))
+        return :unknown
+    end
+
+    if a > 0
+        return :pos
+    elseif b < 0
+        return :neg
+    elseif a == 0 && b == 0
+        return :zero
+    elseif a ≤ 0 ≤ b
+        return :mixed
+    else
+
+        return :unknown
+    end
+end
+
+"""
+    classify_equilibrium(Iθ, Iκ, Iμ; verbose=false)
+
+Implements the 3-step test on intervals:
+
+1) If det(θ) < 0  → :saddle_hyperbolic
+2) else if λ₂(θ) > 0 → :lyapunov_stable
+3) else if Δ(θ) > 0 → :elliptic
+   else if Δ(θ) < 0 → :linearly_unstable
+   else → :unknown
+
+Returns `(ok::Bool, label::Symbol, Idet, Ilam2, IΔ)`.
+`ok == true` iff the label is certified (not :unknown).
+"""
+function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
+    Idet = detλ(Iθ, Iκ, Iμ)
+    tgdet = sign_tag(Idet)
+
+    verbose && println("det(θ) ∈ ", Idet, " ⇒ ", tgdet)
+
+    if tgdet === :neg
+        return true, :saddle_hyperbolic, Idet,
+        IntervalArithmetic.interval(0),
+        IntervalArithmetic.interval(0)
+    elseif tgdet !== :pos
+        return false, :unknown, Idet,
+        IntervalArithmetic.interval(0),
+        IntervalArithmetic.interval(0)
+    end
+
+    Ilam2 = λ₂(Iθ, Iκ, Iμ)
+    tgl2 = sign_tag(Ilam2)
+
+    verbose && println("λ₂(θ) ∈ ", Ilam2, " ⇒ ", tgl2)
+
+    if tgl2 === :pos
+        return true, :lyapunov_stable, Idet, Ilam2,
+        IntervalArithmetic.interval(0)
+    elseif tgl2 !== :neg
+        return false, :unknown, Idet, Ilam2,
+        IntervalArithmetic.interval(0)
+    end
+
+    IΔ = Δ(Iθ, Iκ, Iμ)
+    tgΔ = sign_tag(IΔ)
+
+    verbose && println("Δ(θ) ∈ ", IΔ, " ⇒ ", tgΔ)
+
+    if tgΔ === :pos
+        return true, :elliptic, Idet, Ilam2, IΔ
+    elseif tgΔ === :neg
+        return true, :linearly_unstable, Idet, Ilam2, IΔ
+    else
+        return false, :unknown, Idet, Ilam2, IΔ
+    end
+end
+
+@inline nonzero(I::Interval) = !(inf(I) ≤ 0 ≤ sup(I))
+"""
+    complements_nonzero(f, I, J, Iκ, Iμ; ntiles=16)
+
+Return `true` iff `f(θ,κ,μ) ≠ 0` is certified on both complements
+`I \\ J`.
+
+Uses:
+  • direct interval evaluation first
+  • fixed subdivision fallback if needed
+"""
+function complements_nonzero(
+    f::Function,
+    I::Interval,
+    J::Interval,
+    Iκ::Interval,
+    Iμ::Interval;
+    ntiles::Int=16,
+)
+
+    a, b = inf(I), sup(I)
+    c, d = inf(J), sup(J)
+
+    # require J ⊆ I
+    a ≤ c ≤ d ≤ b || return false
+
+    # left complement
+    if a < c
+        L = interval(a, c)
+        FL = f(L, Iκ, Iμ)
+        if !nonzero(FL)
+            FL = eval_subdiv(f, L, Iκ, Iμ; ntiles=ntiles)
+            nonzero(FL) || return false
+        end
+    end
+
+    # right complement
+    if d < b
+        R = interval(d, b)
+        FR = f(R, Iκ, Iμ)
+        if !nonzero(FR)
+            FR = eval_subdiv(f, R, Iκ, Iμ; ntiles=ntiles)
+            nonzero(FR) || return false
+        end
+    end
+
+    return true
+end
+
+"""
+    finalize_root_label(f, Iθ, mono_result, Iκ, Iμ, label;
+                        ntiles=16)
+
+Given:
+  • `f`              : interval-evaluable function f(θ,κ,μ)
+  • `Iθ`             : global θ-domain
+  • `mono_result`    : output of monotonicity certification
+                       = (status, J, dI)
+  • `Iκ`, `Iμ`       : parameter intervals
+  • `label`          : previously assigned label (e.g. :elliptic)
+
+Returns:
+  • `label` if uniqueness is certified
+  • `:unknown` otherwise
+"""
+function finalize_root_label(
+    f::Function,
+    Iθ::Interval,
+    mono_result,
+    Iκ::Interval,
+    Iμ::Interval,
+    label::Symbol;
+    ntiles::Int=16,
+)
+
+    status, J, _ = mono_result
+
+    # must have certified monotonicity
+    status === :pos || status === :neg || return :unknown
+
+    # J must be inside Iθ
+    inf(Iθ) ≤ inf(J) ≤ sup(J) ≤ sup(Iθ) || return :unknown
+
+    # check f ≠ 0 on Iθ \ J
+    ok = complements_nonzero(f, Iθ, J, Iκ, Iμ; ntiles=ntiles)
+
+    return ok ? label : :unknown
 end

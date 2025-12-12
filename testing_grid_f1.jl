@@ -176,7 +176,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         seeded += 1
 
         # 2) refine the root (Brent on θ)
-        root = find_zero(θ -> f₁(θ, κc, μc), br[1])
+        root = find_zero(θ -> f₁(θ, κc, μc), br[1];atol=1e-12)
 
         # 3) validate + stability (existence, uniqueness, refined J, classification)
         ok, label, J_ref, Idet, Ilam2, IΔ =
