@@ -1,4 +1,4 @@
-# ---- Notable functions ----
+
 # λ₁(θ) = -[ cos(2θ) + 2Γ(  cos(θ+√κ q₁)/|sin(θ+√κ q₁)|^3  + μ cos(θ-√κ q₂)/|sin(θ-√κ q₂)|^3 ) ]
 function λ₁(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)

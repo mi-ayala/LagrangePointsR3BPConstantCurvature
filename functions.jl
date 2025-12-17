@@ -1,10 +1,12 @@
-#### Helper functions
-
+#### Helper functions that we use in multiple places
 
 @inline twice(x) = x + x
 @inline csc(x) = one(x) / sin(x)
 @inline powabs3(x) = abs(x)^3
 @inline sqr(x) = x * x
+@inline three(x)  = x + x + x
+@inline inv3(x)   = inv(three(one(x)))         
+@inline cbrt_t(x) = x ^ inv3(x) 
 
 function q₁(κ, μ)
     κ, μ = promote(κ, μ)

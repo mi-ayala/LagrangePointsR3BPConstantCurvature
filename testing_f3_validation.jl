@@ -275,16 +275,7 @@ function plot_rootcount_centers_alloc(boxes;
     return plt
 end
 
-# using Random
-
-# function subsample_boxes(boxes; frac=0.1, rng=Random.default_rng())
-#     frac ≥ 1 && return boxes
-#     keep = rand(rng, length(boxes)) .< frac
-#     return boxes[keep]
-# end
-
-# plt = plot_rootcount_centers_alloc(subsample_boxes(boxes; frac=0.1); ms=3)
-
+# 
 plt = plot_rootcount_centers_alloc(boxes; title="Root-count labels (centers) f_3")
 # for i in 1:9
 #     boxes, stats = cover_rectangle_grid_rect(cells[i]; nx=nx, ny=ny, verbose=true)
