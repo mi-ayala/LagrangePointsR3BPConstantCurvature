@@ -6,7 +6,6 @@ isneg(I) = sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
 
-
 """
     eval_subdiv(f, Iθ::Interval, Iκ::Interval, Iμ::Interval; ntiles::Int=16)
 
