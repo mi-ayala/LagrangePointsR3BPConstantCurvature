@@ -1,7 +1,6 @@
 using Roots
 using Plots
-# using PlotlyJS
-# plotlyjs()
+
 
 include("functions.jl")
 include("functions_f1.jl")

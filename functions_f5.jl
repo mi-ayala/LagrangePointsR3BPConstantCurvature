@@ -40,11 +40,6 @@ function f₅(x, κ, μ)
     return pref * bracket - tail
 end
 
-@inline twice(x)  = x + x
-@inline three(x)  = x + x + x
-@inline inv3(x)   = inv(three(one(x)))
-@inline cbrt_t(x) = x ^ inv3(x)
-
 function f₅θ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
 
@@ -80,7 +75,7 @@ function f₅θ(θ, κ, μ)
     return prefθ * bracket + pref * bracketθ
 end
 
-function Intx_5(κ, μ)
+function Intθ_5(κ, μ)
     κ, μ = promote(κ, μ)
     r = sqrt(κ)
 
@@ -93,7 +88,7 @@ function Intx_5(κ, μ)
     xR = L - c
 
     a = atan(y, xL)
-    b = atan(y, xR)
+    b = pi - atan(y, xR)
 
     return (a, b)
 end
