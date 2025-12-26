@@ -1,14 +1,12 @@
 using IntervalArithmetic
-using Plots
-using PlotlyJS
 using Roots
-using Statistics
+# using Statistics
 
 
-include("functions.jl")
-include("stability_functions.jl")
+include("functions_helpers.jl")
+include("functions_stability.jl")
+include("functions_validation.jl")
 include("functions_f1.jl")
-include("validation_functions2.jl")
 
 κ = 0.8
 μ = 0.005

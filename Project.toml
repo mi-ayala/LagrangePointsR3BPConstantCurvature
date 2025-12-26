@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Miguel Ayala <miguel.guadarramaayala@mail.mcgill.ca>"]
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
 RadiiPolynomial = "f2081a94-c849-46b6-8dc9-07bb90ed72a9"
@@ -11,6 +12,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+CairoMakie = "0.15.8"
 ForwardDiff = "1.2.1"
 IntervalArithmetic = "1.0.0"
 RadiiPolynomial = "0.9.9"
