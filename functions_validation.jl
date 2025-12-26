@@ -578,41 +578,26 @@ function complements_nonzero(
 end
 
 """
-    finalize_root_label(f, Iθ, mono_result, Iκ, Iμ, label;
-                        ntiles=16)
+    finalize_root_label(comp_ok; one_label=:one_root, unknown_label=:unknown)
 
 Given:
-  • `f`              : interval-evaluable function f(θ,κ,μ)
-  • `Iθ`             : global θ-domain
-  • `mono_result`    : output of monotonicity certification
-                       = (status, J, dI)
-  • `Iκ`, `Iμ`       : parameter intervals
-  • `label`          : previously assigned label (e.g. :elliptic)
+  • comp_ok :: Bool   (output of validate_complements / complements_nonzero)
 
 Returns:
-  • `label` if uniqueness is certified
-  • `:unknown` otherwise
+  • (ok::Bool, label::Symbol)
+
+Rules:
+  • comp_ok == true  → one root certified
+  • comp_ok == false → unknown
 """
 function finalize_root_label(
-    f::Function,
-    Iθ::Interval,
-    mono_result,
-    Iκ::Interval,
-    Iμ::Interval,
-    label::Symbol;
-    ntiles::Int=16,
+    comp_ok::Bool;
+    one_label::Symbol = :one_root,
+    unknown_label::Symbol = :unknown,
 )
-
-    status, J, _ = mono_result
-
-    # must have certified monotonicity
-    status === :pos || status === :neg || return :unknown
-
-    # J must be inside Iθ
-    inf(Iθ) ≤ inf(J) ≤ sup(J) ≤ sup(Iθ) || return :unknown
-
-    # check f ≠ 0 on Iθ \ J
-    ok = complements_nonzero(f, Iθ, J, Iκ, Iμ; ntiles=ntiles)
-
-    return ok ? label : :unknown
+    if comp_ok
+        return true, one_label
+    else
+        return false, unknown_label
+    end
 end
