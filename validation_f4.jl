@@ -62,7 +62,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             interval(θmin_refined, θmax_refined),
             Iκ,
             Iμ;
-            ntiles=16,
+            ntiles=30,
             min_width=1e-12,
             min_radius=1e-12,
             verbose=false,

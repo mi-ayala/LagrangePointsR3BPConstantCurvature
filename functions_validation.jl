@@ -262,7 +262,7 @@ function find_sign_change_centered_refine(
     Iκ::Interval,
     Iμ::Interval;
     min_radius::Real=1e-12,
-    max_halvings::Int=60,
+    max_halvings::Int=100,
     verbose::Bool=false,
 )
     a, b = inf(J), sup(J)
@@ -403,7 +403,7 @@ function validate_root_sign_mono(
     status_sc, Iexist, fL, fR = find_sign_change_centered_refine(
         f, θc, J, Iκ, Iμ;
         min_radius=min_radius,
-        max_halvings=60,
+        max_halvings=100,
         verbose=verbose,
     )
 
@@ -433,21 +433,6 @@ end
 
 # [0,0] with the same numeric type as I
 @inline zero_interval_like(I::Interval) = Interval(zero(inf(I)))
-
-# Robust sign tagging with no `==` on intervals and no `in` fallback
-# @inline function sign_tag(I::Interval)
-#     if ispos(I)
-#         return :pos
-#     elseif isneg(I)
-#         return :neg
-#     elseif isequal_interval(I, zero_interval_like(I))
-#         return :zero
-#     elseif (inf(I) ≤ 0) && (0 ≤ sup(I))
-#         return :mixed   # contains 0 but not thin zero
-#     else
-#         return :unknown
-#     end
-# end
 
 @inline function sign_tag(I::Interval)
     a, b = inf(I), sup(I)

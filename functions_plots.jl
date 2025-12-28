@@ -17,6 +17,7 @@ end
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
+        lbl === :zero_roots ? "#D0D0D0" :   # light gray
         lbl === :lyapunov_stable ? "#1B9E77" :  # green (stable)
         lbl === :elliptic ? "#A6D854" :  # yellow-green
         lbl === :linearly_unstable ? "#E67E22" :  # orange

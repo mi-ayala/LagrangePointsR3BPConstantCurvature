@@ -9,6 +9,91 @@ include("functions_validation.jl")
 include("functions_f2.jl")
 
 
+"""
+    classify_f2_rootcount(IθM, Iκ, Iμ; verbose=false)
+
+Interval version of the 3-step test for f₂:
+
+Step 2: check θ_M ∈ [ √κ q₂(κ,μ),  π/2 ].
+        If not certified inside → :zero_roots.
+Step 3: check sign of f₂(θ_M).
+        If strictly positive → :two_roots.
+        If strictly negative → :zero_roots.
+        Else → :unknown.
+
+Returns:
+  (ok::Bool, label::Symbol, IθM, If2, Iallowed)
+
+`ok == true` iff label ∈ (:two_roots, :zero_roots) is certified.
+"""
+function classify_f2_rootcount(IθM::Interval, Iκ::Interval, Iμ::Interval; verbose::Bool=false)
+    # --- Step 2: θ_M must be inside [ √κ q₂, π/2 ] ------------------------
+
+    Ileft = sqrt(Iκ) * q₂(Iκ, Iμ)          # interval lower bound
+    Iright = interval(pi / 2)                 # thin interval upper bound
+    Iallowed = interval(inf(Ileft), sup(Iright))
+
+    inside = (inf(IθM) ≥ inf(Iallowed)) && (sup(IθM) ≤ sup(Iallowed))
+
+    if verbose
+        println("θ_M ∈ ", IθM, " ; allowed ∈ ", Iallowed, " ; inside? ", inside)
+    end
+
+    if !inside
+        # certified outside ⇒ zero roots
+        return true, :zero_roots, IθM, interval(0), Iallowed
+    end
+
+    # --- Step 3: sign of f₂ at θ_M ---------------------------------------
+
+    If2 = f₂(IθM, Iκ, Iμ)
+    tg = sign_tag(If2)
+
+    if verbose
+        println("f₂(θ_M) ∈ ", If2, " ⇒ ", tg)
+    end
+
+    if tg === :pos
+        return true, :two_roots, IθM, If2, Iallowed
+    elseif tg === :neg
+        return true, :zero_roots, IθM, If2, Iallowed
+    else
+        return false, :unknown, IθM, If2, Iallowed
+    end
+end
+
+"""
+    θM_from_br(br, κ, μ; atol=1e-12)
+
+Given `br` = vector of numeric guesses for roots of f₂θ(θ,κ,μ),
+refine each by `find_zero(..., br[i]; atol=atol)`, keep those with
+f₂θθ(θ*) < 0 (local maxima), and return the maximizer θ_M.
+Returns NaN if no maximum is found.
+"""
+function θM_from_br(br, κ, μ; atol=1e-12, verbose=false)
+    bestθ = NaN
+    bestval = -Inf
+    found = false
+
+    for x0 in br
+        θ = find_zero(θ -> f₂θ(θ, κ, μ), x0; atol=atol)
+
+        s2 = f₂θθ(θ, κ, μ)     # second derivative test
+        if s2 < 0              # local maximum
+            val = f₂(θ, κ, μ)  # height of the maximum
+            if !found || val > bestval
+                bestval = val
+                bestθ = θ
+                found = true
+            end
+        end
+
+        verbose && println("x0=$x0  θ*=$θ  f₂θθ=$s2  f₂=$((f₂(θ, κ, μ)))")
+    end
+
+    return found ? bestθ : NaN
+end
+
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,
@@ -35,28 +120,30 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         κc = κ_lo + (i - 0.5) * Δκ
         μc = μ_lo + (j - 0.5) * Δμ
 
-        (θmin, θmax) = Intθ_1(κc, μc)
+        (θmin, θmax) = Intθ_2(κc, μc)
 
-        br = brackets_signchanges(θ -> f₁(θ, κc, μc), θmin, θmax)
+        br = brackets_signchanges(θ -> f₂θ(θ, κc, μc), θmin, θmax)
 
         if isempty(br)
             continue
         end
         seeded += 1 # Seeded means we found a root 
 
+        θM = θM_from_br(br, κc, μc; atol=1e-12)
         # 2) refine the root 
-        root = find_zero(θ -> f₁(θ, κc, μc), br[1]; atol=1e-12)
+        root = find_zero(θ -> f₂θ(θ, κc, μc), θM; atol=1e-12)
 
         Iκ = interval(κc, rκ; format=:midpoint)
         Iμ = interval(μc, rμ; format=:midpoint)
 
-        θmax_refined = sup(θ1_max(Iκ, Iμ))
+        θmax_refined = sup(Intθ_2(Iκ, Iμ)[2])
+        θmin_refined = inf(Intθ_2(Iκ, Iμ)[1])
 
         ok_root, data = validate_root_sign_mono(
-            f₁,
-            f₁θ,
+            f₂θ,
+            f₂θθ,
             root,
-            interval(0.0, θmax_refined),
+            interval(θmin_refined, θmax_refined),
             Iκ,
             Iμ;
             ntiles=16,
@@ -69,15 +156,14 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         if ok_root
 
-            _, root_label = finalize_root_label(complements_nonzero(f₁, interval(0.0, θmax_refined), data.J, Iκ, Iμ))
+            clasif = classify_f2_rootcount(data.Iexist, Iκ, Iμ; verbose=false)
 
-            _, stability_label = classify_equilibrium(data.Iexist, Iκ, Iμ)
 
-            if root_label === :unknown
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, :unknown))
+            if clasif[2] === :unknown
+                push!(boxes, (true, true, κc, μc, rκ, rμ, clasif[2], :unknown))
 
             else
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, stability_label))
+                push!(boxes, (true, true, κc, μc, rκ, rμ, clasif[2], :unknown))
                 validated += 1
             end
 
@@ -102,37 +188,21 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2*2464, 2*89
+nx, ny = 2 * 2464, 2 * 89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
 fig1, ax = plot_regions_all_labels_from_boxes(
     boxes;
-    label_type = :root,
-    κlims = (0.0, (0.5*pi)^2),
-    μlims = (0.0, 0.0886765),
-    resolution = 2000,        
-    alpha = 0.7,
-    show_boundary = true,
-    boundary_lw = 2.0,
-    title = "Root-count Regions",
+    label_type=:root,
+    κlims=(0.0, (0.5 * pi)^2),
+    μlims=(0.0, 0.0886765),
+    resolution=2000,
+    alpha=0.7,
+    show_boundary=true,
+    boundary_lw=2.0,
+    title="Root-count Regions",
 )
 
-fig2, ax = plot_regions_all_labels_from_boxes(
-    boxes;
-    label_type = :stability,
-    κlims = (0.0, (0.5*pi)^2),
-    μlims = (0.0, 0.0886765),
-    resolution = 2000,        
-    alpha = 0.7,
-    show_boundary = true,
-    boundary_lw = 2.0,
-    title = "Stability Regions",
-)
 
-CairoMakie.save("figures/f1_root_regions.png", fig1)  
-CairoMakie.save("figures/f1_stab_regions.png", fig2)  
-
-
-
-
+CairoMakie.save("figures/f2_root_regions.png", fig1)
