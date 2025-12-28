@@ -1,8 +1,8 @@
 using IntervalArithmetic
 using ForwardDiff
 
-include("functions.jl")
-include("functions_f5.jl")
+# include("functions.jl")
+include("functions_f4.jl")
 
 ### Testing interval IntervalArithmetic
 κ = interval(0.5)
@@ -23,8 +23,8 @@ include("functions_f5.jl")
 # @show c₂(interval(0.1), κ, μ)
 # @show f₂θ(interval(0.1), κ, μ)
 # @show f₂κ(interval(0.1), κ, μ)
-@show f₅(interval(0.1), κ, μ)
-@show f₅θ(interval(0.1), κ, μ)
+@show f₄(interval(0.1), κ, μ)
+@show f₄θ(interval(0.1), κ, μ)
 
 
 
@@ -38,9 +38,9 @@ include("functions_f5.jl")
 # println("ForwardDiff = ", ad)
 # println("difference  = ", ad - an)
 
-ad = ForwardDiff.derivative(θ -> f₅(θ, κ, μ), θ)
-an = f₅θ(θ, κ, μ)
-println("analytic  f₅θ = ", an)
+ad = ForwardDiff.derivative(θ -> f₄(θ, κ, μ), θ)
+an = f₄θ(θ, κ, μ)
+println("analytic  f₄θ = ", an)
 println("ForwardDiff = ", ad)
 println("difference  = ", ad - an)
 

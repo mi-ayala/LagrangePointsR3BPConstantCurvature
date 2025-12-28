@@ -1,404 +1,157 @@
-using Printf
-using Plots
+using CairoMakie
+using LaTeXStrings
 
 
-#### Plotting stability functions 
-"""
-    stability_color(sym::Symbol)
-
-Map stability labels to colors for plotting.
-"""
-function stability_color(sym::Symbol)
-    if sym === :saddle_hyperbolic
-        return :red
-    elseif sym === :lyapunov_stable
-        return :green
-    elseif sym === :elliptic
-        return :blue
-    elseif sym === :linearly_unstable
-        return :orange
-    elseif sym === :unknown
-        return :gray
-    elseif sym === :no_root
-        return :black
-    else
-        return :black
-    end
+# ---------- Root-count colors ----------
+@inline function rootcount_color(lbl::Symbol)
+    return (
+        lbl === :two_roots ? "#2C5AA0" :   # strong blue
+        lbl === :one_root ? "#8FBCE6" :   # light blue
+        lbl === :zero_roots ? "#D0D0D0" :   # light gray
+        lbl === :unknown ? "#000000" :   # black
+        "#000000"    # fallback
+    )
 end
 
-"""
-    plot_stability_centers(results;
-        ms=5,
-        title="Stability in (κ, μ) plane",
-        show_bounding_box=true)
 
-`results` is a Vector of (κ, μ, θstar, stab::Symbol).
+# ---------- Stability colors (stable → unstable) ----------
+@inline function stability_color(lbl::Symbol)
+    return (
+        lbl === :lyapunov_stable ? "#1B9E77" :  # green (stable)
+        lbl === :elliptic ? "#A6D854" :  # yellow-green
+        lbl === :linearly_unstable ? "#E67E22" :  # orange
+        lbl === :saddle_hyperbolic ? "#ED1B2F" :  # red (most unstable)
+        lbl === :unknown ? "#000000" :  # black
+        "#000000"
+    )
+end
 
-Makes a 2D scatter plot in the (κ, μ) plane with colors by stability.
-"""
-function plot_stability_centers(results;
-    ms::Real=5,
-    title::AbstractString="Stability in (κ, μ) plane",
-    show_bounding_box::Bool=true)
 
-    κ_vals = getindex.(results, 1)
-    μ_vals = getindex.(results, 2)
-    θ_vals = getindex.(results, 3)
-    stabs = getindex.(results, 4)
 
-    # parameter bounds (adjust if needed)
-    μT = 0.0886765
-    κ_lo, κ_hi = 0.0, (0.5 * π)^2
-    μ_lo, μ_hi = 0.0, μT
 
-    # Group by stability
-    groups = Dict{Symbol,Vector{Tuple{Float64,Float64}}}()
-    for (κ, μ, θ, stab) in results
-        # skip points with NaN root if you like
-        if isnan(θ)
-            continue
+function plot_regions_all_labels_from_boxes(boxes;
+    label_type::Symbol=:root,
+    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+    resolution::Int=2000,
+    alpha::Real=0.7,
+    show_boundary::Bool=true,
+    boundary_lw::Real=2.0,
+    title::AbstractString="",
+    axis_box::Bool=true,
+)
+
+    κlo, κhi = κlims
+    μlo, μhi = μlims
+    @assert κhi > κlo
+    @assert μhi > μlo
+    @assert resolution ≥ 2
+    @assert (label_type === :root) || (label_type === :stability)
+
+    κgrid = collect(range(float(κlo), float(κhi); length=resolution))
+    μgrid = collect(range(float(μlo), float(μhi); length=resolution))
+    dκ = (κhi - κlo) / (resolution - 1)
+    dμ = (μhi - μlo) / (resolution - 1)
+
+    @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
+
+    labels = Symbol[]
+    for bx in boxes
+        ok1, ok2, κc, μc, rκ, rμ, root_lbl, stab_lbl = bx
+        push!(labels, (label_type === :root) ? root_lbl : stab_lbl)
+    end
+    labels = sort!(unique(labels); by=String)
+
+    masks = Dict{Symbol,Matrix{UInt8}}()
+    for lbl in labels
+        masks[lbl] = fill(UInt8(0), resolution, resolution)
+    end
+
+    for bx in boxes
+        ok1, ok2, κc, μc, rκ, rμ, root_lbl, stab_lbl = bx
+        lbl = (label_type === :root) ? root_lbl : stab_lbl
+
+        κa = κc - rκ; κb = κc + rκ
+        μa = μc - rμ; μb = μc + rμ
+
+        (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
+        κa = max(κa, κlo); κb = min(κb, κhi)
+        μa = max(μa, μlo); μb = min(μb, μhi)
+
+        i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
+        i2 = clampi(ceil(Int,  (κb - κlo) / dκ) + 1)
+        j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
+        j2 = clampi(ceil(Int,  (μb - μlo) / dμ) + 1)
+
+        M = masks[lbl]
+        @inbounds for i in i1:i2, j in j1:j2
+            M[i, j] = UInt8(1)
         end
-        push!(get!(groups, stab, Tuple{Float64,Float64}[]), (κ, μ))
     end
 
-    plt = Plots.plot(; xlabel="κ", ylabel="μ",
-        title=title, legend=true,
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
+    # One plot sized to fit 2 columns × 3 rows per page
+    fig = Figure()
+    ax = Axis(fig[1, 1];
+        xlabel = L"\mathbf{\kappa}",
+        ylabel = L"\mathbf{\mu}",
+        title  = title,
+        ylabelsize = 24,
+        xlabelsize = 24,
+        xticklabelsize = 18,
+        yticklabelsize = 18,
+        topspinevisible = true,
+        rightspinevisible = true,
+        xgridvisible = false,
+        ygridvisible = false,
+        xtickalign = 1,
+        ytickalign = 1,
+        xticksmirrored = true,
+        yticksmirrored = true,
+        xticksize = 10,
+        yticksize = 10,
+        spinewidth = 2,
+        xtickwidth = 2,
+        ytickwidth = 2,
+    )
 
-    for (stab, pts) in groups
-        xs = first.(pts)
-        ys = last.(pts)
-        col = stability_color(stab)
-        Plots.scatter!(plt, xs, ys;
-            ms=ms, color=col, label=String(stab))
+    if axis_box
+        ax.topspinevisible = true
+        ax.rightspinevisible = true
     end
 
-    if show_bounding_box
-        Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
-        Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
-        Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:black, lw=2, label=false)
+    # xlims!(ax, κlo, κhi)
+    # ylims!(ax, μlo, μhi)
+
+    colorfn = (label_type === :root) ? rootcount_color : stability_color
+
+    labels_plot = [filter(!=(:unknown), labels)...]
+    if :unknown in labels
+        push!(labels_plot, :unknown)
     end
 
-    Plots.display(plt)
-    return plt
-end
+    for lbl in labels_plot
+        M = masks[lbl]
+        Z = Float32.(M)
 
+        col = (lbl === :unknown) ? RGBf(0,0,0) : Makie.to_color(colorfn(lbl))
+        α   = (lbl === :unknown) ? 1.0 : float(alpha)
 
+        heatmap!(ax, κgrid, μgrid, Z;
+            colormap = [RGBAf(0,0,0,0), col],
+            colorrange = (0f0, 1f0),
+            interpolate = false,
+            alpha = α,
+        )
 
-invalid_boxes(boxes) = filter(b -> !b[1], boxes)
-function show_invalid_summary(boxes; preview=10)
-    bad = invalid_boxes(boxes)
-    println("Invalid boxes: ", length(bad))
-    for (k, b) in enumerate(bad[1:min(preview, end)])
-        ok, κ, μ, rκ, rμ = b
-        @printf "%3d) κ=[%.6g, %.6g], μ=[%.6g, %.6g]\n" k (κ - rκ) (κ + rκ) (μ - rμ) (μ + rμ)
-    end
-    return bad
-end
-
-function stability_types(boxes)
-    labels = getindex.(boxes, 6)     # grab the 6th element of each tuple
-    return unique(labels)           # distinct symbols
-end
-
-"""
-    plot_stability_centers(boxes;
-        only_ok=true,
-        show_invalid=false,
-        μT=0.0886765,
-        zoom=nothing,                # = (κ_lo, κ_hi, μ_lo, μ_hi) or nothing
-        markersize=4,
-        title="Stability (centers)",
-        colors=Dict(
-            :saddle_hyperbolic => :red,
-            :lyapunov_stable   => :green,
-            :elliptic          => :blue,
-            :linearly_unstable => :orange,
-            :unknown           => :gray
-        ),
-        labels=nothing)
-
-Plot the centers (κ, μ) of boxes, colored by stability label (6th entry).
-
-`boxes` entries are `(ok::Bool, κ::Float64, μ::Float64, rκ::Float64, rμ::Float64, label::Symbol)`.
-
-- `labels = nothing`  → show all labels
-- `labels = :elliptic` → only that label
-- `labels = [:elliptic, :lyapunov_stable]` → only those labels
-"""
-function plot_stability_centers(boxes;
-    only_ok=true,
-    show_invalid=false,
-    μT=0.0886765,
-    zoom=nothing,
-    markersize=4,
-    title="Stability (centers)",
-    colors=Dict(
-        :saddle_hyperbolic => :red,
-        :lyapunov_stable => :green,
-        :elliptic => :blue,
-        :linearly_unstable => :orange,
-        :unknown => :gray
-    ),
-    labels=nothing)
-
-    # normalize labels filter to a Set{Symbol} or nothing
-    labelset = if labels === nothing
-        nothing
-    elseif labels isa Symbol
-        Set{Symbol}((labels,))
-    elseif labels isa AbstractVector
-        Set(Symbol.(labels))
-    else
-        error("labels must be nothing, a Symbol, or a vector of Symbols.")
-    end
-
-    # full default domain
-    κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
-    μ_lo_full, μ_hi_full = 0.0, μT
-
-    if zoom === nothing
-        κ_lo, κ_hi, μ_lo, μ_hi = κ_lo_full, κ_hi_full, μ_lo_full, μ_hi_full
-    else
-        κ_lo, κ_hi, μ_lo, μ_hi = zoom
-    end
-
-    plt = Plots.plot(; xlabel="κ", ylabel="μ",
-        title=title, legend=true,
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-    # group centers by label
-    bylabel = Dict{Symbol,Vector{Tuple{Float64,Float64}}}()
-
-    for (ok, κ, μ, rκ, rμ, label) in boxes
-        if only_ok && !ok
-            continue
+        if show_boundary
+            contour!(ax, κgrid, μgrid, Z;
+                levels = [0.5f0],
+                color = col,
+                linewidth = boundary_lw,
+                labels = false,
+            )
         end
-        if !ok && !show_invalid
-            continue
-        end
-        if labelset !== nothing && !(label in labelset)
-            continue
-        end
-        push!(get!(bylabel, label, Tuple{Float64,Float64}[]), (κ, μ))
     end
 
-    # scatter each label with its own color
-    for (lbl, pts) in sort(collect(bylabel); by=x -> String(x[1]))
-        κs = [p[1] for p in pts]
-        μs = [p[2] for p in pts]
-        col = get(colors, lbl, :black)
-        Plots.scatter!(plt, κs, μs;
-            color=col, ms=markersize, alpha=0.9,
-            label=String(lbl))
-    end
-
-    Plots.display(plt)
-    return plt
+    return fig, ax
 end
-
-function plot_invalid_centers(boxes; ms=3, color=:red, title="Invalid boxes (centers)")
-    bad = invalid_boxes(boxes)
-    κs = getindex.(bad, 2)   # centers
-    μs = getindex.(bad, 3)
-    μT = 0.0886765
-    κ_lo, κ_hi = 0.0, (0.5 * π)^2
-    μ_lo, μ_hi = 0.0, μT
-    plt = Plots.scatter(κs, μs; ms=ms, color=color, xlabel="κ", ylabel="μ",
-        title=title, legend=false, xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-
-    Xb = [κ_lo, κ_hi, κ_hi, κ_lo, κ_lo]
-    Yb = [μ_lo, μ_lo, μ_hi, μ_hi, μ_lo]
-    Plots.plot!(plt, Xb, Yb; color=:transparent, linecolor=:red, lw=3, label="Bounding region")
-end
-
-############################
-# Overlay version:  plot_invalid_centers!
-############################
-function plot_invalid_centers!(plt, boxes;
-    ms=3,
-    color=:red,
-    μT=0.0886765,
-    zoom=nothing,
-    title=nothing,
-    show_bounding_box=true)
-
-    bad = invalid_boxes(boxes)
-    isempty(bad) && return plt
-
-    κs = getindex.(bad, 2)   # centers
-    μs = getindex.(bad, 3)
-
-    # optionally set limits / title
-    κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
-    μ_lo_full, μ_hi_full = 0.0, μT
-
-    if zoom === nothing
-        κ_lo, κ_hi, μ_lo, μ_hi = κ_lo_full, κ_hi_full, μ_lo_full, μ_hi_full
-    else
-        κ_lo, κ_hi, μ_lo, μ_hi = zoom
-        Plots.plot!(plt; xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-    end
-
-    if title !== nothing
-        Plots.plot!(plt; title=title)
-    end
-
-    # scatter invalid centers
-    Plots.scatter!(plt, κs, μs;
-        ms=ms, color=color, xlabel="κ", ylabel="μ",
-        legend=false)
-
-    # bounding box if requested
-    if show_bounding_box
-        Xb = [κ_lo_full, κ_hi_full, κ_hi_full, κ_lo_full, κ_lo_full]
-        Yb = [μ_lo_full, μ_lo_full, μ_hi_full, μ_hi_full, μ_lo_full]
-        Plots.plot!(plt, Xb, Yb;
-            color=:transparent, linecolor=:red, lw=3, label=false)
-    end
-
-    return plt
-end
-
-############################
-# Fresh-plot wrapper: plot_invalid_centers
-############################
-function plot_invalid_centers(boxes;
-    ms=3,
-    color=:red,
-    μT=0.0886765,
-    zoom=nothing,
-    title="Invalid boxes (centers)",
-    show_bounding_box=true)
-
-    κ_lo_full, κ_hi_full = 0.0, (0.5 * π)^2
-    μ_lo_full, μ_hi_full = 0.0, μT
-
-    if zoom === nothing
-        κ_lo, κ_hi, μ_lo, μ_hi = κ_lo_full, κ_hi_full, μ_lo_full, μ_hi_full
-    else
-        κ_lo, κ_hi, μ_lo, μ_hi = zoom
-    end
-
-    plt = Plots.plot(; xlabel="κ", ylabel="μ",
-        xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi),
-        title=title, legend=false)
-
-    plot_invalid_centers!(plt, boxes;
-        ms=ms, color=color, μT=μT,
-        zoom=zoom, title=title,
-        show_bounding_box=show_bounding_box)
-
-    Plots.display(plt)
-    return plt
-end
-
-
-
-"""
-    plot_stability_centers!(plt, boxes;
-        only_ok=true,
-        show_invalid=false,
-        μT=0.0886765,
-        zoom=nothing,                # = (κ_lo, κ_hi, μ_lo, μ_hi) or nothing
-        markersize=4,
-        title=nothing,               # if given, set title once
-        colors=Dict(
-            :saddle_hyperbolic => :red,
-            :lyapunov_stable   => :green,
-            :elliptic          => :blue,
-            :linearly_unstable => :orange,
-            :unknown           => :gray
-        ),
-        labels=nothing)
-
-Add the centers (κ, μ) of `boxes` to an existing plot `plt`,
-colored by the stability label (6th entry).
-
-`boxes` entries are `(ok::Bool, κ::Float64, μ::Float64, rκ::Float64, rμ::Float64, label::Symbol)`.
-
-- `labels = nothing`  → show all labels
-- `labels = :elliptic` → only that label
-- `labels = [:elliptic, :lyapunov_stable]` → only those labels
-"""
-function plot_stability_centers!(plt, boxes;
-    only_ok=true,
-    show_invalid=false,
-    μT=0.0886765,
-    zoom=nothing,
-    markersize=4,
-    title=nothing,
-    colors=Dict(
-        :saddle_hyperbolic => :red,
-        :lyapunov_stable => :green,
-        :elliptic => :blue,
-        :linearly_unstable => :orange,
-        :unknown => :gray
-    ),
-    labels=nothing)
-
-    # normalize labels filter to a Set{Symbol} or nothing
-    labelset = if labels === nothing
-        nothing
-    elseif labels isa Symbol
-        Set{Symbol}((labels,))
-    elseif labels isa AbstractVector
-        Set(Symbol.(labels))
-    else
-        error("labels must be nothing, a Symbol, or a vector of Symbols.")
-    end
-
-    # optionally set axis limits if zoom is provided
-    if zoom !== nothing
-        κ_lo, κ_hi, μ_lo, μ_hi = zoom
-        Plots.plot!(plt; xlims=(κ_lo, κ_hi), ylims=(μ_lo, μ_hi))
-    end
-
-    # optionally set title (but don’t overwrite if user wants to manage it)
-    if title !== nothing
-        Plots.plot!(plt; title=title)
-    end
-
-    # group centers by label
-    bylabel = Dict{Symbol,Vector{Tuple{Float64,Float64}}}()
-
-    for (ok, κ, μ, rκ, rμ, label) in boxes
-        if only_ok && !ok
-            continue
-        end
-        if !ok && !show_invalid
-            continue
-        end
-        if labelset !== nothing && !(label in labelset)
-            continue
-        end
-        push!(get!(bylabel, label, Tuple{Float64,Float64}[]), (κ, μ))
-    end
-
-    # scatter per label
-    for (lbl, pts) in sort(collect(bylabel); by=x -> String(x[1]))
-        κs = [p[1] for p in pts]
-        μs = [p[2] for p in pts]
-        col = get(colors, lbl, :black)
-        Plots.scatter!(plt, κs, μs;
-            color=col, ms=markersize, alpha=0.9,
-            label=String(lbl))
-    end
-
-    return plt
-end
-
-"""
-    plot_stability_centers(boxes; kwargs...)
-
-Create a new plot and call `plot_stability_centers!` on it.
-Returns the plot object.
-"""
-function plot_stability_centers(boxes; kwargs...)
-    # default full domain
-    plt = Plots.plot(; xlabel="κ", ylabel="μ", legend=true)
-    plot_stability_centers!(plt, boxes; kwargs...)
-    Plots.display(plt)
-    return plt
-end
-

@@ -30,7 +30,7 @@ function f₄θ(θ, κ, μ)
 
     d_term = (-twice(ca) * inv_sa3) + (twice(μ) * cb * inv_sb3)
 
-    return d_main + Γv * d_term   # note the + (for f₁θ it was -)
+    return d_main + Γv * d_term   
 end
 
 
