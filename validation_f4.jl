@@ -26,7 +26,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     rκ = Δκ / 2
     rμ = Δμ / 2
 
-    boxes = Tuple{Bool,Bool,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
+    boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Bool,Bool,Symbol,Symbol}[]
     total = nx * ny
     seeded = 0
     validated = 0
@@ -72,21 +72,22 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         if ok_root
 
-            _, root_label = finalize_root_label(complements_nonzero(f₄, interval(θmin_refined, θmax_refined), data.J, Iκ, Iμ))
+            _, root_label = finalize_root_label(complements_nonzero(f₁, interval(0.0, θmax_refined), data.J, Iκ, Iμ))
 
             _, stability_label = classify_equilibrium(data.Iexist, Iκ, Iμ)
 
             if root_label === :unknown
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, :unknown))
+         
+                push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, :unknown, :zero_roots))
 
             else
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, stability_label))
+                push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, stability_label, :zero_roots))
                 validated += 1
             end
 
 
         elseif keep_invalid
-            push!(boxes, (false, false, κc, μc, rκ, rμ, :unknown, :unknown))
+             push!(boxes, (:unknown, κc, μc, rκ, rμ, ok_root, false, :unknown, :zero_roots))
         end
 
     end

@@ -10,7 +10,6 @@ include("functions_f1.jl")
 include("functions_plots.jl")
 
 
-
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,
@@ -27,7 +26,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     rκ = Δκ / 2
     rμ = Δμ / 2
 
-    boxes = Tuple{Bool,Bool,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
+    boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Bool,Bool,Symbol,Symbol}[]
     total = nx * ny
     seeded = 0
     validated = 0
@@ -76,16 +75,17 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             _, stability_label = classify_equilibrium(data.Iexist, Iκ, Iμ)
 
             if root_label === :unknown
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, :unknown))
+
+                push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, :unknown, :zero_roots))
 
             else
-                push!(boxes, (true, true, κc, μc, rκ, rμ, root_label, stability_label))
+                push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, stability_label, :zero_roots))
                 validated += 1
             end
 
 
         elseif keep_invalid
-            push!(boxes, (false, false, κc, μc, rκ, rμ, :unknown, :unknown))
+            push!(boxes, (:unknown, κc, μc, rκ, rμ, ok_root, false, :unknown, :zero_roots))
         end
 
     end
@@ -104,37 +104,24 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2*2464, 2*89
+nx, ny = 2 * 2464, 2 * 89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
-fig1, ax = plot_regions_all_labels_from_boxes(
-    boxes;
-    label_type = :root,
-    κlims = (0.0, (0.5*pi)^2),
-    μlims = (0.0, 0.0886765),
-    resolution = 2000,        
-    alpha = 0.7,
-    show_boundary = true,
-    boundary_lw = 2.0,
-    title = "Root-count Regions",
+# --- Root count plot ---
+fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
+    label_type=:root,
+    title="Root-count",
 )
 
-fig2, ax = plot_regions_all_labels_from_boxes(
-    boxes;
-    label_type = :stability,
-    κlims = (0.0, (0.5*pi)^2),
-    μlims = (0.0, 0.0886765),
-    resolution = 2000,        
-    alpha = 0.7,
-    show_boundary = true,
-    boundary_lw = 2.0,
-    title = "Stability Regions",
+save("figures/f1_root_regions_quick.png", fig1)
+
+# --- Stability plot (root 1) ---
+fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
+    label_type=:stability,
+    root_index=1,
+    title="Stability",
 )
 
-CairoMakie.save("figures/f1_root_regions.png", fig1)  
-CairoMakie.save("figures/f1_stab_regions.png", fig2)  
-
-
-
+save("figures/f1_stability_quick.png", fig2)
 
