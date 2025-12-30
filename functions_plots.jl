@@ -5,11 +5,12 @@ using LaTeXStrings
 # ---------- Root-count colors ----------
 @inline function rootcount_color(lbl::Symbol)
     return (
-        lbl === :two_roots  ? "#0B3C6D" :   # very strong deep blue
-        lbl === :one_root   ? "#2C5AA0" :   # strong blue
+        lbl === :two_roots ? "#0B3C6D" :   # very strong deep blue
+        lbl === :one_root ? "#2C5AA0" :   # strong blue
         lbl === :zero_roots ? "#D0D0D0" :   # light gray
-        lbl === :unknown    ? "#000000" :   # black
-                             "#000000"     # fallback
+        # lbl === :unknown    ? "#000000" :   # black
+        lbl === :unknown ? "#1A1A1A" :  # charcoal near-black
+        "#000000"     # fallback
     )
 end
 
@@ -22,7 +23,9 @@ end
         lbl === :elliptic ? "#A6D854" :  # yellow-green
         lbl === :linearly_unstable ? "#E67E22" :  # orange
         lbl === :saddle_hyperbolic ? "#ED1B2F" :  # red (most unstable)
-        lbl === :unknown ? "#000000" :  # black
+        # lbl === :unknown ? "#000000" :  # black
+
+        lbl === :unknown ? "#1A1A1A" :  # charcoal near-black
         "#000000"
     )
 end
@@ -61,17 +64,17 @@ Returns: (fig, ax)
 Call/signature and return are unchanged.
 """
 function plot_regions_all_labels_from_boxes(boxes;
-    label_type::Symbol = :root,
-    root_index::Int = 1,
-    κlims::Tuple{<:Real,<:Real} = (0.0, (0.5 * pi)^2),
-    μlims::Tuple{<:Real,<:Real} = (0.0, 0.0886765),
-    resolution::Int = 2000,
-    alpha::Real = 0.7,
-    show_boundary::Bool = true,
-    boundary_lw::Real = 2.0,
-    title::AbstractString = "",
-    axis_box::Bool = true,
-    unknown_box_lw::Real = 0.8,
+    label_type::Symbol=:root,
+    root_index::Int=1,
+    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+    resolution::Int=2000,
+    alpha::Real=0.7,
+    show_boundary::Bool=true,
+    boundary_lw::Real=2.0,
+    title::AbstractString="",
+    axis_box::Bool=true,
+    unknown_box_lw::Real=0.8,
 )
 
     κlo, κhi = κlims
@@ -111,7 +114,7 @@ function plot_regions_all_labels_from_boxes(boxes;
     labels = sort!(unique(labels); by=String)
 
     # ------------------- allocate one mask per label -------------------
-    masks = Dict{Symbol, Matrix{UInt8}}()
+    masks = Dict{Symbol,Matrix{UInt8}}()
     for lbl in labels
         masks[lbl] = fill(UInt8(0), resolution, resolution)
     end
@@ -139,17 +142,21 @@ function plot_regions_all_labels_from_boxes(boxes;
 
         haskey(masks, lbl) || continue  # safety
 
-        κa = κc - rκ; κb = κc + rκ
-        μa = μc - rμ; μb = μc + rμ
+        κa = κc - rκ
+        κb = κc + rκ
+        μa = μc - rμ
+        μb = μc + rμ
 
         (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
-        κa = max(κa, κlo); κb = min(κb, κhi)
-        μa = max(μa, μlo); μb = min(μb, μhi)
+        κa = max(κa, κlo)
+        κb = min(κb, κhi)
+        μa = max(μa, μlo)
+        μb = min(μb, μhi)
 
         i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
-        i2 = clampi(ceil(Int,  (κb - κlo) / dκ) + 1)
+        i2 = clampi(ceil(Int, (κb - κlo) / dκ) + 1)
         j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
-        j2 = clampi(ceil(Int,  (μb - μlo) / dμ) + 1)
+        j2 = clampi(ceil(Int, (μb - μlo) / dμ) + 1)
 
         M = masks[lbl]
         @inbounds for i in i1:i2, j in j1:j2
@@ -160,19 +167,19 @@ function plot_regions_all_labels_from_boxes(boxes;
     # ------------------- figure/axis -------------------
     fig = Figure()
     ax = Axis(fig[1, 1];
-        xlabel = L"\mathbf{\kappa}",
-        ylabel = L"\mathbf{\mu}",
-        title  = title,
-        ylabelsize = 20,
-        xlabelsize = 20,
-        topspinevisible = true,
-        rightspinevisible = true,
-        xgridvisible = false,
-        ygridvisible = false,
-        xtickalign = 1,
-        ytickalign = 1,
-        xticksmirrored = true,
-        yticksmirrored = true,
+        xlabel=L"\mathbf{\kappa}",
+        ylabel=L"\mathbf{\mu}",
+        title=title,
+        ylabelsize=20,
+        xlabelsize=20,
+        topspinevisible=true,
+        rightspinevisible=true,
+        xgridvisible=false,
+        ygridvisible=false,
+        xtickalign=1,
+        ytickalign=1,
+        xticksmirrored=true,
+        yticksmirrored=true,
     )
 
     if axis_box
@@ -194,25 +201,25 @@ function plot_regions_all_labels_from_boxes(boxes;
         α = float(alpha)
 
         heatmap!(ax, κgrid, μgrid, Z;
-            colormap = [RGBAf(0,0,0,0), col],
-            colorrange = (0f0, 1f0),
-            interpolate = false,
-            alpha = α,
+            colormap=[RGBAf(0, 0, 0, 0), col],
+            colorrange=(0f0, 1f0),
+            interpolate=false,
+            alpha=α,
         )
 
         if show_boundary
             contour!(ax, κgrid, μgrid, Z;
-                levels = [0.5f0],
-                color = col,
-                linewidth = boundary_lw,
-                labels = false,
+                levels=[0.5f0],
+                color=col,
+                linewidth=boundary_lw,
+                labels=false,
             )
         end
     end
 
     # ------------------- draw UNKNOWN as actual boxes (black), on top -------------------
     # (This is what you asked: do NOT rasterize unknown pixels; draw the unknown boxes.)
-    black = RGBf(0,0,0)
+    black = RGBf(0, 0, 0)
 
     for bx in boxes
         rootcount, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
@@ -230,19 +237,23 @@ function plot_regions_all_labels_from_boxes(boxes;
         end
         is_unknown || continue
 
-        κa = κc - rκ; κb = κc + rκ
-        μa = μc - rμ; μb = μc + rμ
+        κa = κc - rκ
+        κb = κc + rκ
+        μa = μc - rμ
+        μb = μc + rμ
 
         (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
-        κa = max(κa, κlo); κb = min(κb, κhi)
-        μa = max(μa, μlo); μb = min(μb, μhi)
+        κa = max(κa, κlo)
+        κb = min(κb, κhi)
+        μa = max(μa, μlo)
+        μb = min(μb, μhi)
 
         # rectangle outline only (keeps file light compared to filled polys)
         lines!(ax,
             [κa, κb, κb, κa, κa],
             [μa, μa, μb, μb, μa];
-            color = black,
-            linewidth = unknown_box_lw
+            color=black,
+            linewidth=unknown_box_lw
         )
     end
 
@@ -276,14 +287,14 @@ Unknown is forced to deep black and fully opaque (alpha=1).
 Returns: (fig, ax)
 """
 function plot_regions_all_labels_from_boxes_quick(boxes;
-    label_type::Symbol = :root,
-    root_index::Int = 1,
-    κlims::Tuple{<:Real,<:Real} = (0.0, (0.5 * pi)^2),
-    μlims::Tuple{<:Real,<:Real} = (0.0, 0.0886765),
-    resolution::Int = 2000,
-    alpha::Real = 0.7,
-    title::AbstractString = "",
-    axis_box::Bool = true,
+    label_type::Symbol=:root,
+    root_index::Int=1,
+    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+    resolution::Int=2000,
+    alpha::Real=0.7,
+    title::AbstractString="",
+    axis_box::Bool=true,
 )
     κlo, κhi = κlims
     μlo, μhi = μlims
@@ -333,17 +344,21 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
             root_lbl === :zero_roots ? :zero_roots : (root_index == 1 ? stab1 : stab2)
         end
 
-        κa = κc - rκ; κb = κc + rκ
-        μa = μc - rμ; μb = μc + rμ
+        κa = κc - rκ
+        κb = κc + rκ
+        μa = μc - rμ
+        μb = μc + rμ
 
         (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
-        κa = max(κa, κlo); κb = min(κb, κhi)
-        μa = max(μa, μlo); μb = min(μb, μhi)
+        κa = max(κa, κlo)
+        κb = min(κb, κhi)
+        μa = max(μa, μlo)
+        μb = min(μb, μhi)
 
         i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
-        i2 = clampi(ceil(Int,  (κb - κlo) / dκ) + 1)
+        i2 = clampi(ceil(Int, (κb - κlo) / dκ) + 1)
         j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
-        j2 = clampi(ceil(Int,  (μb - μlo) / dμ) + 1)
+        j2 = clampi(ceil(Int, (μb - μlo) / dμ) + 1)
 
         M = masks[lbl]
         @inbounds for i in i1:i2, j in j1:j2
@@ -353,19 +368,19 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
 
     fig = Figure()
     ax = Axis(fig[1, 1];
-        xlabel = L"\mathbf{\kappa}",
-        ylabel = L"\mathbf{\mu}",
-        title  = title,
-        ylabelsize = 20,
-        xlabelsize = 20,
-        topspinevisible = true,
-        rightspinevisible = true,
-        xgridvisible = false,
-        ygridvisible = false,
-        xtickalign = 1,
-        ytickalign = 1,
-        xticksmirrored = true,
-        yticksmirrored = true,
+        xlabel=L"\mathbf{\kappa}",
+        ylabel=L"\mathbf{\mu}",
+        title=title,
+        ylabelsize=20,
+        xlabelsize=20,
+        topspinevisible=true,
+        rightspinevisible=true,
+        xgridvisible=false,
+        ygridvisible=false,
+        xtickalign=1,
+        ytickalign=1,
+        xticksmirrored=true,
+        yticksmirrored=true,
     )
     if axis_box
         ax.topspinevisible = true
@@ -386,14 +401,14 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
         M = masks[lbl]
         Z = Float32.(M)
 
-        col = (lbl === :unknown) ? RGBf(0,0,0) : Makie.to_color(colorfn(lbl))
-        α   = (lbl === :unknown) ? 1.0 : float(alpha)
+        col = (lbl === :unknown) ? RGBf(0, 0, 0) : Makie.to_color(colorfn(lbl))
+        α = (lbl === :unknown) ? 1.0 : float(alpha)
 
         heatmap!(ax, κgrid, μgrid, Z;
-            colormap = [RGBAf(0,0,0,0), col],
-            colorrange = (0f0, 1f0),
-            interpolate = false,
-            alpha = α,
+            colormap=[RGBAf(0, 0, 0, 0), col],
+            colorrange=(0f0, 1f0),
+            interpolate=false,
+            alpha=α,
         )
     end
 
