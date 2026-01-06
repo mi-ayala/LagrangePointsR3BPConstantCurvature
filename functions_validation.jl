@@ -586,3 +586,103 @@ function finalize_root_label(
         return false, unknown_label
     end
 end
+
+"""
+    complements_nonzero2(f, I, J1, J2, Iκ, Iμ; ntiles=16)
+
+Return `true` iff `f(θ,κ,μ) ≠ 0` is certified on the complement
+`I \\ (J1 ∪ J2)`.
+
+Assumes `f` is interval-evaluable in θ,κ,μ.
+Uses direct interval evaluation first, then subdivision fallback if needed.
+
+Notes:
+- J1 and J2 may overlap or be in any order.
+- Requires both J1 ⊆ I and J2 ⊆ I (otherwise returns false).
+"""
+function complements_nonzero2(
+    f::Function,
+    I::Interval,
+    J1::Interval,
+    J2::Interval,
+    Iκ::Interval,
+    Iμ::Interval;
+    ntiles::Int=16,
+)
+    a, b = inf(I), sup(I)
+
+    # ensure J1,J2 are inside I
+    a ≤ inf(J1) ≤ sup(J1) ≤ b || return false
+    a ≤ inf(J2) ≤ sup(J2) ≤ b || return false
+
+    # sort them by left endpoint
+    if inf(J2) < inf(J1)
+        J1, J2 = J2, J1
+    end
+
+    c1, d1 = inf(J1), sup(J1)
+    c2, d2 = inf(J2), sup(J2)
+
+    # merge if overlapping / touching (treat as one excluded block)
+    if c2 ≤ d1
+        c2 = c1
+        d2 = max(d1, d2)
+        c1 = c2
+        d1 = d2
+        # now "excluded" is [c1,d1] only
+        # check I \ [c1,d1]
+        # left piece
+        if a < c1
+            L = interval(a, c1)
+            FL = f(L, Iκ, Iμ)
+            if !nonzero(FL)
+                FL = eval_subdiv(f, L, Iκ, Iμ; ntiles=ntiles)
+                nonzero(FL) || return false
+            end
+        end
+        # right piece
+        if d1 < b
+            R = interval(d1, b)
+            FR = f(R, Iκ, Iμ)
+            if !nonzero(FR)
+                FR = eval_subdiv(f, R, Iκ, Iμ; ntiles=ntiles)
+                nonzero(FR) || return false
+            end
+        end
+        return true
+    end
+
+    # disjoint excluded intervals: J1=[c1,d1], J2=[c2,d2] with d1 < c2
+
+    # left complement: [a, c1]
+    if a < c1
+        L = interval(a, c1)
+        FL = f(L, Iκ, Iμ)
+        if !nonzero(FL)
+            FL = eval_subdiv(f, L, Iκ, Iμ; ntiles=ntiles)
+            nonzero(FL) || return false
+        end
+    end
+
+    # middle complement: [d1, c2]
+    if d1 < c2
+        M = interval(d1, c2)
+        FM = f(M, Iκ, Iμ)
+        if !nonzero(FM)
+            FM = eval_subdiv(f, M, Iκ, Iμ; ntiles=ntiles)
+            nonzero(FM) || return false
+        end
+    end
+
+    # right complement: [d2, b]
+    if d2 < b
+        R = interval(d2, b)
+        FR = f(R, Iκ, Iμ)
+        if !nonzero(FR)
+            FR = eval_subdiv(f, R, Iκ, Iμ; ntiles=ntiles)
+            nonzero(FR) || return false
+        end
+    end
+
+    return true
+end

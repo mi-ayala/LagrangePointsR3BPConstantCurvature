@@ -249,25 +249,57 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :root,
     title = "Root-count",
+    alpha = 0.9,
 )
 
-save("figures/f2_root_regions.png", fig1)
+save("figures/f2_root_regions_quick.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :stability,
     root_index = 1,
+    alpha = 0.9,
     title = "Stability (root 1)",
 )
 
-save("figures/f2_stability_root1.png", fig2)
+save("figures/f2_stability_root1_quick.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :stability,
     root_index = 2,
+    alpha = 0.9,
     title = "Stability (root 2)",
 )
 
-save("figures/f2_stability_root2.png", fig3)
+save("figures/f2_stability_root2_quick.png", fig3)
+
+
+
+
+# # --- Root count plot ---
+# fig1, ax1 = plot_regions_all_labels_from_boxes(boxes;
+#     label_type = :root,
+#     title = "Root-count",
+# )
+
+# save("figures/f2_root_regions_full.png", fig1)
+
+# # --- Stability plot (root 1) ---
+# fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
+#     label_type = :stability,
+#     root_index = 1,
+#     title = "Stability (root 1)",
+# )
+
+# save("figures/f2_stability_root1.png", fig2)
+
+# # --- Stability plot (root 2) ---
+# fig3, ax3 = plot_regions_all_labels_from_boxes(boxes;
+#     label_type = :stability,
+#     root_index = 2,
+#     title = "Stability (root 2)",
+# )
+
+# save("figures/f2_stability_root2.png", fig3)
 

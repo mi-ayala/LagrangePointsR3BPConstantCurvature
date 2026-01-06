@@ -2,15 +2,15 @@ using CairoMakie
 using LaTeXStrings
 
 
-# ---------- Root-count colors ----------
+
+# ---------- Root-count colors (paper style, like reference figure) ----------
 @inline function rootcount_color(lbl::Symbol)
     return (
-        lbl === :two_roots ? "#0B3C6D" :   # very strong deep blue
-        lbl === :one_root ? "#2C5AA0" :   # strong blue
-        lbl === :zero_roots ? "#D0D0D0" :   # light gray
-        # lbl === :unknown    ? "#000000" :   # black
-        lbl === :unknown ? "#1A1A1A" :  # charcoal near-black
-        "#000000"     # fallback
+        lbl === :two_roots  ? "#08519C" :  # deep blue (strong region)
+        lbl === :one_root   ? "#B3DDF2" :  # very light cyan / powder blue
+        lbl === :zero_roots ? "#E5E5E5" :  # light neutral gray
+        lbl === :unknown    ? "#000000" :  # black
+                              "#000000"
     )
 end
 
@@ -18,15 +18,13 @@ end
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
-        lbl === :zero_roots ? "#D0D0D0" :   # light gray
-        lbl === :lyapunov_stable ? "#1B9E77" :  # green (stable)
-        lbl === :elliptic ? "#A6D854" :  # yellow-green
-        lbl === :linearly_unstable ? "#E67E22" :  # orange
-        lbl === :saddle_hyperbolic ? "#ED1B2F" :  # red (most unstable)
-        # lbl === :unknown ? "#000000" :  # black
-
-        lbl === :unknown ? "#1A1A1A" :  # charcoal near-black
-        "#000000"
+        lbl === :zero_roots         ? "#D9D9D9" :  # very light gray (no equilibrium)
+        lbl === :lyapunov_stable    ? "#009E73" :  # emerald green (stable)
+        lbl === :elliptic           ? "#7AD151" :  # vivid lime-green
+        lbl === :linearly_unstable  ? "#F39C12" :  # saturated orange
+        lbl === :saddle_hyperbolic  ? "#D62728" :  # deep red (strong instability)
+        lbl === :unknown            ? "#1A1A1A" :  # charcoal (validation failed)
+                                    "#000000"
     )
 end
 

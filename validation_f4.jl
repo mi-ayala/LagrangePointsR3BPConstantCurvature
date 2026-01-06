@@ -116,15 +116,15 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     title="Root-count",
 )
 
-save("figures/f4_root_regions.png", fig1)
+save("figures/f4_root_regions_quick.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
-    title="Stability (root 1)",
+    title="Stability ",
 )
 
-save("figures/f4_stability_root1.png", fig2)
+save("figures/f4_stability_quick.png", fig2)
 
 
 

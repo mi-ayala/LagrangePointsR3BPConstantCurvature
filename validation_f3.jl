@@ -224,7 +224,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     title = "Root-count",
 )
 
-save("figures/f3_root_regions.png", fig1)
+save("figures/f3_root_regions_quick.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -233,7 +233,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     title = "Stability (root 1)",
 )
 
-save("figures/f3_stability_root1.png", fig2)
+save("figures/f3_stability_root1_quick.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -242,7 +242,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     title = "Stability (root 2)",
 )
 
-save("figures/f3_stability_root2.png", fig3)
+save("figures/f3_stability_root2_quick.png", fig3)
 
 
 
