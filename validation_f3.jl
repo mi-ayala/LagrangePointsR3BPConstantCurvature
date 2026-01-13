@@ -4,7 +4,6 @@ using Roots
 using CairoMakie
 
 include("functions_helpers.jl")
-include("functions_stability.jl")
 include("functions_validation.jl")
 include("functions_f3.jl")
 include("functions_plots.jl")

@@ -15,14 +15,14 @@ using LaTeXStrings
 end
 
 
-# ---------- Stability colors (stable → unstable) ----------
+# ---------- Stability colors (Spectral_4: stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
         lbl === :zero_roots         ? "#E5E5E5" :  # very light gray (no equilibrium)
-        lbl === :lyapunov_stable    ? "#009E73" :  # emerald green (stable)
-        lbl === :elliptic           ? "#7AD151" :  # vivid lime-green
-        lbl === :linearly_unstable  ? "#F39C12" :  # saturated orange
-        lbl === :saddle_hyperbolic  ? "#D62728" :  # deep red (strong instability)
+        lbl === :lyapunov_stable    ? "#2B83BA" :  # Spectral blue (most stable)
+        lbl === :elliptic           ? "#ABDDA4" :  # Spectral green
+        lbl === :linearly_unstable  ? "#FDAE61" :  # Spectral orange
+        lbl === :saddle_hyperbolic  ? "#D7191C" :  # Spectral red (most unstable)
         lbl === :unknown            ? "#1A1A1A" :  # charcoal (validation failed)
                                     "#000000"
     )

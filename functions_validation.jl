@@ -312,7 +312,7 @@ function find_sign_change_centered_refine(
     end
 
     return found ? (:ok, best_Iexist, best_fL, best_fR) :
-                   (:unknown, interval(θc), interval(0), interval(0))
+           (:unknown, interval(θc), interval(0), interval(0))
 end
 
 
@@ -577,8 +577,8 @@ Rules:
 """
 function finalize_root_label(
     comp_ok::Bool;
-    one_label::Symbol = :one_root,
-    unknown_label::Symbol = :unknown,
+    one_label::Symbol=:one_root,
+    unknown_label::Symbol=:unknown,
 )
     if comp_ok
         return true, one_label
@@ -685,4 +685,118 @@ function complements_nonzero2(
     end
 
     return true
+end
+
+
+
+"""
+    classify_center_equilibrium(Ix0, Iκ, Iμ; verbose=false)
+
+Interval implementation of the center-equilibrium test:
+
+Define
+    Λ  = ( sin(√κ q₁) / ( μ sin(√κ q₂) ) )^(1/3)
+    d₁ = asin( Λ * sin(x0) )
+    d₂ = x0
+
+Steps:
+1) If det(d₁,d₂) < 0  → :center_saddle_unstable
+2) else if tr(d₁,d₂) > 0 → :lyapunov_stable
+3) else if C(d₁,d₂) > 0 → :elliptic
+   else if C(d₁,d₂) < 0 → :complex_saddle_unstable
+   else → :unknown
+
+Returns:
+    (ok::Bool, label::Symbol, Idet, Itr, IC, Id1, Id2, IΛ)
+"""
+function classify_center_equilibrium(Ix0::Interval, Iκ::Interval, Iμ::Interval; verbose=false)
+
+    oneI = interval(1)
+    twoI = interval(2)
+    threeI = interval(3)
+    fourI = interval(4)
+    sixI = interval(6)
+
+    r = sqrt(Iκ)
+    q1 = q₁(Iκ, Iμ)
+    q2 = q₂(Iκ, Iμ)
+
+    # Λ = ( sin(√κ q1) / ( μ sin(√κ q2) ) )^(1/3)
+    IΛ = cbrt(sin(r * q1) / (Iμ * sin(r * q2)))
+
+    # d1 = asin( Λ * sin(x0) ), d2 = x0
+    arg = IΛ * sin(Ix0)
+    if !(inf(arg) ≥ -1 && sup(arg) ≤ 1)
+        verbose && println("asin argument not in [-1,1]: ", arg)
+        z = interval(0)
+        return false, :unknown, z, z, z, z, Ix0, IΛ
+    end
+
+    Id1 = asin(arg)
+    Id2 = Ix0
+
+    # ---- det(d1,d2) ----------------------------------------------------
+
+    sr = sin(r)
+    sr4 = sr^4
+
+    s_rq1 = sin(r * q1)
+    s_rq2 = sin(r * q2)
+
+    pref = (threeI * s_rq1 * s_rq2) / sr4
+
+    B1 = s_rq2 * cos(Id1) + s_rq1 * cos(Id2)
+
+    B2 = (oneI + twoI * cos(twoI * Id2)) * s_rq1 * cos(Id1) +
+         (oneI + twoI * cos(twoI * Id1)) * s_rq2 * cos(Id2)
+
+    Idet = pref * B1 * B2
+
+    # ---- tr(d1,d2) -----------------------------------------------------
+
+    Itr = (oneI / (sr^2)) * (
+        (oneI - fourI * cos(Id2)^2) * s_rq1^2
+        -
+        sixI * cos(Id1) * cos(Id2) * s_rq1 * s_rq2
+        +
+        (oneI - fourI * cos(Id1)^2) * s_rq2^2
+    )
+
+    # ---- C(d1,d2) ------------------------------------------------------
+
+    Im = -(sin(Id1)^2 * sin(Id2)^2) /
+         ((cos(r) - cos(Id1 + Id2)) * (cos(r) - cos(Id1 - Id2)))
+
+    IC = Im - fourI * Idet
+
+    # ---- Classification ------------------------------------------------
+
+    tgdet = sign_tag(Idet)
+    verbose && println("det ∈ ", Idet, " ⇒ ", tgdet)
+
+    if tgdet === :neg
+        return true, :center_saddle_unstable, Idet, Itr, IC, Id1, Id2, IΛ
+    elseif tgdet !== :pos
+        return false, :unknown, Idet, Itr, IC, Id1, Id2, IΛ
+    end
+
+    tgtr = sign_tag(Itr)
+    verbose && println("tr ∈ ", Itr, " ⇒ ", tgtr)
+
+    if tgtr === :pos
+        return true, :lyapunov_stable, Idet, Itr, IC, Id1, Id2, IΛ
+    elseif tgtr !== :neg
+        return false, :unknown, Idet, Itr, IC, Id1, Id2, IΛ
+    end
+
+    tgC = sign_tag(IC)
+    verbose && println("C ∈ ", IC, " ⇒ ", tgC)
+
+    if tgC === :pos
+        return true, :elliptic, Idet, Itr, IC, Id1, Id2, IΛ
+    elseif tgC === :neg
+        return true, :complex_saddle_unstable, Idet, Itr, IC, Id1, Id2, IΛ
+    else
+        return false, :unknown, Idet, Itr, IC, Id1, Id2, IΛ
+    end
 end
