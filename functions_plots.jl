@@ -2,33 +2,45 @@ using CairoMakie
 using LaTeXStrings
 
 
+# @inline function rootcount_color(lbl::Symbol)
+#     return (
+#         lbl === :two_roots  ? "#08306B" :  # very deep navy blue
+#         lbl === :one_root   ? "#2171B5" :  # medium steel blue
+#         lbl === :zero_roots ? "#CFCFCF" :  # neutral gray
+#         lbl === :unknown    ? "#000000" :  # black
+#                               "#000000"
+#     )
+# end
 
-# ---------- Root-count colors (paper style, like reference figure) ----------
 @inline function rootcount_color(lbl::Symbol)
     return (
-        lbl === :two_roots  ? "#08519C" :  # deep blue (strong region)
-        lbl === :one_root   ? "#B3DDF2" :  # very light cyan / powder blue
-        lbl === :zero_roots ? "#E5E5E5" :  # light neutral gray
+        lbl === :multiple_roots  ? "#2171B5" :  # deep forest green
+        lbl === :two_roots  ? "#1B7837" :  # deep forest green
+        lbl === :one_root   ? "#5AAE61" :  # medium green
+        lbl === :zero_roots ? "#CFCFCF" :  # neutral gray
         lbl === :unknown    ? "#000000" :  # black
                               "#000000"
     )
 end
 
 
-
-# ---------- Stability colors (seaborn_bright: stable → unstable) ----------
+# ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
-        lbl === :zero_roots         ? "#E5E5E5" :  # light gray (no equilibrium)
-        lbl === :lyapunov_stable    ? "#009E73" :  # seaborn green (stable)
-        lbl === :elliptic           ? "#0072B2" :  # seaborn blue (center / neutral)
-        lbl === :linearly_unstable  ? "#E69F00" :  # seaborn orange (unstable)
-        lbl === :saddle_hyperbolic  ? "#D55E00" :  # seaborn red-orange (most unstable)
-        lbl === :unknown            ? "#1A1A1A" :  # charcoal (validation failed)
-                                    "#000000"
+        lbl === :zero_roots              ? "#CFCFCF" :  # neutral gray (no equilibrium / N/A)
+
+        lbl === :lyapunov_stable         ? "#009E73" :  # green (stable)
+        lbl === :elliptic                ? "#0072B2" :  # blue  (center-like / neutral)
+
+        lbl === :linearly_unstable       ? "#E69F00" :  # orange (unstable)
+        lbl === :center_saddle_unstable  ? "#F4A261" :  # amber / light orange (more unstable)
+        lbl === :complex_saddle_unstable ? "#E76F51" :  # deeper orange (even more unstable)
+        lbl === :saddle_hyperbolic       ? "#D55E00" :  # red-orange (most unstable)
+
+        lbl === :unknown                 ? "#1A1A1A" :  # charcoal (validation failed)
+                                         "#000000"
     )
 end
-
 
 """
     plot_regions_all_labels_from_boxes(boxes;
@@ -68,7 +80,7 @@ function plot_regions_all_labels_from_boxes(boxes;
     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
     μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
     resolution::Int=2000,
-    alpha::Real=0.7,
+    alpha::Real=1.0,
     show_boundary::Bool=true,
     boundary_lw::Real=2.0,
     title::AbstractString="",
@@ -291,7 +303,7 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
     μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
     resolution::Int=2000,
-    alpha::Real=0.7,
+    alpha::Real=1.0,
     title::AbstractString="",
     axis_box::Bool=true,
 )

@@ -215,49 +215,33 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 
 
 
-
-
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :root,
-    title = "Root-count",
+    # title = "Root-count",
 )
 
-save("figures/f3_root_regions_quick.png", fig1)
+save("figures/validated/f3_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :stability,
     root_index = 1,
-    title = "Stability (root 1)",
+    # title = "Stability (root 1)",
 )
 
-save("figures/f3_stability_root1_quick.png", fig2)
+save("figures/validated/f3_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type = :stability,
     root_index = 2,
-    title = "Stability (root 2)",
+    # title = "Stability (root 2)",
 )
 
-save("figures/f3_stability_root2_quick.png", fig3)
+save("figures/validated/f3_stability_root2.png", fig3)
 
 
 
 
 
-# fig1, ax = plot_regions_all_labels_from_boxes(
-#     boxes;
-#     label_type=:root,
-#     κlims=(0.0, (0.5 * pi)^2),
-#     μlims=(0.0, 0.0886765),
-#     resolution=2000,
-#     alpha=0.7,
-#     show_boundary=true,
-#     boundary_lw=2.0,
-#     title="Root-count Regions",
-# )
-
-
-# CairoMakie.save("figures/f3_root_regions.png", fig1)

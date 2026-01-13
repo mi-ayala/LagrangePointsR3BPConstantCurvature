@@ -110,17 +110,17 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
-    title="Root-count",
+    # title="Root-count",
 )
 
-save("figures/f1_root_regions_quick.png", fig1)
+save("figures/validated/f1_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=1,
-    title="Stability",
+    # title="Stability",
 )
 
-save("figures/f1_stability_quick.png", fig2)
+save("figures/validated/f1_stability.png", fig2)
 

@@ -105,25 +105,25 @@ end
 κ_lo, κ_hi = 0.0001, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0001, 0.0886765
 
-nx, ny =  4*2464, 4*89
+nx, ny =  2*2464, 2*89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
-    title="Root-count",
+    # title="Root-count",
 )
 
-save("figures/f4_root_regions_quick.png", fig1)
+save("figures/validated/f4_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
-    title="Stability ",
+    # title="Stability ",
 )
 
-save("figures/f4_stability_quick.png", fig2)
+save("figures/validated/f4_stability.png", fig2)
 
 
 

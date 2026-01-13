@@ -50,7 +50,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         if isempty(br)
 
             root_label = :zero_roots
-            FI = eval_subdiv(f₅, interval(θmin_refined, θmax_refined), Iκ, Iμ; ntiles=30)
+            FI = eval_subdiv(f₅, interval(θmin_refined, θmax_refined), Iκ, Iμ; ntiles=50)
             if ispos(FI)
                 push!(boxes, (root_label, κc, μc, rκ, rμ, false, false, :zero_roots, :zero_roots))
                 validated += 1
@@ -72,7 +72,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
                 Iμ;
-                ntiles=30,
+                ntiles=40,
                 min_width=1e-12,
                 min_radius=1e-12,
                 verbose=false,
@@ -81,17 +81,16 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             if ok_root
 
                 _, root_label = finalize_root_label(complements_nonzero(f₅, interval(θmin_refined, θmax_refined), data.J, Iκ, Iμ))
+                _, stability_label = classify_center_equilibrium(data.Iexist, Iκ, Iμ)
 
-                _, stability_label = classify_equilibrium(data.Iexist, Iκ, Iμ)
 
                 if root_label === :unknown
-
                     push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, :unknown, :unknown))
-
                 else
                     push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, stability_label, :one_root))
                     validated += 1
                 end
+
 
             else
                 push!(boxes, (:unknown, κc, μc, rκ, rμ, ok_root, false, :unknown, :unknown))
@@ -113,7 +112,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
                 Iμ;
-                ntiles=30,
+                ntiles=40,
                 min_width=1e-12,
                 min_radius=1e-12,
                 verbose=false,
@@ -125,7 +124,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
                 Iμ;
-                ntiles=30,
+                ntiles=40,
                 min_width=1e-12,
                 min_radius=1e-12,
                 verbose=false,
@@ -133,8 +132,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
 
             if ok_root1 && ok_root2
-                _, stability_label1 = classify_equilibrium(data1.Iexist, Iκ, Iμ)
-                _, stability_label2 = classify_equilibrium(data2.Iexist, Iκ, Iμ)
+                _, stability_label1 = classify_center_equilibrium(data1.Iexist, Iκ, Iμ)
+                _, stability_label2 = classify_center_equilibrium(data2.Iexist, Iκ, Iμ)
 
                 _, root_label = finalize_root_label(complements_nonzero2(f₅, interval(θmin_refined, θmax_refined), data1.J, data2.J, Iκ, Iμ))
                 push!(boxes, (:two_roots, κc, μc, rκ, rμ, ok_root1, ok_root2, stability_label1, stability_label2))
@@ -171,27 +170,27 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
-    title="Root-count",
+    # title="Root-count",
 )
 
-save("figures/f5_root_regions_quick.png", fig1)
+save("figures/validated/f5_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=1,
-    title="Stability (root 1)",
+    # title="Stability (root 1)",
 )
 
-save("figures/f5_stability_root1_quick.png", fig2)
+save("figures/validated/f5_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=2,
-    title="Stability (root 2)",
+    # title="Stability (root 2)",
 )
 
-save("figures/f5_stability_root2_quick.png", fig3)
+save("figures/validated/f5_stability_root2.png", fig3)
 
