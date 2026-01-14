@@ -72,7 +72,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
                 Iμ;
-                ntiles=40,
+                ntiles=60,
                 min_width=1e-12,
                 min_radius=1e-12,
                 verbose=false,
@@ -160,10 +160,12 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+
+κ_lo, κ_hi = 0.0, 0.5 
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2464, 89
+nx, ny = 2*2464, 2*89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
@@ -173,7 +175,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title="Root-count",
 )
 
-save("figures/validated/f5_root_regions.png", fig1)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 
@@ -183,7 +185,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title="Stability (root 1)",
 )
 
-save("figures/validated/f5_stability_root1.png", fig2)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -192,5 +194,5 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title="Stability (root 2)",
 )
 
-save("figures/validated/f5_stability_root2.png", fig3)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_stability_root2.png", fig3)
 

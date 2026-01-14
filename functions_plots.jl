@@ -2,24 +2,14 @@ using CairoMakie
 using LaTeXStrings
 
 
-# @inline function rootcount_color(lbl::Symbol)
-#     return (
-#         lbl === :two_roots  ? "#08306B" :  # very deep navy blue
-#         lbl === :one_root   ? "#2171B5" :  # medium steel blue
-#         lbl === :zero_roots ? "#CFCFCF" :  # neutral gray
-#         lbl === :unknown    ? "#000000" :  # black
-#                               "#000000"
-#     )
-# end
-
 @inline function rootcount_color(lbl::Symbol)
     return (
-        lbl === :multiple_roots  ? "#2171B5" :  # deep forest green
-        lbl === :two_roots  ? "#1B7837" :  # deep forest green
-        lbl === :one_root   ? "#5AAE61" :  # medium green
-        lbl === :zero_roots ? "#CFCFCF" :  # neutral gray
-        lbl === :unknown    ? "#000000" :  # black
-                              "#000000"
+        lbl === :multiple_roots ? "#08306B" :  # navy
+        lbl === :two_roots      ? "#08306B"  :  # deep blue
+        lbl === :one_root       ? "#2171B5" :  # medium blue
+        lbl === :zero_roots     ? "#BDBDBD" :  # medium-light gray (not too light)
+        lbl === :unknown        ? "#000000" :  # black
+                                 "#000000"
     )
 end
 
@@ -27,17 +17,17 @@ end
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
-        lbl === :zero_roots              ? "#CFCFCF" :  # neutral gray (no equilibrium / N/A)
+        lbl === :zero_roots              ? "#BDBDBD" :  # same gray as existence
 
-        lbl === :lyapunov_stable         ? "#009E73" :  # green (stable)
-        lbl === :elliptic                ? "#0072B2" :  # blue  (center-like / neutral)
+        lbl === :lyapunov_stable         ? "#009E73" :  # teal-green (stable)
+        lbl === :elliptic                ? "#0072B2" :  # blue (neutral/center-like)
 
-        lbl === :linearly_unstable       ? "#E69F00" :  # orange (unstable)
-        lbl === :center_saddle_unstable  ? "#F4A261" :  # amber / light orange (more unstable)
-        lbl === :complex_saddle_unstable ? "#E76F51" :  # deeper orange (even more unstable)
+        lbl === :linearly_unstable       ? "#E69F00" :  # orange
+        lbl === :center_saddle_unstable  ? "#F28E2B" :  # deeper amber (clear step)
+        lbl === :complex_saddle_unstable ? "#E15759" :  # red-ish (distinct from orange)
         lbl === :saddle_hyperbolic       ? "#D55E00" :  # red-orange (most unstable)
 
-        lbl === :unknown                 ? "#1A1A1A" :  # charcoal (validation failed)
+        lbl === :unknown                 ? "#1A1A1A" :  # charcoal
                                          "#000000"
     )
 end

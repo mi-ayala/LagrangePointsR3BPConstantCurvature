@@ -1,17 +1,37 @@
-                
 
-# Λ(κ, μ) = ( sin(√κ q1) / ( μ sin(√κ q2) ) )^(1/3)
+@inline function sinc_t(x)
+    if x isa Interval
+        # 0 in x  <=>  inf(x) <= 0 <= sup(x)
+        return (inf(x) <= 0.0 <= sup(x)) ? interval(-1.0, 1.0) : sin(x)/x
+    else
+        # sin(x)/x, with removable singularity handled by Base.sinc
+        return Base.sinc(x / pi)
+    end
+end
 function Λ(κ, μ)
     κ, μ = promote(κ, μ)
     r  = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
 
-    s1 = sin(r * q1)
     s2 = sin(r * q2)
 
-    return cbrt_t(s1 / (μ * s2))
+    # key rewrite:
+    num = r * (q1 / μ) * sinc_t(r * q1)
+    return cbrt_t(num / s2)
 end
+# Λ(κ, μ) = ( sin(√κ q1) / ( μ sin(√κ q2) ) )^(1/3)
+# function Λ(κ, μ)
+#     κ, μ = promote(κ, μ)
+#     r  = sqrt(κ)
+#     q1 = q₁(κ, μ)
+#     q2 = q₂(κ, μ)
+
+#     s1 = sin(r * q1)
+#     s2 = sin(r * q2)
+
+#     return cbrt_t(s1 / (μ * s2))
+# end
 
 function f₅(x, κ, μ)
     x, κ, μ = promote(x, κ, μ)

@@ -113,7 +113,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title="Root-count",
 )
 
-save("figures/validated/f1_root_regions.png", fig1)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f1_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -122,5 +122,5 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title="Stability",
 )
 
-save("figures/validated/f1_stability.png", fig2)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f1_stability.png", fig2)
 

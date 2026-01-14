@@ -75,6 +75,8 @@ end
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 150, 150
+
+nx, ny = 1000, 1000
 boxes = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 # --- Root count plot ---
@@ -83,7 +85,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
     ms = 4,
 )
 
-save("figures/numerics/f5_root_regions_numerics.png", fig1)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/numerics/f5_root_regions_numerics.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
@@ -92,7 +94,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
         ms = 4
 )
 
-save("figures/numerics/f5_stability_root1_numerics.png", fig2)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/numerics/f5_stability_root1_numerics.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
@@ -101,7 +103,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
         ms = 4
 )
 
-save("figures/numerics/f5_stability_root2_numerics.png", fig3)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/numerics/f5_stability_root2_numerics.png", fig3)
 
 
 

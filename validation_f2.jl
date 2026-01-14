@@ -251,7 +251,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     # alpha = 0.9,
 )
 
-save("figures/validated/f2_root_regions.png", fig1)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f2_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -261,7 +261,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title = "Stability (root 1)",
 )
 
-save("figures/validated/f2_stability_root1.png", fig2)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f2_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
@@ -271,7 +271,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     # title = "Stability (root 2)",
 )
 
-save("figures/validated/f2_stability_root2.png", fig3)
+save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f2_stability_root2.png", fig3)
 
 
 
