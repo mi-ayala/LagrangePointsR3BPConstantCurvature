@@ -74,9 +74,9 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 150, 150
+nx, ny = 500, 500
 
-nx, ny = 1000, 1000
+
 boxes = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 # --- Root count plot ---

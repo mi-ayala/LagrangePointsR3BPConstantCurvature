@@ -23,8 +23,8 @@ end
         lbl === :elliptic                ? "#0072B2" :  # blue (neutral/center-like)
 
         lbl === :linearly_unstable       ? "#E69F00" :  # orange
-        lbl === :center_saddle_unstable  ? "#F28E2B" :  # deeper amber (clear step)
-        lbl === :complex_saddle_unstable ? "#E15759" :  # red-ish (distinct from orange)
+        lbl === :center_saddle_unstable  ? "#E69F00" :  # deeper amber (clear step)
+        lbl === :complex_saddle_unstable ? "#D55E00" :  # red-ish (distinct from orange)
         lbl === :saddle_hyperbolic       ? "#D55E00" :  # red-orange (most unstable)
 
         lbl === :unknown                 ? "#1A1A1A" :  # charcoal
