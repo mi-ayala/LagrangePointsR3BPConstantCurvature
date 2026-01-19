@@ -113,6 +113,12 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
     # title="Root-count",
+        overlay_rect = (0.0, (pi^2 / 16), 0.0, 0.0886765),
+    overlay_nx=14,
+    overlay_ny=10,
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
+    overlay_alpha=1.0,
+    overlay_lw=0.8,
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f4_root_regions.png", fig1)
@@ -121,6 +127,12 @@ save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     # title="Stability ",
+        overlay_rect = (0.0, (pi^2 / 16), 0.0, 0.0886765),
+    overlay_nx=14,
+    overlay_ny=10,
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
+    overlay_alpha=1.0,
+    overlay_lw=0.8,
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f4_stability.png", fig2)
