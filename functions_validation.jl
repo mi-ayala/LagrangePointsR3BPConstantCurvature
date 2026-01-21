@@ -524,22 +524,72 @@ Uses:
   • direct interval evaluation first
   • fixed subdivision fallback if needed
 """
+# function complements_nonzero(
+#     f::Function,
+#     I::Interval,
+#     J::Interval,
+#     Iκ::Interval,
+#     Iμ::Interval;
+#     ntiles::Int=16,
+# )
+
+#     a, b = inf(I), sup(I)
+#     c, d = inf(J), sup(J)
+
+#     # require J ⊆ I
+#     a ≤ c ≤ d ≤ b || return false
+
+#     # left complement
+#     if a < c
+#         L = interval(a, c)
+#         FL = f(L, Iκ, Iμ)
+#         if !nonzero(FL)
+#             FL = eval_subdiv(f, L, Iκ, Iμ; ntiles=ntiles)
+#             nonzero(FL) || return false
+#         end
+#     end
+
+#     # right complement
+#     if d < b
+#         R = interval(d, b)
+#         FR = f(R, Iκ, Iμ)
+#         if !nonzero(FR)
+#             FR = eval_subdiv(f, R, Iκ, Iμ; ntiles=ntiles)
+#             nonzero(FR) || return false
+#         end
+#     end
+
+#     return true
+# end
+
+
+# @inline nonzero(I::Interval) = !(0 ∈ I)
+
+"""
+    complements_nonzero(f, I, J, Iκ, Iμ; ntiles=16)
+
+Return true iff f(θ,κ,μ) ≠ 0 is certified on both complements I \\ J.
+
+Robust to tiny rounding where J is not exactly a subset of I:
+we clip J to I instead of returning false.
+"""
 function complements_nonzero(
     f::Function,
     I::Interval,
-    J::Interval,
+    J::Interval, 
     Iκ::Interval,
     Iμ::Interval;
     ntiles::Int=16,
 )
-
     a, b = inf(I), sup(I)
-    c, d = inf(J), sup(J)
 
-    # require J ⊆ I
-    a ≤ c ≤ d ≤ b || return false
+    # clip J into I (instead of failing if J⊄I due to rounding)
+    Jc = intersect_interval(J, I)
+    isempty_interval(Jc) && return nonzero(eval_subdiv(f, I, Iκ, Iμ; ntiles=ntiles))
 
-    # left complement
+    c, d = inf(Jc), sup(Jc)
+
+    # left complement [a,c]
     if a < c
         L = interval(a, c)
         FL = f(L, Iκ, Iμ)
@@ -549,7 +599,7 @@ function complements_nonzero(
         end
     end
 
-    # right complement
+    # right complement [d,b]
     if d < b
         R = interval(d, b)
         FR = f(R, Iκ, Iμ)

@@ -5,11 +5,11 @@ using LaTeXStrings
 @inline function rootcount_color(lbl::Symbol)
     return (
         lbl === :multiple_roots ? "#08306B" :  # navy
-        lbl === :two_roots      ? "#08306B"  :  # deep blue
-        lbl === :one_root       ? "#2171B5" :  # medium blue
-        lbl === :zero_roots     ? "#BDBDBD" :  # medium-light gray (not too light)
-        lbl === :unknown        ? "#000000" :  # black
-                                 "#000000"
+        lbl === :two_roots ? "#08306B" :  # deep blue
+        lbl === :one_root ? "#2171B5" :  # medium blue
+        lbl === :zero_roots ? "#BDBDBD" :  # medium-light gray (not too light)
+        lbl === :unknown ? "#000000" :  # black
+        "#000000"
     )
 end
 
@@ -17,18 +17,15 @@ end
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
-        lbl === :zero_roots              ? "#BDBDBD" :  # same gray as existence
-
-        lbl === :lyapunov_stable         ? "#009E73" :  # teal-green (stable)
-        lbl === :elliptic                ? "#0072B2" :  # blue (neutral/center-like)
-
-        lbl === :linearly_unstable       ? "#E69F00" :  # orange
-        lbl === :center_saddle_unstable  ? "#E69F00" :  # deeper amber (clear step)
+        lbl === :zero_roots ? "#BDBDBD" :  # same gray as existence
+        lbl === :lyapunov_stable ? "#009E73" :  # teal-green (stable)
+        lbl === :elliptic ? "#0072B2" :  # blue (neutral/center-like)
+        lbl === :linearly_unstable ? "#E69F00" :  # orange
+        lbl === :center_saddle_unstable ? "#E69F00" :  # deeper amber (clear step)
         lbl === :complex_saddle_unstable ? "#D55E00" :  # red-ish (distinct from orange)
-        lbl === :saddle_hyperbolic       ? "#D55E00" :  # red-orange (most unstable)
-
-        lbl === :unknown                 ? "#1A1A1A" :  # charcoal
-                                         "#000000"
+        lbl === :saddle_hyperbolic ? "#D55E00" :  # red-orange (most unstable)
+        lbl === :unknown ? "#1A1A1A" :  # charcoal
+        "#000000"
     )
 end
 
@@ -426,12 +423,12 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
     title::AbstractString="",
     axis_box::Bool=true,
     # --- NEW: optional overlay rectangle grid ---
-    overlay_rect = nothing,          # (κa, κb, μa, μb) or nothing
-    overlay_nx::Int = 10,            # number of vertical grid lines (incl. edges)
-    overlay_ny::Int = 10,            # number of horizontal grid lines (incl. edges)
-    overlay_color = RGBAf(1,1,1,1),  # white by default
-    overlay_lw::Real = 1.0,
-    overlay_alpha::Real = 0.55,
+    overlay_rect=nothing,          # (κa, κb, μa, μb) or nothing
+    overlay_nx::Int=10,            # number of vertical grid lines (incl. edges)
+    overlay_ny::Int=10,            # number of horizontal grid lines (incl. edges)
+    overlay_color=RGBAf(1, 1, 1, 1),  # white by default
+    overlay_lw::Real=1.0,
+    overlay_alpha::Real=0.55,
 )
     κlo, κhi = κlims
     μlo, μhi = μlims
@@ -443,8 +440,6 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
 
     κgrid = collect(range(float(κlo), float(κhi); length=resolution))
     μgrid = collect(range(float(μlo), float(μhi); length=resolution))
-    dκ = (κhi - κlo) / (resolution - 1)
-    dμ = (μhi - μlo) / (resolution - 1)
 
     @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
 
@@ -452,12 +447,18 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
     labels = Symbol[]
     for bx in boxes
         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
+
         if label_type === :root
             push!(labels, root_lbl)
         else
+            # stability plot:
+            # - always allow :zero_roots (N/A stability region)
+            # - otherwise only include stability labels where the chosen root EXISTS
             if root_lbl === :zero_roots
                 push!(labels, :zero_roots)
             else
+                hasroot = (root_index == 1) ? ok1 : ok2
+                hasroot || continue
                 push!(labels, root_index == 1 ? stab1 : stab2)
             end
         end
@@ -474,10 +475,17 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
     for bx in boxes
         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
 
+        # decide label, or skip (transparent) for "root doesn't exist"
         lbl = if label_type === :root
             root_lbl
         else
-            root_lbl === :zero_roots ? :zero_roots : (root_index == 1 ? stab1 : stab2)
+            if root_lbl === :zero_roots
+                :zero_roots
+            else
+                hasroot = (root_index == 1) ? ok1 : ok2
+                hasroot || continue          # <-- KEY: don't paint black; just skip
+                (root_index == 1) ? stab1 : stab2
+            end
         end
 
         κa = κc - rκ
@@ -491,10 +499,12 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
         μa = max(μa, μlo)
         μb = min(μb, μhi)
 
-        i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
-        i2 = clampi(ceil(Int,  (κb - κlo) / dκ) + 1)
-        j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
-        j2 = clampi(ceil(Int,  (μb - μlo) / dμ) + 1)
+        i1 = clampi(searchsortedfirst(κgrid, κa))
+        i2 = clampi(searchsortedlast( κgrid, κb))
+        j1 = clampi(searchsortedfirst(μgrid, μa))
+        j2 = clampi(searchsortedlast( μgrid, μb))
+
+        (i1 > i2 || j1 > j2) && continue
 
         M = masks[lbl]
         @inbounds for i in i1:i2, j in j1:j2
@@ -548,13 +558,15 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
         )
     end
 
-    # --- NEW: overlay a white grid inside a rectangle ---
+    # --- overlay a white grid inside a rectangle ---
     if overlay_rect !== nothing
         κa, κb, μa, μb = overlay_rect
 
-        # clip rectangle to plot window (so it never draws outside)
-        κa = max(float(κa), float(κlo)); κb = min(float(κb), float(κhi))
-        μa = max(float(μa), float(μlo)); μb = min(float(μb), float(μhi))
+        κa = max(float(κa), float(κlo))
+        κb = min(float(κb), float(κhi))
+        μa = max(float(μa), float(μlo))
+        μb = min(float(μb), float(μhi))
+
         if κb > κa && μb > μa
             nx = max(2, overlay_nx)
             ny = max(2, overlay_ny)
@@ -562,23 +574,12 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
             col_grid = Makie.to_color(overlay_color)
             αg = float(overlay_alpha)
 
-            # verticals
             for κx in range(κa, κb; length=nx)
-                lines!(ax, [κx, κx], [μa, μb];
-                    color=col_grid, linewidth=overlay_lw, alpha=αg
-                )
+                lines!(ax, [κx, κx], [μa, μb]; color=col_grid, linewidth=overlay_lw, alpha=αg)
             end
-            # horizontals
             for μy in range(μa, μb; length=ny)
-                lines!(ax, [κa, κb], [μy, μy];
-                    color=col_grid, linewidth=overlay_lw, alpha=αg
-                )
+                lines!(ax, [κa, κb], [μy, μy]; color=col_grid, linewidth=overlay_lw, alpha=αg)
             end
-
-            # # optional: emphasize border a bit
-            # lines!(ax, [κa, κb, κb, κa, κa], [μa, μa, μb, μb, μa];
-            #     color=col_grid, linewidth=max(overlay_lw, 1.25), alpha=min(1.0, αg + 0.15)
-            # )
         end
     end
 

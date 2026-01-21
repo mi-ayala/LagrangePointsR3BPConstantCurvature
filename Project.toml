@@ -11,6 +11,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 RadiiPolynomial = "f2081a94-c849-46b6-8dc9-07bb90ed72a9"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 CairoMakie = "0.15.8"
@@ -20,3 +21,4 @@ LaTeXStrings = "1.4.0"
 RadiiPolynomial = "0.9.9"
 Roots = "2.2.10"
 StaticArrays = "1.9.15"
+StatsBase = "0.34.10"

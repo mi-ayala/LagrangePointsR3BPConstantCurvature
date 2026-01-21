@@ -38,30 +38,30 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         (θmin, θmax) = Intθ_5(κc, μc)
 
         br = brackets_signchanges(θ -> f₅(θ, κc, μc), θmin, θmax)
+
         Iκ = interval(κc, rκ; format=:midpoint)
         Iμ = interval(μc, rμ; format=:midpoint)
 
         θmax_refined = sup(Intθ_5(Iκ, Iμ)[2])
         θmin_refined = inf(Intθ_5(Iκ, Iμ)[1])
-        Ic = Intθ_5(Iκ, Iμ)
 
-        ### Three cases, zero, one and two roots
-
+        # ------------------------
+        # Case 0: no brackets
+        # ------------------------
         if isempty(br)
-
-            root_label = :zero_roots
+            # certify “no root” by proving f5 has fixed sign on the whole θ-interval
             FI = eval_subdiv(f₅, interval(θmin_refined, θmax_refined), Iκ, Iμ; ntiles=50)
-            if ispos(FI)
-                push!(boxes, (root_label, κc, μc, rκ, rμ, false, false, :zero_roots, :zero_roots))
-                validated += 1
-            elseif isneg(FI)
-                push!(boxes, (root_label, κc, μc, rκ, rμ, false, false, :zero_roots, :zero_roots))
+
+            if ispos(FI) || isneg(FI)
+                push!(boxes, (:zero_roots, κc, μc, rκ, rμ, false, false, :zero_roots, :zero_roots))
                 validated += 1
             else
                 push!(boxes, (:unknown, κc, μc, rκ, rμ, false, false, :unknown, :unknown))
             end
 
-
+        # ------------------------
+        # Case 1: exactly one bracket
+        # ------------------------
         elseif length(br) == 1
             root = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
 
@@ -79,32 +79,37 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             )
 
             if ok_root
+                comp_ok = complements_nonzero(
+                    f₅,
+                    interval(θmin_refined, θmax_refined),
+                    data.J,
+                    Iκ,
+                    Iμ,
+                )
 
-                _, root_label = finalize_root_label(complements_nonzero(f₅, interval(θmin_refined, θmax_refined), data.J, Iκ, Iμ))
-                _, stability_label = classify_center_equilibrium(data.Iexist, Iκ, Iμ)
-
-
-                if root_label === :unknown
-                    push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, :unknown, :unknown))
-                else
-                    push!(boxes, (root_label, κc, μc, rκ, rμ, ok_root, false, stability_label, :one_root))
+                if comp_ok
+                    _, stability_label = classify_center_equilibrium(data.Iexist, Iκ, Iμ)
+                    push!(boxes, (:one_root, κc, μc, rκ, rμ, true, false, stability_label, :one_root))
                     validated += 1
+                else
+                    push!(boxes, (:unknown, κc, μc, rκ, rμ, true, false, :unknown, :unknown))
                 end
-
-
             else
-                push!(boxes, (:unknown, κc, μc, rκ, rμ, ok_root, false, :unknown, :unknown))
+                push!(boxes, (:unknown, κc, μc, rκ, rμ, false, false, :unknown, :unknown))
             end
 
-
-        elseif length(br) >= 2
-            ### two roots case
+        # ------------------------
+        # Case 2: two or more brackets (attempt “two roots”)
+        # ------------------------
+        else
             root1 = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
             root2 = find_zero(θ -> f₅(θ, κc, μc), br[2]; atol=1e-12)
-            ### order roots by absolute value
+
+            # order roots by absolute value
             if abs(root2) < abs(root1)
                 (root1, root2) = (root2, root1)
             end
+
             ok_root1, data1 = validate_root_sign_mono(
                 f₅,
                 f₅θ,
@@ -130,23 +135,29 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 verbose=false,
             )
 
-
             if ok_root1 && ok_root2
                 _, stability_label1 = classify_center_equilibrium(data1.Iexist, Iκ, Iμ)
                 _, stability_label2 = classify_center_equilibrium(data2.Iexist, Iκ, Iμ)
 
-                _, root_label = finalize_root_label(complements_nonzero2(f₅, interval(θmin_refined, θmax_refined), data1.J, data2.J, Iκ, Iμ))
-                push!(boxes, (:two_roots, κc, μc, rκ, rμ, ok_root1, ok_root2, stability_label1, stability_label2))
-                validated += 1
+                comp_ok = complements_nonzero2(
+                    f₅,
+                    interval(θmin_refined, θmax_refined),
+                    data1.J,
+                    data2.J,
+                    Iκ,
+                    Iμ,
+                )
+
+                if comp_ok
+                    push!(boxes, (:two_roots, κc, μc, rκ, rμ, true, true, stability_label1, stability_label2))
+                    validated += 1
+                else
+                    push!(boxes, (:unknown, κc, μc, rκ, rμ, true, true, :unknown, :unknown))
+                end
             else
                 push!(boxes, (:unknown, κc, μc, rκ, rμ, ok_root1, ok_root2, :unknown, :unknown))
             end
-
-
         end
-
-
-
     end
 
     if verbose
@@ -160,12 +171,11 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
-
-κ_lo, κ_hi = 0.0, 0.5 
+κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2464, 89
+nx, ny = 4*89, 4*2464
+# nx, ny = 1500, 1500
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
@@ -173,6 +183,7 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
     # title="Root-count",
+    # κlims=(0.0, 0.24),
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_root_regions.png", fig1)
