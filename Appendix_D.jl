@@ -145,8 +145,9 @@ function J_equilibrium(x)
     return J
 end
 
+
 ### Approximate zero
-x0 = [2.0943951023931953, 0.7444610429129391, 0.08867648509140362]
+x0 = [-1.0471975511965979, 0.7444610429129391, 0.08867648509140362]
 F_appendix_D(x)
 
 ### Check derivative with ForwardDiff
