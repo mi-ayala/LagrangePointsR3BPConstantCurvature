@@ -12,10 +12,10 @@ function classify_equilibrium_f(θ, κ, μ; verbose::Bool=false)
     Δ_val = Δ(θ, κ, μ)
 
     label =
-        det_val < 0 ? :saddle_hyperbolic :
+        det_val < 0 ? :center_saddle_unstable :
         lam2_val > 0 ? :lyapunov_stable :
         Δ_val > 0 ? :elliptic :
-        Δ_val < 0 ? :linearly_unstable :
+        Δ_val < 0 ? :complex_saddle_unstable :
         :unknown
 
     if verbose

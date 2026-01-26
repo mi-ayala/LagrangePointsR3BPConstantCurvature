@@ -18,7 +18,7 @@ function f₃θ(θ, κ, μ)
     b = θ - r * q2
 
     # derivative of sinθ cosθ
-    d_main = cos(twice(θ))      # = cos(2θ)
+    d_main = cos(twice(θ))    
 
     # pieces for the Γ-term
     sa = sin(a); ca = cos(a)

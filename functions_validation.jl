@@ -477,7 +477,7 @@ function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
     verbose && println("det(θ) ∈ ", Idet, " ⇒ ", tgdet)
 
     if tgdet === :neg
-        return true, :saddle_hyperbolic, Idet,
+        return true, :center_saddle_unstable, Idet,
         IntervalArithmetic.interval(0),
         IntervalArithmetic.interval(0)
     elseif tgdet !== :pos
@@ -507,63 +507,13 @@ function classify_equilibrium(Iθ, Iκ, Iμ; verbose::Bool=false)
     if tgΔ === :pos
         return true, :elliptic, Idet, Ilam2, IΔ
     elseif tgΔ === :neg
-        return true, :linearly_unstable, Idet, Ilam2, IΔ
+        return true, :complex_saddle_unstable, Idet, Ilam2, IΔ
     else
         return false, :unknown, Idet, Ilam2, IΔ
     end
 end
 
 @inline nonzero(I::Interval) = !(inf(I) ≤ 0 ≤ sup(I))
-"""
-    complements_nonzero(f, I, J, Iκ, Iμ; ntiles=16)
-
-Return `true` iff `f(θ,κ,μ) ≠ 0` is certified on both complements
-`I \\ J`.
-
-Uses:
-  • direct interval evaluation first
-  • fixed subdivision fallback if needed
-"""
-# function complements_nonzero(
-#     f::Function,
-#     I::Interval,
-#     J::Interval,
-#     Iκ::Interval,
-#     Iμ::Interval;
-#     ntiles::Int=16,
-# )
-
-#     a, b = inf(I), sup(I)
-#     c, d = inf(J), sup(J)
-
-#     # require J ⊆ I
-#     a ≤ c ≤ d ≤ b || return false
-
-#     # left complement
-#     if a < c
-#         L = interval(a, c)
-#         FL = f(L, Iκ, Iμ)
-#         if !nonzero(FL)
-#             FL = eval_subdiv(f, L, Iκ, Iμ; ntiles=ntiles)
-#             nonzero(FL) || return false
-#         end
-#     end
-
-#     # right complement
-#     if d < b
-#         R = interval(d, b)
-#         FR = f(R, Iκ, Iμ)
-#         if !nonzero(FR)
-#             FR = eval_subdiv(f, R, Iκ, Iμ; ntiles=ntiles)
-#             nonzero(FR) || return false
-#         end
-#     end
-
-#     return true
-# end
-
-
-# @inline nonzero(I::Interval) = !(0 ∈ I)
 
 """
     complements_nonzero(f, I, J, Iκ, Iμ; ntiles=16)
