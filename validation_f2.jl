@@ -176,7 +176,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
                 root1 = find_zero(θ -> f₂(θ, κc, μc), br[1]; atol=1e-12)
                 root2 = find_zero(θ -> f₂(θ, κc, μc), br[2]; atol=1e-12)
-                
+
                 ### order roots by absolute value
                 if abs(root2) < abs(root1)
                     (root1, root2) = (root2, root1)
@@ -246,39 +246,43 @@ boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=n
 
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
-    label_type = :root,
+    label_type=:root,
     # title = "Root-count",
     # alpha = 0.9,
-        overlay_rect = (0.0, (pi^2 / 36), 0.0, 0.0886765),
-    overlay_nx=14,
+    overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
+    overlay_nx=12,
     overlay_ny=10,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    overlay_alpha=1.0,
-    overlay_lw=0.8,
+    # overlay_alpha=1.0,
+    # overlay_lw=0.8,
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f2_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
-    label_type = :stability,
-    root_index = 1,
+    label_type=:stability,
+    root_index=1,
     # alpha = 0.9,
     # title = "Stability (root 1)",
-    overlay_rect = (0.0, (pi^2 / 36), 0.0, 0.0886765),
-    overlay_nx=14,
+    overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
+    overlay_nx=12,
     overlay_ny=10,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    overlay_alpha=1.0,
-    overlay_lw=0.8,
+    # overlay_alpha=1.0,
+    # overlay_lw=0.8,
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f2_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
-    label_type = :stability,
-    root_index = 2,
+    label_type=:stability,
+    root_index=2,
+    overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
+    overlay_nx=12,
+    overlay_ny=10,
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
     # alpha = 0.9,
     # title = "Stability (root 2)",
 )

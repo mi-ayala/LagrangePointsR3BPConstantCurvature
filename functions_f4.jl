@@ -30,7 +30,7 @@ function f₄θ(θ, κ, μ)
 
     d_term = (-twice(ca) * inv_sa3) + (twice(μ) * cb * inv_sb3)
 
-    return d_main + Γv * d_term   
+    return d_main + Γv * d_term
 end
 
 
@@ -40,23 +40,24 @@ function Intθ_4(κ, μ)
 end
 
 function θ4_min(κ, μ)
-    κ, μ = promote(κ, μ)
-    r = sqrt(κ)
-    q1 = q₁(κ, μ)
-    q2 = one(q1) - q1
-    G = Γ(κ, μ)
+    # κ, μ = promote(κ, μ)
+    # r = sqrt(κ)
+    # q1 = q₁(κ, μ)
+    # q2 = one(q1) - q1
+    # G = Γ(κ, μ)
 
-    πT = π * one(κ)                    
+    πT = π * one(κ)
 
-    oneG = one(G)
-    two = oneG + oneG
-    four = two + two
-    denom = two * κ * (q2^2) + (πT^2) * G * μ
-    rad = (four * G) / denom
-    s = sqrt(rad)
+    # oneG = one(G)
+    # two = oneG + oneG
+    # four = two + two
+    # denom = two * κ * (q2^2) + (πT^2) * G * μ
+    # rad = (four * G) / denom
+    # s = sqrt(rad)
 
-    ones = one(s)                      
-    return πT - (ones - s) * r * q1
+    # ones = one(s)                      
+    # return πT - (ones - s) * r * q1
+    return πT
 end
 
 function θ4_max(κ, μ)

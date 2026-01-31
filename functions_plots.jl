@@ -6,7 +6,7 @@ using LaTeXStrings
     return (
         lbl === :multiple_roots ? "#08306B" :  # navy
         lbl === :two_roots ? "#08306B" :  # deep blue
-        lbl === :one_root ? "#3B4CC0" :
+        lbl === :one_root ? "#6B7FD7" :
         lbl === :zero_roots ? "#BDBDBD" :  # medium-light gray (not too light)
         lbl === :unknown ? "#000000" :  # black
         "#000000"
@@ -284,134 +284,134 @@ end
 # Unknown is forced to deep black and fully opaque (alpha=1).
 # Returns: (fig, ax)
 # """
-function plot_regions_all_labels_from_boxes_quick(boxes;
-    label_type::Symbol=:root,
-    root_index::Int=1,
-    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
-    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
-    resolution::Int=2000,
-    alpha::Real=1.0,
-    title::AbstractString="",
-    axis_box::Bool=true,
-)
-    κlo, κhi = κlims
-    μlo, μhi = μlims
-    @assert κhi > κlo
-    @assert μhi > μlo
-    @assert resolution ≥ 2
-    @assert (label_type === :root) || (label_type === :stability)
-    @assert root_index == 1 || root_index == 2
+# function plot_regions_all_labels_from_boxes_quick(boxes;
+#     label_type::Symbol=:root,
+#     root_index::Int=1,
+#     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+#     μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+#     resolution::Int=2000,
+#     alpha::Real=1.0,
+#     title::AbstractString="",
+#     axis_box::Bool=true,
+# )
+#     κlo, κhi = κlims
+#     μlo, μhi = μlims
+#     @assert κhi > κlo
+#     @assert μhi > μlo
+#     @assert resolution ≥ 2
+#     @assert (label_type === :root) || (label_type === :stability)
+#     @assert root_index == 1 || root_index == 2
 
-    κgrid = collect(range(float(κlo), float(κhi); length=resolution))
-    μgrid = collect(range(float(μlo), float(μhi); length=resolution))
-    dκ = (κhi - κlo) / (resolution - 1)
-    dμ = (μhi - μlo) / (resolution - 1)
+#     κgrid = collect(range(float(κlo), float(κhi); length=resolution))
+#     μgrid = collect(range(float(μlo), float(μhi); length=resolution))
+#     dκ = (κhi - κlo) / (resolution - 1)
+#     dμ = (μhi - μlo) / (resolution - 1)
 
-    @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
+#     @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
 
-    # --- collect labels present ---
-    labels = Symbol[]
-    for bx in boxes
-        root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
-        if label_type === :root
-            push!(labels, root_lbl)
-        else
-            # for stability plots: if no root, label as :zero_roots (N/A stability region)
-            if root_lbl === :zero_roots
-                push!(labels, :zero_roots)
-            else
-                push!(labels, root_index == 1 ? stab1 : stab2)
-            end
-        end
-    end
-    labels = sort!(unique(labels); by=String)
+#     # --- collect labels present ---
+#     labels = Symbol[]
+#     for bx in boxes
+#         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
+#         if label_type === :root
+#             push!(labels, root_lbl)
+#         else
+#             # for stability plots: if no root, label as :zero_roots (N/A stability region)
+#             if root_lbl === :zero_roots
+#                 push!(labels, :zero_roots)
+#             else
+#                 push!(labels, root_index == 1 ? stab1 : stab2)
+#             end
+#         end
+#     end
+#     labels = sort!(unique(labels); by=String)
 
-    # --- one mask per label ---
-    masks = Dict{Symbol,Matrix{UInt8}}()
-    for lbl in labels
-        masks[lbl] = fill(UInt8(0), resolution, resolution)
-    end
+#     # --- one mask per label ---
+#     masks = Dict{Symbol,Matrix{UInt8}}()
+#     for lbl in labels
+#         masks[lbl] = fill(UInt8(0), resolution, resolution)
+#     end
 
-    # --- rasterize each label's union ---
-    for bx in boxes
-        root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
+#     # --- rasterize each label's union ---
+#     for bx in boxes
+#         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
 
-        lbl = if label_type === :root
-            root_lbl
-        else
-            root_lbl === :zero_roots ? :zero_roots : (root_index == 1 ? stab1 : stab2)
-        end
+#         lbl = if label_type === :root
+#             root_lbl
+#         else
+#             root_lbl === :zero_roots ? :zero_roots : (root_index == 1 ? stab1 : stab2)
+#         end
 
-        κa = κc - rκ
-        κb = κc + rκ
-        μa = μc - rμ
-        μb = μc + rμ
+#         κa = κc - rκ
+#         κb = κc + rκ
+#         μa = μc - rμ
+#         μb = μc + rμ
 
-        (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
-        κa = max(κa, κlo)
-        κb = min(κb, κhi)
-        μa = max(μa, μlo)
-        μb = min(μb, μhi)
+#         (κb < κlo || κa > κhi || μb < μlo || μa > μhi) && continue
+#         κa = max(κa, κlo)
+#         κb = min(κb, κhi)
+#         μa = max(μa, μlo)
+#         μb = min(μb, μhi)
 
-        i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
-        i2 = clampi(ceil(Int, (κb - κlo) / dκ) + 1)
-        j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
-        j2 = clampi(ceil(Int, (μb - μlo) / dμ) + 1)
+#         i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
+#         i2 = clampi(ceil(Int, (κb - κlo) / dκ) + 1)
+#         j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
+#         j2 = clampi(ceil(Int, (μb - μlo) / dμ) + 1)
 
-        M = masks[lbl]
-        @inbounds for i in i1:i2, j in j1:j2
-            M[i, j] = UInt8(1)
-        end
-    end
+#         M = masks[lbl]
+#         @inbounds for i in i1:i2, j in j1:j2
+#             M[i, j] = UInt8(1)
+#         end
+#     end
 
-    fig = Figure()
-    ax = Axis(fig[1, 1];
-        xlabel=L"\mathbf{\kappa}",
-        ylabel=L"\mathbf{\mu}",
-        title=title,
-        ylabelsize=20,
-        xlabelsize=20,
-        topspinevisible=true,
-        rightspinevisible=true,
-        xgridvisible=false,
-        ygridvisible=false,
-        xtickalign=1,
-        ytickalign=1,
-        xticksmirrored=true,
-        yticksmirrored=true,
-    )
-    if axis_box
-        ax.topspinevisible = true
-        ax.rightspinevisible = true
-    end
-    xlims!(ax, κlo, κhi)
-    ylims!(ax, μlo, μhi)
+#     fig = Figure()
+#     ax = Axis(fig[1, 1];
+#         xlabel=L"\mathbf{\kappa}",
+#         ylabel=L"\mathbf{\mu}",
+#         title=title,
+#         ylabelsize=20,
+#         xlabelsize=20,
+#         topspinevisible=true,
+#         rightspinevisible=true,
+#         xgridvisible=false,
+#         ygridvisible=false,
+#         xtickalign=1,
+#         ytickalign=1,
+#         xticksmirrored=true,
+#         yticksmirrored=true,
+#     )
+#     if axis_box
+#         ax.topspinevisible = true
+#         ax.rightspinevisible = true
+#     end
+#     xlims!(ax, κlo, κhi)
+#     ylims!(ax, μlo, μhi)
 
-    colorfn = (label_type === :root) ? rootcount_color : stability_color
+#     colorfn = (label_type === :root) ? rootcount_color : stability_color
 
-    # draw unknown last so it sits on top (still rasterized here)
-    labels_plot = [filter(!=(:unknown), labels)...]
-    if :unknown in labels
-        push!(labels_plot, :unknown)
-    end
+#     # draw unknown last so it sits on top (still rasterized here)
+#     labels_plot = [filter(!=(:unknown), labels)...]
+#     if :unknown in labels
+#         push!(labels_plot, :unknown)
+#     end
 
-    for lbl in labels_plot
-        M = masks[lbl]
-        Z = Float32.(M)
+#     for lbl in labels_plot
+#         M = masks[lbl]
+#         Z = Float32.(M)
 
-        col = (lbl === :unknown) ? RGBf(0, 0, 0) : Makie.to_color(colorfn(lbl))
-        α = (lbl === :unknown) ? 1.0 : float(alpha)
+#         col = (lbl === :unknown) ? RGBf(0, 0, 0) : Makie.to_color(colorfn(lbl))
+#         α = (lbl === :unknown) ? 1.0 : float(alpha)
 
-        heatmap!(ax, κgrid, μgrid, Z;
-            colormap=[RGBAf(0, 0, 0, 0), col],
-            colorrange=(0f0, 1f0),
-            interpolate=false,
-            alpha=α,
-        )
-    end
+#         heatmap!(ax, κgrid, μgrid, Z;
+#             colormap=[RGBAf(0, 0, 0, 0), col],
+#             colorrange=(0f0, 1f0),
+#             interpolate=false,
+#             alpha=α,
+#         )
+#     end
 
-    return fig, ax
-end
+#     return fig, ax
+# end
 
 # function plot_regions_all_labels_from_boxes_quick(boxes;
 #     label_type::Symbol=:root,
@@ -986,3 +986,173 @@ Returns: (fig, ax)
 
 #     return fig, ax
 # end
+
+function plot_regions_all_labels_from_boxes_quick(boxes;
+    label_type::Symbol = :root,
+    root_index::Int = 1,
+    κlims::Tuple{<:Real,<:Real} = (0.0, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real} = (0.0, 0.0886765),
+    resolution::Int = 2000,
+    alpha::Real = 1.0,
+    title::AbstractString = "",
+    axis_box::Bool = true,
+
+    # --- pretty analytical region overlay ---
+    overlay_rect = nothing,                    # (κa, κb, μa, μb)
+    overlay_nx::Int = 14,
+    overlay_ny::Int = 10,
+    overlay_color = RGBAf(0.97, 0.98, 1.00, 1),
+    overlay_line_color = RGBAf(1, 1, 1, 1),
+    overlay_line_alpha::Real = 0.95,
+    overlay_line_lw::Real = 0.9,
+    overlay_bg_alpha::Real = 0.30,
+)
+    κlo, κhi = κlims
+    μlo, μhi = μlims
+
+    @assert κhi > κlo
+    @assert μhi > μlo
+    @assert resolution ≥ 2
+    @assert (label_type === :root) || (label_type === :stability)
+    @assert root_index == 1 || root_index == 2
+
+    κgrid = collect(range(float(κlo), float(κhi); length = resolution))
+    μgrid = collect(range(float(μlo), float(μhi); length = resolution))
+    dκ = (κhi - κlo) / (resolution - 1)
+    dμ = (μhi - μlo) / (resolution - 1)
+
+    @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
+
+    # --- collect labels ---
+    labels = Symbol[]
+    for bx in boxes
+        root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
+        if label_type === :root
+            push!(labels, root_lbl)
+        else
+            if root_lbl === :zero_roots
+                push!(labels, :zero_roots)
+            else
+                push!(labels, root_index == 1 ? stab1 : stab2)
+            end
+        end
+    end
+    labels = sort!(unique(labels); by = String)
+
+    # --- masks ---
+    masks = Dict{Symbol, Matrix{UInt8}}()
+    for lbl in labels
+        masks[lbl] = fill(UInt8(0), resolution, resolution)
+    end
+
+    # --- rasterize boxes ---
+    for bx in boxes
+        root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
+
+        lbl = if label_type === :root
+            root_lbl
+        else
+            root_lbl === :zero_roots ? :zero_roots :
+            (root_index == 1 ? stab1 : stab2)
+        end
+
+        κa = max(κc - rκ, κlo)
+        κb = min(κc + rκ, κhi)
+        μa = max(μc - rμ, μlo)
+        μb = min(μc + rμ, μhi)
+
+        i1 = clampi(floor(Int, (κa - κlo) / dκ) + 1)
+        i2 = clampi(ceil(Int,  (κb - κlo) / dκ) + 1)
+        j1 = clampi(floor(Int, (μa - μlo) / dμ) + 1)
+        j2 = clampi(ceil(Int,  (μb - μlo) / dμ) + 1)
+
+        M = masks[lbl]
+        @inbounds for i in i1:i2, j in j1:j2
+            M[i, j] = UInt8(1)
+        end
+    end
+
+    # --- figure ---
+    fig = Figure()
+    ax = Axis(fig[1, 1];
+        xlabel = L"\mathbf{\kappa}",
+        ylabel = L"\mathbf{\mu}",
+        title = title,
+        xlabelsize = 20,
+        ylabelsize = 20,
+        xgridvisible = false,
+        ygridvisible = false,
+        topspinevisible = true,
+        rightspinevisible = true,
+        xticksmirrored = true,
+        yticksmirrored = true,
+    )
+
+    xlims!(ax, κlo, κhi)
+    ylims!(ax, μlo, μhi)
+
+    colorfn = (label_type === :root) ? rootcount_color : stability_color
+
+    labels_plot = [filter(!=(:unknown), labels)...]
+    :unknown in labels && push!(labels_plot, :unknown)
+
+    for lbl in labels_plot
+        Z = Float32.(masks[lbl])
+        col = (lbl === :unknown) ? RGBf(0,0,0) : Makie.to_color(colorfn(lbl))
+        α   = (lbl === :unknown) ? 1.0 : alpha
+
+        heatmap!(ax, κgrid, μgrid, Z;
+            colormap = [RGBAf(0,0,0,0), col],
+            colorrange = (0f0, 1f0),
+            interpolate = false,
+            alpha = α,
+        )
+    end
+
+    # --- analytical region overlay ---
+    if overlay_rect !== nothing
+        κa, κb, μa, μb = overlay_rect
+        κa = max(float(κa), κlo); κb = min(float(κb), κhi)
+        μa = max(float(μa), μlo); μb = min(float(μb), μhi)
+
+        if κb > κa && μb > μa
+            # background
+            poly!(ax,
+                Point2f[(κa, μa), (κb, μa), (κb, μb), (κa, μb)];
+                color = Makie.to_color(overlay_color),
+                alpha = overlay_bg_alpha,
+                strokewidth = 0,
+            )
+
+            # interior grid
+            Δκg = (κb - κa) / overlay_nx
+            Δμg = (μb - μa) / overlay_ny
+
+            for m in 1:(overlay_nx-1)
+                κx = κa + m*Δκg
+                lines!(ax, [κx, κx], [μa, μb];
+                    color = overlay_line_color,
+                    alpha = overlay_line_alpha,
+                    linewidth = overlay_line_lw,
+                )
+            end
+
+            for m in 1:(overlay_ny-1)
+                μy = μa + m*Δμg
+                lines!(ax, [κa, κb], [μy, μy];
+                    color = overlay_line_color,
+                    alpha = overlay_line_alpha,
+                    linewidth = overlay_line_lw,
+                )
+            end
+
+            # rectangle boundary (THIS fixes the right-edge problem)
+            lines!(ax, [κa, κa], [μa, μb]; color=overlay_line_color, linewidth=1.4)
+            lines!(ax, [κb, κb], [μa, μb]; color=overlay_line_color, linewidth=1.4)
+            lines!(ax, [κa, κb], [μa, μa]; color=overlay_line_color, linewidth=1.4)
+            lines!(ax, [κa, κb], [μb, μb]; color=overlay_line_color, linewidth=1.4)
+        end
+    end
+
+    return fig, ax
+end
