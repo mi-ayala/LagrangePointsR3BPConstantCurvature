@@ -233,13 +233,10 @@ save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=1,
-    # title = "Stability (root 1)",
-    # overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
-    # overlay_nx=14,
-    # overlay_ny=10,
-    # overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha=1.0,
-    # overlay_lw=0.8,
+    overlay_rect=(0.0, (pi^2 / 64), 0.0, 0.0886765),
+    overlay_nx=14,
+    overlay_ny=10,
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f3_stability_root1.png", fig2)
@@ -248,13 +245,10 @@ save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures
 fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=2,
-    # title = "Stability (root 2)",
-    # overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
-    # overlay_nx=14,
-    # overlay_ny=10,
-    # overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha=1.0,
-    # overlay_lw=0.8,
+    overlay_rect=(0.0, (pi^2 / 64), 0.0, 0.0886765),
+    overlay_nx=14,
+    overlay_ny=10,
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0)
 )
 
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f3_stability_root2.png", fig3)
