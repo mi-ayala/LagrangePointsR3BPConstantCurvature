@@ -210,7 +210,7 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2 * 2464, 2 * 89
+nx, ny = 4 * 2464, 4 * 89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
@@ -220,7 +220,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:root,
     # title = "Root-count",
     overlay_rect=(0.0, (pi^2 / 64), 0.0, 0.0886765),
-    overlay_nx=14,
+    overlay_nx=11,
     overlay_ny=10,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
     # overlay_alpha=1.0,
@@ -234,7 +234,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=1,
     overlay_rect=(0.0, (pi^2 / 64), 0.0, 0.0886765),
-    overlay_nx=14,
+    overlay_nx=11,
     overlay_ny=10,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
 )
@@ -246,7 +246,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=2,
     overlay_rect=(0.0, (pi^2 / 64), 0.0, 0.0886765),
-    overlay_nx=14,
+    overlay_nx=11,
     overlay_ny=10,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0)
 )
