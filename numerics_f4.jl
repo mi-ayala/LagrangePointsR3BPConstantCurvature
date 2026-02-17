@@ -77,7 +77,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
     ms=4
 )
 
-save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/numerics/f4_root_regions_numerics.png", fig1)
+save("figures/numerics/f4_root_regions_numerics.png", fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
@@ -86,5 +86,5 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
     ms=4
 )
 
-save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/numerics/f4_stability_numerics.png", fig2)
+save("figures/numerics/f4_stability_numerics.png", fig2)
 

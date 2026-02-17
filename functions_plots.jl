@@ -1,11 +1,15 @@
 using CairoMakie
 using LaTeXStrings
-
+set_theme!(Theme(
+    font = "Computer Modern",   # try also: "CMU Serif", "Computer Modern"
+    fontsize = 22
+))
 
 @inline function rootcount_color(lbl::Symbol)
     return (
         lbl === :multiple_roots ? "#08306B" :  # navy
         lbl === :two_roots ? "#08306B" :  # deep blue
+        # lbl === :one_root ? "#6EBFE9" :
         lbl === :one_root ? "#6B7FD7" :
         lbl === :zero_roots ? "#BDBDBD" :  # medium-light gray (not too light)
         lbl === :unknown ? "#000000" :  # black
@@ -999,8 +1003,8 @@ function plot_regions_all_labels_from_boxes_quick(boxes;
 
     # --- pretty analytical region overlay ---
     overlay_rect = nothing,                    # (κa, κb, μa, μb)
-    overlay_nx::Int = 14,
-    overlay_ny::Int = 10,
+    overlay_nx::Int = 0,
+    overlay_ny::Int = 0,
     overlay_color = RGBAf(0.97, 0.98, 1.00, 1),
     overlay_line_color = RGBAf(1, 1, 1, 1),
     overlay_line_alpha::Real = 0.95,
