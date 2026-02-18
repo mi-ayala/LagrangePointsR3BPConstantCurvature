@@ -85,3 +85,21 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
 
 save("figures/numerics/f1_stability_numerics.png", fig2)
 
+# --- μ-slice plot (μ = 0.01, root 1) ---
+fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
+    root_index=1,
+    use=:stability,   # or :rootcount
+    ms=4,
+)
+
+save("figures/numerics/f1_mu_minus_0_01_root1.png", fig3)
+
+fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
+    root_index=1,
+    use=:stability,
+    ms=3.5,
+    alpha=1.0,
+    title="f4: θ/√κ (root 1)",
+)
+
+save("figures/numerics/f1_theta_over_sqrtkappa_3d_root1.png", fig3d)
