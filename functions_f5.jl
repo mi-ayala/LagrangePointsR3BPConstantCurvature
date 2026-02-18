@@ -1,37 +1,32 @@
-
+### Functions and derivatives for f₅
 @inline function sinc_t(x)
     if x isa Interval
-        # 0 in x  <=>  inf(x) <= 0 <= sup(x)
-        return (inf(x) <= 0.0 <= sup(x)) ? interval(-1.0, 1.0) : sin(x)/x
+        return (inf(x) <= 0.0 <= sup(x)) ? interval(-1.0, 1.0) : sin(x) / x
     else
-        # sin(x)/x, with removable singularity handled by Base.sinc
         return Base.sinc(x / pi)
     end
 end
 
 function Λ(κ, μ)
     κ, μ = promote(κ, μ)
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
 
     s2 = sin(r * q2)
 
-    # key rewrite:
     num = r * (q1 / μ) * sinc_t(r * q1)
     return cbrt_t(num / s2)
 end
 
-
-
 function f₅(x, κ, μ)
     x, κ, μ = promote(x, κ, μ)
 
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
-    G  = Γ(κ, μ)
-    L  = Λ(κ, μ)
+    G = Γ(κ, μ)
+    L = Λ(κ, μ)
 
     s1 = sin(r * q1)
     s2 = sin(r * q2)
@@ -39,14 +34,13 @@ function f₅(x, κ, μ)
     sx = sin(x)
     cx = cos(x)
 
-    # sqrt(1 - Λ^2 sin^2(x))
     inner = one(sx) - (L * L) * (sx * sx)
-    rt    = sqrt(inner)
+    rt = sqrt(inner)
 
     bracket = s1 * cx + s2 * rt
 
-    pref = (L * L * L) * s2 * (sx * sx * sx)    # Λ^3 sin(√κ q2) sin^3(x)
-    tail = G * (sin(r) * sin(r))                # Γ sin^2(√κ)
+    pref = (L * L * L) * s2 * (sx * sx * sx)
+    tail = G * (sin(r) * sin(r))
 
     return pref * bracket - tail
 end
@@ -54,11 +48,11 @@ end
 function f₅θ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
 
-    r  = sqrt(κ)
+    r = sqrt(κ)
     q1 = q₁(κ, μ)
     q2 = q₂(κ, μ)
-    G  = Γ(κ, μ)
-    L  = Λ(κ, μ)
+    G = Γ(κ, μ)
+    L = Λ(κ, μ)
 
     s1 = sin(r * q1)
     s2 = sin(r * q2)
@@ -66,21 +60,16 @@ function f₅θ(θ, κ, μ)
     sθ = sin(θ)
     cθ = cos(θ)
 
-    # rt = sqrt(1 - L^2 sin^2(θ))
-    A  = one(sθ) - (L * L) * (sθ * sθ)
+    A = one(sθ) - (L * L) * (sθ * sθ)
     rt = sqrt(A)
 
-    bracket  = s1 * cθ + s2 * rt
-    pref     = (L * L * L) * s2 * (sθ * sθ * sθ)   # Λ^3 sin(√κ q2) sin^3 θ
-    # tail = G * sin(r)^2  (independent of θ) → derivative 0
+    bracket = s1 * cθ + s2 * rt
+    pref = (L * L * L) * s2 * (sθ * sθ * sθ)
 
-    # d/dθ pref = Λ^3 sin(√κ q2) * 3 sin^2 θ cos θ
     prefθ = (L * L * L) * s2 * (three(one(sθ)) * (sθ * sθ * cθ))
 
-    # d/dθ rt = -(L^2 sin θ cos θ)/rt
     rtθ = -((L * L) * (sθ * cθ)) / rt
 
-    # d/dθ bracket = s1*(-sin θ) + s2*rtθ
     bracketθ = -(s1 * sθ) + s2 * rtθ
 
     return prefθ * bracket + pref * bracketθ

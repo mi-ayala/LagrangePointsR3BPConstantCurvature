@@ -29,7 +29,6 @@ function f₁θ(θ, κ, μ)
     return d_main - Γv * d_term
 end
 
-### Intervals and brackets for f₁
 function Intθ_1(κ, μ)
     return (-sqrt(κ) * q₁(κ, μ), sqrt(κ) * q₂(κ, μ))
 end

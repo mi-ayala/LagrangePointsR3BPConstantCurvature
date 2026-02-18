@@ -112,7 +112,7 @@ fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
     ms=4,
 )
 
-save("figures/numerics/f3_mu_minus_0_01_root1.png", fig4)
+save("figures/numerics/f3_mu_0_01_root1.png", fig4)
 
 fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
     root_index=2,
@@ -120,4 +120,4 @@ fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
     ms=4,
 )
 
-save("figures/numerics/f3_mu_minus_0_01_root2.png", fig5)
+save("figures/numerics/f3_mu_0_01_root2.png", fig5)

@@ -1,3 +1,4 @@
+### Functions and derivatives for f₄
 function f₄(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
     r = sqrt(κ)
