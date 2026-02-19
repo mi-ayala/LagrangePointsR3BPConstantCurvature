@@ -249,16 +249,16 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = -0.5, -0.0
+κ_lo, κ_hi = -(0.5 * pi)^2, -0.0
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 1000, 1000
+nx, ny = 1500, 1500
 
 
-boxes = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes1 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 # --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
+fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     κlims=(κ_lo, κ_hi),
     label_type=:root,
     ms=4,
@@ -267,7 +267,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
 save("figures/numerics/f5_root_regions_negative_numerics.png", fig1)
 
 # --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
+fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     κlims=(κ_lo, κ_hi),
     label_type=:stability,
     root_index=1,
@@ -277,7 +277,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
 save("figures/numerics/f5_stability_root1_negative_numerics.png", fig2)
 
 # --- Stability plot (root 2) ---
-fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
+fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     κlims=(κ_lo, κ_hi),
     label_type=:stability,
     root_index=2,
@@ -286,4 +286,21 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
 
 save("figures/numerics/f5_stability_root2_negative_numerics.png", fig3)
 
+
+
+#### Negative and positive curvature together
+κ_lo, κ_hi = -(0.5 * pi)^2, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.0886765
+
+append!(boxes, boxes1)
+
+# --- Stability plot (root 1) ---
+fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
+    κlims=(κ_lo, κ_hi),
+    label_type=:stability,
+    root_index=1,
+    ms=4
+)
+
+save("figures/numerics/f5_stability_root1_negative_numerics_together.png", fig2)
 
