@@ -275,14 +275,14 @@ function brackets_signchanges(f, a::Real, b::Real; n::Integer=200)
         sb = sgn(fx)
 
         if sb == 0
-            push!(br, (x2, x2))              # exact root at node
+            push!(br, (x2, x2))              
         elseif sa == 0
-            push!(br, (x1, x1))              # exact root at previous node
+            push!(br, (x1, x1))              
         elseif sa != sb
-            push!(br, (x1, x2))              # sign flip bracket
+            push!(br, (x1, x2))             
         end
 
-        fa, sa = fx, sb                      # advance
+        fa, sa = fx, sb                     
     end
     return br
 end

@@ -289,7 +289,7 @@ save("figures/numerics/f5_stability_root2_negative_numerics.png", fig3)
 
 
 #### Negative and positive curvature together
-κ_lo, κ_hi = -(0.5 * pi)^2, (0.5 * pi)^2
+κ_lo, κ_hi = -1.0, 1.0
 μ_lo, μ_hi = 0.0, 0.0886765
 
 append!(boxes, boxes1)

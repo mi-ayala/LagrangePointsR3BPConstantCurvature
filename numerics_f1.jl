@@ -88,7 +88,7 @@ save("figures/numerics/f1_stability_numerics.png", fig2)
 # --- μ-slice plot (μ = 0.01, root 1) ---
 fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
     root_index=1,
-    use=:stability,   # or :rootcount
+    use=:stability,  
     ms=4,
 )
 

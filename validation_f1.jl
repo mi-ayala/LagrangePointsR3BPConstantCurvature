@@ -42,9 +42,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         if isempty(br)
             continue
         end
-        seeded += 1 # Seeded means we found a root 
+        seeded += 1
 
-        # 2) refine the root 
         root = find_zero(θ -> f₁(θ, κc, μc), br[1]; atol=1e-12)
 
         Iκ = interval(κc, rκ; format=:midpoint)
@@ -107,35 +106,11 @@ nx, ny = 3 * 2464, 3 * 89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
-# # --- Root count plot ---
-# fig1, ax1 = plot_regions_all_labels_from_boxes_quick(
-#     boxes;
-#     label_type = :root,
-
-#     overlay_rect = (0.0, pi^2 / 16, 0.0, 0.0886765),
-
-#     overlay_nx = 14,
-#     overlay_ny = 10,
-
-#     overlay_color = RGBAf(0.97, 0.98, 1.00, 1.0),
-#     overlay_lw = 0.8,
-#     overlay_alpha = 0.9,
-
-#     overlay_border_color = RGBAf(1, 1, 1, 1),
-#     overlay_border_lw = 2.5,
-#     overlay_border_alpha = 0.95,
-# )
-
-
 fig1, ax1 = plot_regions_all_labels_from_boxes_quick(
     boxes;
-    label_type = :root,
-    overlay_rect = (0.0, pi^2 / 16, 0.0, 0.0886765),
-    # overlay_nx = 14,                 # vertical grid count
-    # overlay_ny = 10,                 # horizontal grid count
-    overlay_color = RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha = 1.0, 
-    # overlay_lw = 0.8,
+    label_type=:root,
+    overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0)
 )
 save("figures/validated/f1_root_regions.png", fig1)
 
@@ -143,13 +118,8 @@ save("figures/validated/f1_root_regions.png", fig1)
 fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
     label_type=:stability,
     root_index=1,
-    # title="Stability",
-    overlay_rect = (0.0, pi^2 / 16, 0.0, 0.0886765),
-    # overlay_nx = 14,                 # vertical grid count
-    # overlay_ny = 10,                 # horizontal grid count
-    overlay_color = RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha = 1.0,
-    # overlay_lw = 0.8,
+    overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
 )
 
 save("figures/validated/f1_stability.png", fig2)
