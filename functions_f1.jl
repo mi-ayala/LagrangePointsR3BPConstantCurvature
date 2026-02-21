@@ -49,4 +49,3 @@ function brackets_f₁(κ, μ; n::Integer=400, margin::Real=0.0)
     brackets_signchanges(θ -> f₁(θ, κ, μ), a, b; n=n)
 end
 
-### Validation functions

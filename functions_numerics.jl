@@ -239,7 +239,6 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     κlo, κhi = κlims
     @assert κhi > κlo
 
-    # --- choose closest μ slice present ---
     μvals = Float64[]
     for bx in boxes
         _, _, μc, _, _, _, _ = bx
@@ -274,7 +273,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     end
     xlims!(ax, κlo, κhi)
 
-    # group points by label for fast plotting (1 scatter per label)
+
     pts_by_lbl = Dict{Symbol, Tuple{Vector{Float64}, Vector{Float64}}}()
 
     for bx in boxes
@@ -282,10 +281,10 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
 
         μc == μstar || continue
         (κc < κlo || κc > κhi) && continue
-        κc <= 0 && continue  # avoid θ/sqrt(κ) blow-up at κ=0
+        κc <= 0 && continue  
 
         θ = (root_index == 1) ? θ1 : θ2
-        isfinite(θ) || continue   # <-- key: skip where this root doesn't exist
+        isfinite(θ) || continue   
 
         y = θ / sqrt(κc)
 
@@ -302,7 +301,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         push!(xy[2], y)
     end
 
-    # plot unknown last
+
     labels = collect(keys(pts_by_lbl))
     labels_plot = [filter(!=(:unknown), labels)...]
     if :unknown in labels
@@ -380,7 +379,7 @@ function plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
     xlims!(ax, float(κlo), float(κhi))
     ylims!(ax, float(μlo), float(μhi))
 
-    # group points by label -> one scatter! per label (fast)
+
     pts_by_lbl = Dict{Symbol, Tuple{Vector{Float64},Vector{Float64},Vector{Float64}}}()
 
     for bx in boxes
