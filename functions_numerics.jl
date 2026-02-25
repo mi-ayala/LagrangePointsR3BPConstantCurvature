@@ -200,11 +200,132 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
     return fig, ax
 end
 
-using CairoMakie
+
+# """
+#     plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
+#         root_index=1,
+#         use=:stability,              # :stability or :rootcount
+#         μtol=Inf,
+#         κlims=(0.0, (0.5*pi)^2),
+#         alpha=1.0,
+#         ms=4.0,
+#         title="",
+#         axis_box=true)
+
+# Pick μ* = closest μc present in `boxes` to the requested `μ`.
+# Then plot κ (x-axis) vs θ_root_index / √κ (y-axis) for that root only.
+
+# - Skips entries where that root does not exist (θ is NaN / not finite).
+# - Coloring:
+#     use=:stability  -> stability_color(stab_root_index)
+#     use=:rootcount  -> rootcount_color(root_lbl)
+
+# Returns (fig, ax, μstar).
+# """
+# function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
+#     root_index::Int=1,
+#     use::Symbol=:stability,
+#     μtol::Real=Inf,
+#     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+#     alpha::Real=1.0,
+#     ms::Real=4.0,
+#     title::AbstractString="",
+#     axis_box::Bool=true,
+# )
+#     @assert root_index == 1 || root_index == 2
+#     @assert use === :stability || use === :rootcount
+
+#     κlo, κhi = κlims
+#     @assert κhi > κlo
+
+#     μvals = Float64[]
+#     for bx in boxes
+#         _, _, μc, _, _, _, _ = bx
+#         push!(μvals, μc)
+#     end
+#     @assert !isempty(μvals) "boxes is empty"
+#     idx = argmin(abs.(μvals .- float(μ)))
+#     μstar = μvals[idx]
+#     if abs(μstar - float(μ)) > float(μtol)
+#         error("No μ slice within μtol=$(μtol). Closest is μstar=$(μstar).")
+#     end
+
+#     fig = Figure()
+#     ax = Axis(fig[1, 1];
+#         xlabel=L"\mathbf{\kappa}",
+#         ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{\kappa}}",
+#         title = title == "" ? "μ ≈ $(μstar) (root $(root_index))" : title,
+#         ylabelsize=20,
+#         xlabelsize=20,
+#         topspinevisible=true,
+#         rightspinevisible=true,
+#         xgridvisible=false,
+#         ygridvisible=false,
+#         xtickalign=1,
+#         ytickalign=1,
+#         xticksmirrored=true,
+#         yticksmirrored=true,
+#     )
+#     if axis_box
+#         ax.topspinevisible = true
+#         ax.rightspinevisible = true
+#     end
+#     xlims!(ax, κlo, κhi)
+
+
+#     pts_by_lbl = Dict{Symbol, Tuple{Vector{Float64}, Vector{Float64}}}()
+
+#     for bx in boxes
+#         root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
+
+#         μc == μstar || continue
+#         (κc < κlo || κc > κhi) && continue
+#         κc <= 0 && continue  
+
+#         θ = (root_index == 1) ? θ1 : θ2
+#         isfinite(θ) || continue   
+
+#         y = θ / sqrt(κc)
+
+#         lbl = if use === :stability
+#             (root_index == 1) ? stab1 : stab2
+#         else
+#             root_lbl
+#         end
+
+#         xy = get!(pts_by_lbl, lbl) do
+#             (Float64[], Float64[])
+#         end
+#         push!(xy[1], κc)
+#         push!(xy[2], y)
+#     end
+
+
+#     labels = collect(keys(pts_by_lbl))
+#     labels_plot = [filter(!=(:unknown), labels)...]
+#     if :unknown in labels
+#         push!(labels_plot, :unknown)
+#     end
+
+#     for lbl in labels_plot
+#         κs, ys = pts_by_lbl[lbl]
+#         col = if lbl === :unknown
+#             RGBf(0, 0, 0)
+#         elseif use === :stability
+#             Makie.to_color(stability_color(lbl))
+#         else
+#             Makie.to_color(rootcount_color(lbl))
+#         end
+#         α = (lbl === :unknown) ? 1.0 : float(alpha)
+
+#         scatter!(ax, κs, ys; markersize=ms, color=col, alpha=α)
+#     end
+
+#     return fig, ax, μstar
+# end
 
 """
     plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
-        root_index=1,
         use=:stability,              # :stability or :rootcount
         μtol=Inf,
         κlims=(0.0, (0.5*pi)^2),
@@ -214,17 +335,17 @@ using CairoMakie
         axis_box=true)
 
 Pick μ* = closest μc present in `boxes` to the requested `μ`.
-Then plot κ (x-axis) vs θ_root_index / √κ (y-axis) for that root only.
+Then plot κ (x-axis) vs θ/√κ (y-axis) for *all roots present* (θ1 and θ2).
 
-- Skips entries where that root does not exist (θ is NaN / not finite).
-- Coloring:
-    use=:stability  -> stability_color(stab_root_index)
-    use=:rootcount  -> rootcount_color(root_lbl)
+- Plots θ1 when finite, and θ2 when finite.
+- If `use=:stability`, colors each root by its own stability label (stab1 for θ1, stab2 for θ2).
+  (So the two roots in a :two_roots box can appear with different colors.)
+- If `use=:rootcount`, colors by root_lbl (same color for both roots).
+- Unknown is drawn last in black.
 
 Returns (fig, ax, μstar).
 """
 function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
-    root_index::Int=1,
     use::Symbol=:stability,
     μtol::Real=Inf,
     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
@@ -233,12 +354,12 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     title::AbstractString="",
     axis_box::Bool=true,
 )
-    @assert root_index == 1 || root_index == 2
     @assert use === :stability || use === :rootcount
 
     κlo, κhi = κlims
     @assert κhi > κlo
 
+    # --- pick closest μ slice ---
     μvals = Float64[]
     for bx in boxes
         _, _, μc, _, _, _, _ = bx
@@ -251,11 +372,12 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         error("No μ slice within μtol=$(μtol). Closest is μstar=$(μstar).")
     end
 
+    # --- figure/axis ---
     fig = Figure()
     ax = Axis(fig[1, 1];
         xlabel=L"\mathbf{\kappa}",
         ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{\kappa}}",
-        title = title == "" ? "μ ≈ $(μstar) (root $(root_index))" : title,
+        title = title == "" ? "μ ≈ $(μstar)" : title,
         ylabelsize=20,
         xlabelsize=20,
         topspinevisible=true,
@@ -272,35 +394,45 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         ax.rightspinevisible = true
     end
     xlims!(ax, κlo, κhi)
+    ylims!(ax, -2.5,2.5)
 
-
+    # group points by label (one scatter per label)
     pts_by_lbl = Dict{Symbol, Tuple{Vector{Float64}, Vector{Float64}}}()
 
-    for bx in boxes
-        root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
-
-        μc == μstar || continue
-        (κc < κlo || κc > κhi) && continue
-        κc <= 0 && continue  
-
-        θ = (root_index == 1) ? θ1 : θ2
-        isfinite(θ) || continue   
-
-        y = θ / sqrt(κc)
-
-        lbl = if use === :stability
-            (root_index == 1) ? stab1 : stab2
-        else
-            root_lbl
-        end
-
+    # helper: add one root point
+    function _add_point!(lbl::Symbol, κc::Float64, y::Float64)
         xy = get!(pts_by_lbl, lbl) do
             (Float64[], Float64[])
         end
         push!(xy[1], κc)
         push!(xy[2], y)
+        return nothing
     end
 
+    # (:two_roots, κc, μc, root1, root2, stability_root1, stability_root2)
+    for bx in boxes
+        root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
+
+        μc == μstar || continue
+        (κc < κlo || κc > κhi) && continue
+        κc <= 0 && continue
+
+        invsqrtκ = inv(sqrt(κc))
+
+        # root 1
+        if isfinite(θ1)
+            y1 = θ1 * invsqrtκ
+            lbl1 = (use === :stability) ? stab1 : root_lbl
+            _add_point!(lbl1, κc, y1)
+        end
+
+        # root 2
+        if isfinite(θ2)
+            y2 = θ2 * invsqrtκ
+            lbl2 = (use === :stability) ? stab2 : root_lbl
+            _add_point!(lbl2, κc, y2)
+        end
+    end
 
     labels = collect(keys(pts_by_lbl))
     labels_plot = [filter(!=(:unknown), labels)...]
@@ -310,6 +442,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
 
     for lbl in labels_plot
         κs, ys = pts_by_lbl[lbl]
+
         col = if lbl === :unknown
             RGBf(0, 0, 0)
         elseif use === :stability
@@ -325,7 +458,6 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     return fig, ax, μstar
 end
 
-using CairoMakie
 
 """
     plot_theta_over_sqrtkappa_3d_from_boxes(boxes;

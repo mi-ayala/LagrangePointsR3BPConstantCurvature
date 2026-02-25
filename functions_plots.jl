@@ -1,5 +1,6 @@
 using CairoMakie
 using LaTeXStrings
+
 set_theme!(Theme(
     font = "Computer Modern",   # try also: "CMU Serif", "Computer Modern"
     fontsize = 22
@@ -16,7 +17,6 @@ set_theme!(Theme(
         "#000000"
     )
 end
-
 
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)

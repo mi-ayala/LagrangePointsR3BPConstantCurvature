@@ -145,7 +145,6 @@ function J_equilibrium(x)
     return J
 end
 
-
 ### Approximate zero
 x0 = [-1.0471975511965979, 0.7444610429129391, 0.08867648509140362]
 # F_appendix_D(x)
@@ -154,7 +153,6 @@ x0 = [-1.0471975511965979, 0.7444610429129391, 0.08867648509140362]
 # using ForwardDiff
 # J_fd = ForwardDiff.jacobian(F_appendix_D, x0')
 # J_eq = J_equilibrium(x0)
-
 
 ### Proof 
 DF_interval = mid.(J_equilibrium(interval.(x0)))

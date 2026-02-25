@@ -14,9 +14,9 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     nx::Int, ny::Int,
     verbose::Bool=true)
 
-    @assert κ_hi > κ_lo "κ_hi must be > κ_lo"
-    @assert μ_hi > μ_lo "μ_hi must be > μ_lo"
-    @assert nx > 0 && ny > 0 "nx, ny must be positive"
+    @assert κ_hi > κ_lo 
+    @assert μ_hi > μ_lo 
+    @assert nx > 0 && ny > 0 
 
     Lκ = κ_hi - κ_lo
     Lμ = μ_hi - μ_lo
@@ -74,21 +74,21 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 1000, 1000
+nx, ny = 2000, 2000
 
 
-boxes = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes5 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
-# --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type = :root,
     ms = 4,
 )
 
 save("figures/numerics/f5_root_regions_numerics.png", fig1)
 
-# --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type = :stability,
     root_index = 1,
         ms = 4
@@ -96,8 +96,8 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
 
 save("figures/numerics/f5_stability_root1_numerics.png", fig2)
 
-# --- Stability plot (root 2) ---
-fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type = :stability,
     root_index = 2,
         ms = 4
@@ -106,35 +106,30 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
 save("figures/numerics/f5_stability_root2_numerics.png", fig3)
 
 
+# fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes5, 0.01;
+#     root_index=1,
+#     use=:stability,   # or :rootcount
+#     ms=4,
+# )
+
+# save("figures/numerics/f5_mu_0_01_root1.png", fig4)
 
 
-# --- μ-slice plot (μ = 0.01, root 1) ---
-fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
-    root_index=1,
-    use=:stability,   # or :rootcount
-    ms=4,
-)
+# fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes5, 0.01;
+#     root_index=2,
+#     use=:stability,   # or :rootcount
+#     ms=4,
+# )   
 
-save("figures/numerics/f5_mu_0_01_root1.png", fig4)
-
-fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
-    root_index=2,
-    use=:stability,   # or :rootcount
-    ms=4,
-)   
-
-save("figures/numerics/f5_mu_0_01_root2.png", fig5)
+# save("figures/numerics/f5_mu_0_01_root2.png", fig5)
 
 
+# fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes5;
+#     root_index=1,
+#     use=:stability,
+#     ms=3.5,
+#     alpha=1.0,
+#     title="f5: θ/√κ (root 1)",
+# )
 
-
-
-fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
-    root_index=1,
-    use=:stability,
-    ms=3.5,
-    alpha=1.0,
-    title="f5: θ/√κ (root 1)",
-)
-
-save("figures/numerics/f5_theta_over_sqrtkappa_3d_root1.png", fig3d)
+# save("figures/numerics/f5_theta_over_sqrtkappa_3d_root1.png", fig3d)

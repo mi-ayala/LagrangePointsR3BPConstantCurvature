@@ -9,23 +9,7 @@ include("functions_plots.jl")
 include("functions_numerics.jl")
 
 
-"""
-    classify_f2_rootcount(θM, κ, μ; verbose=false)
 
-NUMERICAL (Float) version of the f₂ root-count test:
-
-Step 2: check θ_M ∈ [ √κ q₂(κ,μ),  π/2 ].
-        If not inside → :zero_roots.
-Step 3: check sign of f₂(θ_M).
-        If f₂(θ_M) > 0 → :two_roots.
-        If f₂(θ_M) < 0 → :zero_roots.
-        Else → :unknown.
-
-Returns:
-  (ok::Bool, label::Symbol, θM::Float64, f2val::Float64, allowed::Tuple{Float64,Float64})
-
-`ok == true` iff label ∈ (:two_roots, :zero_roots) is decided from strict inequalities.
-"""
 function classify_f2_rootcount(θM::Real, κ::Real, μ::Real; verbose::Bool=false)
     θM = float(θM)
     κ = float(κ)
@@ -60,18 +44,6 @@ function classify_f2_rootcount(θM::Real, κ::Real, μ::Real; verbose::Bool=fals
     end
 end
 
-
-"""
-    θM_from_br(br, κ, μ; atol=1e-12, verbose=false)
-
-NUMERICAL (Float) version:
-
-Given `br` = vector of numeric guesses for stationary points (roots of f₂θ),
-refine each with `find_zero`, keep those with f₂θθ(θ*) < 0 (local maxima),
-and return the maximizer θ_M (argmax of f₂ at those maxima).
-
-Returns θ_M::Float64, or NaN if no maximum is found.
-"""
 function θM_from_br(br, κ, μ; atol=1e-12, verbose::Bool=false)
     κ = float(κ)
     μ = float(μ)
@@ -101,10 +73,6 @@ function θM_from_br(br, κ, μ; atol=1e-12, verbose::Bool=false)
     return found ? bestθ : NaN
 end
 
-
-
-
-
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,
@@ -119,10 +87,10 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     Δκ = Lκ / nx
     Δμ = Lμ / ny
 
+    #  boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Bool,Bool,Symbol,Symbol}[]
 
     boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
 
-    # iterate cell centers
     for i in 1:nx, j in 1:ny
         κc = κ_lo + (i - 0.5) * Δκ
         μc = μ_lo + (j - 0.5) * Δμ
@@ -171,18 +139,18 @@ end
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 2000, 2000
-boxes = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
-# --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes2;
     label_type = :root,
     ms = 4,
 )
 
 save("figures/numerics/f2_root_regions_numerics.png", fig1)
 
-# --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes2;
     label_type = :stability,
     root_index = 1,
         ms = 4
@@ -190,8 +158,8 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes;
 
 save("figures/numerics/f2_stability_root1_numerics.png", fig2)
 
-# --- Stability plot (root 2) ---
-fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes;
+
+fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes2;
     label_type = :stability,
     root_index = 2,
         ms = 4
@@ -201,39 +169,38 @@ save("figures/numerics/f2_stability_root2_numerics.png", fig3)
 
 
 
-# --- μ-slice plot (μ = 0.01, root 1) ---
-fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
-    root_index=1,
-    use=:stability,   # or :rootcount
-    ms=4,
-)
+# fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes2, 0.01;
+#     root_index=1,
+#     use=:stability,   # or :rootcount
+#     ms=4,
+# )
 
-save("figures/numerics/f2_mu_minus_0_01_root1.png", fig4)
+# save("figures/numerics/f2_mu_minus_0_01_root1.png", fig4)
 
-fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.01;
-    root_index=2,
-    use=:stability,   # or :rootcount
-    ms=4,
-)
+# fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes2, 0.01;
+#     root_index=2,
+#     use=:stability,   # or :rootcount
+#     ms=4,
+# )
 
-save("figures/numerics/f2_mu_minus_0_01_root2.png", fig5)
+# save("figures/numerics/f2_mu_minus_0_01_root2.png", fig5)
 
-fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
-    root_index=1,
-    use=:stability,
-    ms=3.5,
-    alpha=1.0,
-    title="f2: θ/√κ (root 1)",
-)
+# fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes2;
+#     root_index=1,
+#     use=:stability,
+#     ms=3.5,
+#     alpha=1.0,
+#     title="f2: θ/√κ (root 1)",
+# )
 
-save("figures/numerics/f2_theta_over_sqrtkappa_3d_root1.png", fig3d)
+# save("figures/numerics/f2_theta_over_sqrtkappa_3d_root1.png", fig3d)
 
-fig3d2, ax3d2 = plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
-    root_index=2,
-    use=:stability,
-    ms=3.5,
-    alpha=1.0,
-    title="f2: θ/√κ (root 2)",
-)
+# fig3d2, ax3d2 = plot_theta_over_sqrtkappa_3d_from_boxes(boxes2;
+#     root_index=2,
+#     use=:stability,
+#     ms=3.5,
+#     alpha=1.0,
+#     title="f2: θ/√κ (root 2)",
+# )
 
-save("figures/numerics/f2_theta_over_sqrtkappa_3d_root2.png", fig3d2)
+# save("figures/numerics/f2_theta_over_sqrtkappa_3d_root2.png", fig3d2)
