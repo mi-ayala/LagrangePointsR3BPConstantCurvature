@@ -394,7 +394,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         ax.rightspinevisible = true
     end
     xlims!(ax, κlo, κhi)
-    ylims!(ax, -2.5,2.5)
+    ylims!(ax, -3.5,3.5)
 
     # group points by label (one scatter per label)
     pts_by_lbl = Dict{Symbol, Tuple{Vector{Float64}, Vector{Float64}}}()
