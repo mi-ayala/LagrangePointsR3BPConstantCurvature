@@ -57,7 +57,8 @@ function θM_from_br(br, κ, μ; atol=1e-12, verbose::Bool=false)
 
         θ = find_zero(θ -> f₂θ(θ, κ, μ), x0; atol=atol)
 
-        s2 = float(f₂θθ(θ, κ, μ))   # second derivative test
+        s2 = float(f₂θθ(θ, κ, μ))   
+
         if s2 < 0                  # local maximum
             val = float(f₂(θ, κ, μ))
             if !found || val > bestval
@@ -97,6 +98,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         θmin = Intθ_2(κc, μc)[1]
         θmax = Intθ_2(κc, μc)[2]
+
+        # br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax; n=2000)
 
         br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax)
 

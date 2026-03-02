@@ -35,7 +35,7 @@ function f₄θ(θ, κ, μ)
 end
 
 function Intθ_4(κ, μ)
-    return (pi - sqrt(κ) * q₁(κ, μ), pi + sqrt(κ) * q₂(κ, μ))
+    return (-pi - sqrt(κ) * q₁(κ, μ), -pi + sqrt(κ) * q₂(κ, μ))
 end
 
 function θ4_min(κ, μ)

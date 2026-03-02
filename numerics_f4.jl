@@ -31,8 +31,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         μc = μ_lo + (j - 0.5) * Δμ
 
 
-        θmin = θ4_min(κc, μc)
-        θmax = θ4_max(κc, μc)
+        θmin = Intθ_4(κc, μc)[1]
+        θmax = Intθ_4(κc, μc)[2]
 
 
         br = brackets_signchanges(θ -> f₄(θ, κc, μc), θmin, θmax)

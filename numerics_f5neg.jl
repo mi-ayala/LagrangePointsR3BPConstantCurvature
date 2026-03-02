@@ -67,7 +67,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = -(0.5 * pi)^2, -0.0
+κ_lo, κ_hi = -(0.5 * pi)^2, 0.0
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 2000, 2000
