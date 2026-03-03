@@ -200,7 +200,6 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
     return fig, ax
 end
 
-
 # """
 #     plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
 #         root_index=1,
@@ -560,4 +559,36 @@ function plot_theta_over_sqrtkappa_3d_from_boxes(boxes;
     end
 
     return fig, ax
+end
+
+
+function existence_switches_all(boxes; include_unknown::Bool=false)
+    
+    exists(lbl::Symbol) = (lbl !== :zero_roots) && (include_unknown || lbl !== :unknown)
+
+    # group by μ
+    rows = Dict{Float64, Vector{Tuple{Float64,Bool}}}()
+    for bx in boxes
+        root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
+        push!(get!(rows, float(μc)) do
+            Tuple{Float64,Bool}[]
+        end, (float(κc), exists(root_lbl)))
+    end
+
+    # collect all switch points (κ at midpoints) as (κ_switch, μ)
+    switches = Tuple{Float64,Float64}[]
+    for (μ, vec) in rows
+        sort!(vec; by=first)  # sort by κ
+
+        for i in 1:(length(vec)-1)
+            κ1, e1 = vec[i]
+            κ2, e2 = vec[i+1]
+            e1 == e2 && continue
+            κswitch = 0.5 * (κ1 + κ2)      # midpoint between grid κ's
+            push!(switches, (κswitch, μ))
+        end
+    end
+
+    sort!(switches; by=last)  # sort by μ for nicer plotting
+    return switches
 end

@@ -121,3 +121,6 @@ save("figures/numerics/f3_stability_root2_numerics.png", fig3)
 # )
 
 # save("figures/numerics/f3_mu_0_01_root2.png", fig5)
+
+
+curve3 = existence_switches_all(boxes3)
