@@ -18,6 +18,7 @@ set_theme!(Theme(
     )
 end
 
+
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (

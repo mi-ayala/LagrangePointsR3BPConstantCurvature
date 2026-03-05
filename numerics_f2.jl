@@ -208,4 +208,4 @@ save("figures/numerics/f2_stability_root2_numerics.png", fig3)
 
 # save("figures/numerics/f2_theta_over_sqrtkappa_3d_root2.png", fig3d2)
 
-curve2 = existence_switches_all(boxes2)
+# curve2 = existence_switches_all(boxes2)
