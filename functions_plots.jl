@@ -18,7 +18,11 @@ set_theme!(Theme(
     )
 end
 
+#:seaborn_colorblind6
+#:sun
 
+# :bluegreenyellow
+# :RdYlGn_4
 # ---------- Stability colors (stable → unstable) ----------
 @inline function stability_color(lbl::Symbol)
     return (
