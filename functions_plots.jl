@@ -41,7 +41,7 @@ function plot_regions_all_labels_from_boxes(boxes;
     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
     μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
     resolution::Int=2000,
-    alpha::Real=1.0,
+    alpha::Real=0.1,
     title::AbstractString="",
     axis_box::Bool=true,
 
@@ -126,14 +126,17 @@ function plot_regions_all_labels_from_boxes(boxes;
         xlabel=L"\mathbf{\kappa}",
         ylabel=L"\mathbf{\mu}",
         title=title,
-        xlabelsize=20,
-        ylabelsize=20,
+        # xlabelsize=20,
+        # ylabelsize=20,
         xgridvisible=false,
         ygridvisible=false,
         topspinevisible=true,
         rightspinevisible=true,
         xticksmirrored=true,
         yticksmirrored=true,
+        spinewidth=2,
+        xtickwidth=2,
+        ytickwidth=2,
     )
 
     xlims!(ax, κlo, κhi)
@@ -196,11 +199,28 @@ function plot_regions_all_labels_from_boxes(boxes;
                 )
             end
 
-            # rectangle boundary (THIS fixes the right-edge problem)
-            lines!(ax, [κa, κa], [μa, μb]; color=overlay_line_color, linewidth=1.4)
-            lines!(ax, [κb, κb], [μa, μb]; color=overlay_line_color, linewidth=1.4)
-            lines!(ax, [κa, κb], [μa, μa]; color=overlay_line_color, linewidth=1.4)
-            lines!(ax, [κa, κb], [μb, μb]; color=overlay_line_color, linewidth=1.4)
+
+            # rectangle boundary drawn over the axis
+            lines!(ax, [κa, κa], [μa, μb];
+                color=overlay_line_color,
+                linewidth=1.4,
+                overdraw=true,
+            )
+            lines!(ax, [κb, κb], [μa, μb];
+                color=overlay_line_color,
+                linewidth=1.4,
+                overdraw=true,
+            )
+            lines!(ax, [κa, κb], [μa, μa];
+                color=overlay_line_color,
+                linewidth=1.4,
+                overdraw=true,
+            )
+            lines!(ax, [κa, κb], [μb, μb];
+                color=overlay_line_color,
+                linewidth=1.4,
+                overdraw=true,
+            )
         end
     end
 
@@ -244,6 +264,13 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         xtickwidth=2,
         ytickwidth=2,
     )
+
+    # ### For f3
+    # ax.xticks = (
+    #     [0, (pi / 6)^2, (pi / 4)^2, (pi / 3)^2, (pi / 2)^2],
+    #     [L"0", L"(\pi/6)^2", L"(\pi/4)^2", L"(\pi/3)^2", L"(\pi/2)^2"]
+    # )
+
     if axis_box
         ax.topspinevisible = true
         ax.rightspinevisible = true
@@ -375,7 +402,7 @@ function plot_regions_all_labels_from_total_boxes(boxes;
                 (κlo, μhi),
             ];
             color=left_col,
-            alpha=alpha,
+            alpha=0.5,
             strokewidth=0,
         )
     end

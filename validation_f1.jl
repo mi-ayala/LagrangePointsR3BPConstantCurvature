@@ -106,7 +106,7 @@ nx, ny = 3 * 2464, 3 * 89
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
-fig1, ax1 = plot_regions_all_labels_from_boxes_quick(
+fig1, ax1 = plot_regions_all_labels_from_boxes(
     boxes;
     label_type=:root,
     overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
@@ -115,7 +115,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_quick(
 save("figures/validated/f1_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
+fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
     label_type=:stability,
     root_index=1,
     overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
