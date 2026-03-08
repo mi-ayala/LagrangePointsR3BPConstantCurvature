@@ -12,24 +12,24 @@ set_theme!(Theme(
 
     return (
         lbl === :unknown ? "#1A1A1A" :
-        lbl === :zero_roots ? "#BDBDBD" : 
+        lbl === :zero_roots ? "#F2F2F2" :
         lbl === :one_root ? pal[1] :
         lbl === :two_roots ? pal[3] :
         lbl === :three_roots ? pal[2] :
-        lbl === :four_roots ? pal[4] :
-        lbl === :five_roots ? pal[5] :
-        lbl === :six_roots ? pal[6] : "#000000"
+        lbl === :four_roots ? pal[6] :
+        lbl === :five_roots ? pal[4] :
+        lbl === :six_roots ? pal[5] : "#000000"
     )
 end
 
 @inline function stability_color(lbl::Symbol)
 
-    pal = Makie.to_colormap(:RdYlGn_4)
+    pal = Makie.to_colormap(:redgreensplit)
 
     return (
         lbl === :unknown ? "#1A1A1A" :
-        lbl === :zero_roots ? "#BDBDBD" : lbl === :lyapunov_stable ? pal[4] :
-        lbl === :elliptic ? pal[3] :
+        lbl === :zero_roots ? "#F2F2F2" : lbl === :lyapunov_stable ? pal[5] :
+        lbl === :elliptic ? pal[4] :
         lbl === :center_saddle_unstable ? pal[2] :
         lbl === :complex_saddle_unstable ? pal[1] : "#000000"
     )
@@ -230,8 +230,8 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         xlabel=L"\mathbf{\kappa}",
         ylabel=L"\mathbf{\mu}",
         title=title,
-        ylabelsize=20,
-        xlabelsize=20,
+        # ylabelsize=20,
+        # xlabelsize=20,
         topspinevisible=true,
         rightspinevisible=true,
         xgridvisible=false,
@@ -240,6 +240,9 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         ytickalign=1,
         xticksmirrored=true,
         yticksmirrored=true,
+        spinewidth=2,
+        xtickwidth=2,
+        ytickwidth=2,
     )
     if axis_box
         ax.topspinevisible = true
@@ -296,8 +299,109 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         )
     end
 
+    # lines!(ax, [κlo, κhi], [0.04, 0.04];
+    #     color=:black,
+    #     linewidth=2,
+    #     linestyle=:dash
+    # )
+
+    #     lines!(ax, [0.0, 0.0], [μlo, μhi];
+    #     color=:black,
+    #     linewidth=2,
+    #     linestyle=:dash
+    # )
     return fig, ax
 end
+
+function plot_regions_all_labels_from_total_boxes(boxes;
+    κlims::Tuple{<:Real,<:Real}=(-(0.5 * pi)^2, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+    alpha::Real=0.1,
+    ms::Real=3.0,
+    title::AbstractString="",
+    axis_box::Bool=true,
+)
+    κlo, κhi = κlims
+    μlo, μhi = μlims
+    @assert κhi > κlo
+    @assert μhi > μlo
+
+    fig = Figure()
+    ax = Axis(fig[1, 1];
+        xlabel=L"\mathbf{\kappa}",
+        ylabel=L"\mathbf{\mu}",
+        title=title,
+        topspinevisible=true,
+        rightspinevisible=true,
+        xgridvisible=false,
+        ygridvisible=false,
+        xtickalign=1,
+        ytickalign=1,
+        xticksmirrored=true,
+        yticksmirrored=true,
+        spinewidth=2,
+        xtickwidth=2,
+        ytickwidth=2,
+    )
+    if axis_box
+        ax.topspinevisible = true
+        ax.rightspinevisible = true
+    end
+    xlims!(ax, κlo, κhi)
+    ylims!(ax, μlo, μhi)
+
+    pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
+
+    for bx in boxes
+        lbl, κc, μc = bx
+
+        (κc < κlo || κc > κhi || μc < μlo || μc > μhi) && continue
+
+        xy = get!(pts_by_lbl, lbl) do
+            (Float64[], Float64[])
+        end
+        push!(xy[1], κc)
+        push!(xy[2], μc)
+    end
+
+    # --- add the left region [-((0.5π)^2), 0] as :three_roots ---
+    left_col = Makie.to_color(rootcount_color(:three_roots))
+    if κlo < 0
+        poly!(ax,
+            Point2f[
+                (κlo, μlo),
+                (0.0, μlo),
+                (0.0, μhi),
+                (κlo, μhi),
+            ];
+            color=left_col,
+            alpha=alpha,
+            strokewidth=0,
+        )
+    end
+
+    labels = collect(keys(pts_by_lbl))
+    labels_plot = [filter(!=(:unknown), labels)...]
+    if :unknown in labels
+        push!(labels_plot, :unknown)
+    end
+
+    for lbl in labels_plot
+        κvals, μvals = pts_by_lbl[lbl]
+
+        col = (lbl === :unknown) ? RGBf(0, 0, 0) : Makie.to_color(rootcount_color(lbl))
+        α = (lbl === :unknown) ? 1.0 : float(alpha)
+
+        scatter!(ax, κvals, μvals;
+            markersize=ms,
+            color=col,
+            alpha=α,
+        )
+    end
+
+    return fig, ax
+end
+
 
 function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     use::Symbol=:stability,
@@ -332,16 +436,19 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         xlabel=L"\mathbf{\kappa}",
         ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{\kappa}}",
         title=title == "" ? "μ ≈ $(μstar)" : title,
-        ylabelsize=20,
-        xlabelsize=20,
         topspinevisible=true,
         rightspinevisible=true,
-        xgridvisible=false,
-        ygridvisible=false,
+        xgridvisible=true,
+        ygridvisible=true,
+        xgridstyle=:dot,
+        ygridstyle=:dot,
         xtickalign=1,
         ytickalign=1,
         xticksmirrored=true,
         yticksmirrored=true,
+        spinewidth=2,
+        xtickwidth=2,
+        ytickwidth=2,
     )
     if axis_box
         ax.topspinevisible = true
@@ -349,6 +456,12 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     end
     xlims!(ax, κlo, κhi)
     ylims!(ax, -3.5, 3.5)
+
+    # κspecial = (pi / 3)^2
+    # ax.xticks = (
+    #     [0.0, κspecial, (pi / 2)^2],
+    #     [L"0", L"(\pi/3)^2", L"(\pi/2)^2"]
+    # )
 
     # group points by label (one scatter per label)
     pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
@@ -409,69 +522,22 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         scatter!(ax, κs, ys; markersize=ms, color=col, alpha=α)
     end
 
+    # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
+    κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
+
+    q1vals = [q₁(κ, μstar) for κ in κplot]
+    q2vals = [q₂(κ, μstar) for κ in κplot]
+
+    lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
+    lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
+
+    # κspecial = (pi / 3)^2
+
+    # xticks!(ax,
+    #     [0, κspecial, (0.5 * pi)^2],
+    #     [L"0", L"(\pi/3)^2", L"(\pi/2)^2"]
+    # )
+
     return fig, ax, μstar
 end
 
-function existence_switch_points(boxes; include_unknown::Bool=false)
-    exists(lbl::Symbol) = (lbl !== :zero_roots) && (include_unknown || lbl !== :unknown)
-
-    # group κ-values by μ
-    byμ = Dict{Float64,Vector{Tuple{Float64,Bool}}}()
-    for bx in boxes
-        root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
-        μ = float(μc)
-        v = get!(byμ, μ) do
-            Tuple{Float64,Bool}[]
-        end
-        push!(v, (float(κc), exists(root_lbl)))
-    end
-
-    pts = Tuple{Float64,Float64}[]
-    for (μ, vec) in byμ
-        sort!(vec; by=first)  # sort by κ
-        for i in 1:(length(vec)-1)
-            κ1, e1 = vec[i]
-            κ2, e2 = vec[i+1]
-            e1 == e2 && continue
-            push!(pts, (0.5 * (κ1 + κ2), μ))  # midpoint is a simple "switch location"
-        end
-    end
-
-    sort!(pts; by=last)  # by μ
-    return pts
-end
-
-function switch_points_to_curves(points)
-    isempty(points) && return Tuple{Vector{Float64},Vector{Float64}}[]
-
-    byμ = Dict{Float64,Vector{Float64}}()
-    for (κ, μ) in points
-        v = get!(byμ, μ) do
-            Float64[]
-        end
-        push!(v, κ)
-    end
-
-    μs = sort!(collect(keys(byμ)))
-    for μ in μs
-        sort!(byμ[μ])  # sort κ switches
-    end
-
-    mmax = maximum(length(byμ[μ]) for μ in μs)
-
-    curves = Tuple{Vector{Float64},Vector{Float64}}[]
-    for j in 1:mmax
-        κs = Float64[]
-        μs_used = Float64[]
-        for μ in μs
-            v = byμ[μ]
-            length(v) >= j || continue
-            push!(κs, v[j])
-            push!(μs_used, μ)
-        end
-        # keep even small curves; caller can decide to skip
-        push!(curves, (κs, μs_used))
-    end
-
-    return curves
-end

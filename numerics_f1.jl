@@ -66,19 +66,19 @@ end
 nx, ny = 2000, 2000
 boxes1 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+# Plot
+# fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes1;
+#     label_type=:root,
+#     ms=4
+# )
+# save("figures/numerics/f1_root_regions_numerics.png", fig1)
 
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes1;
-    label_type=:root,
-    ms=4
-)
-save("figures/numerics/f1_root_regions_numerics.png", fig1)
 
-
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes1;
-    label_type=:stability,
-    root_index=1,
-    ms=4
-)
-save("figures/numerics/f1_stability_numerics.png", fig2)
+# fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes1;
+#     label_type=:stability,
+#     root_index=1,
+#     ms=4
+# )
+# save("figures/numerics/f1_stability_numerics.png", fig2)
 
 

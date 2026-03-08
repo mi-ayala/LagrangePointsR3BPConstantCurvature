@@ -98,9 +98,9 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         θmin = Intθ_2(κc, μc)[1]
         θmax = Intθ_2(κc, μc)[2]
 
-        # br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax; n=2000)
+        br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax; n=2000)
 
-        br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax)
+        # br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax)
 
         num_roots = length(br)
 
@@ -143,30 +143,30 @@ end
 nx, ny = 2000, 2000
 boxes2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+# Plot
+# fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes2;
+#     label_type = :root,
+#     ms = 4,
+# )
 
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes2;
-    label_type = :root,
-    ms = 4,
-)
-
-save("figures/numerics/f2_root_regions_numerics.png", fig1)
-
-
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes2;
-    label_type = :stability,
-    root_index = 1,
-        ms = 4
-)
-
-save("figures/numerics/f2_stability_root1_numerics.png", fig2)
+# save("figures/numerics/f2_root_regions_numerics.png", fig1)
 
 
-fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes2;
-    label_type = :stability,
-    root_index = 2,
-        ms = 4
-)
+# fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes2;
+#     label_type = :stability,
+#     root_index = 1,
+#         ms = 4
+# )
 
-save("figures/numerics/f2_stability_root2_numerics.png", fig3)
+# save("figures/numerics/f2_stability_root1_numerics.png", fig2)
+
+
+# fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes2;
+#     label_type = :stability,
+#     root_index = 2,
+#         ms = 4
+# )
+
+# save("figures/numerics/f2_stability_root2_numerics.png", fig3)
 
 

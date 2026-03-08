@@ -79,30 +79,30 @@ nx, ny = 1000, 1000
 
 boxes5 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+# Plot
+# fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
+#     label_type = :root,
+#     ms = 4,
+# )
 
-fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
-    label_type = :root,
-    ms = 4,
-)
-
-save("figures/numerics/f5_root_regions_numerics.png", fig1)
-
-
-fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
-    label_type = :stability,
-    root_index = 1,
-        ms = 4
-)
-
-save("figures/numerics/f5_stability_root1_numerics.png", fig2)
+# save("figures/numerics/f5_root_regions_numerics.png", fig1)
 
 
-fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
-    label_type = :stability,
-    root_index = 2,
-        ms = 4
-)
+# fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
+#     label_type = :stability,
+#     root_index = 1,
+#         ms = 4
+# )
 
-save("figures/numerics/f5_stability_root2_numerics.png", fig3)
+# save("figures/numerics/f5_stability_root1_numerics.png", fig2)
+
+
+# fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
+#     label_type = :stability,
+#     root_index = 2,
+#         ms = 4
+# )
+
+# save("figures/numerics/f5_stability_root2_numerics.png", fig3)
 
 
