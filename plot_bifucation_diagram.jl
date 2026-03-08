@@ -4,24 +4,7 @@ include("numerics_f3.jl")
 include("numerics_f4.jl")
 
 
-"""
-    existence_switch_curves_from_boxes(boxes;
-        zero_label=:zero_roots,
-        include_unknown=false,
-        κ_key=2, μ_key=3, rootlbl_key=1,
-        tolμ=0.0)
 
-Given `boxes` with entries like (root_lbl, κc, μc, ...),
-extract all κ-locations where existence switches along each μ-slice.
-
-- "exists" means root_lbl != zero_label
-- "no root" means root_lbl == zero_label
-- If include_unknown=false, any :unknown entries are ignored (do not create switches).
-- Returns: Vector{Vector{Tuple{Float64,Float64}}} where each inner vector is a curve:
-    [(κ, μ), (κ, μ), ...] sorted by μ.
-
-This handles multiple switches per μ by producing multiple curves.
-"""
 function existence_switch_curves_from_boxes(boxes;
     zero_label::Symbol=:zero_roots,
     include_unknown::Bool=false,
@@ -151,19 +134,6 @@ function existence_switch_curve_flat_from_boxes(boxes; kwargs...)
     return out
 end
 
-
-"""
-    add_top_horizontals(curve; κlo=0.0, κhi, μtol=1e-12, n=200)
-
-Given `curve::Vector{Tuple{Float64,Float64}}` of (κ, μ),
-find μmax, then find κL=min κ and κR=max κ among points with μ≈μmax.
-
-Return a new curve where we add two horizontal segments at μ=μmax:
-  [κlo → κL] and [κR → κhi].
-
-- `μtol` controls how we detect "points at μmax" (floating tolerance).
-- `n` is the number of points used to sample each horizontal segment.
-"""
 function add_top_horizontals(curve::Vector{Tuple{Float64,Float64}};
     κlo::Float64=0.0,
     κhi::Float64,
@@ -196,12 +166,6 @@ function add_top_horizontals(curve::Vector{Tuple{Float64,Float64}};
     return vcat(left_seg, c, right_seg)
 end
 
-"""
-If the curve has a single top maximum μmax, extend it horizontally
-from κlo to the first κ where μ = μmax.
-
-curve :: Vector{Tuple{Float64,Float64}}  (κ, μ)
-"""
 function complete_left_to_single_max(curve; κlo=0.0, n=2000, μtol=1e-12)
     μmax = maximum(last.(curve))
 

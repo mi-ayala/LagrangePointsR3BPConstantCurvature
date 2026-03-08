@@ -1,4 +1,4 @@
-#### Helper functions that we use in multiple places
+
 
 @inline twice(x) = x + x
 @inline csc(x) = one(x) / sin(x)
@@ -87,7 +87,6 @@ function Δ(θ, κ, μ)
     four = two + two
     return c2^2 - (four * detλ(θ, κ, μ)) / (sθ^2)
 end
-
 
 function q₁μ(κ, μ)
     κ, μ = promote(κ, μ)
@@ -251,40 +250,6 @@ function Λμ(κ, μ)
     return inv3(U) * inv(cbrt_t(U)^2) * Uμ
 end
 
-function brackets_signchanges(f, a::Real, b::Real; n::Integer=200)
-    xs = collect(range(a, b; length=n + 1))
-    br = Tuple{Float64,Float64}[]
 
-    i = 1
-    fa = f(xs[i])
-    while i <= n && !isfinite(fa)
-        i += 1
-        fa = f(xs[i])
-    end
-    i > n && return br
-
-    sgn(x) = x > 0 ? 1 : x < 0 ? -1 : 0
-    sa = sgn(fa)
-
-    for j in i:n
-        x1, x2 = xs[j], xs[j+1]
-        fx = f(x2)
-        if !isfinite(fx)
-            continue
-        end
-        sb = sgn(fx)
-
-        if sb == 0
-            push!(br, (x2, x2))              
-        elseif sa == 0
-            push!(br, (x1, x1))              
-        elseif sa != sb
-            push!(br, (x1, x2))             
-        end
-
-        fa, sa = fx, sb                     
-    end
-    return br
-end
 
 

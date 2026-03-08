@@ -25,7 +25,6 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     Δμ = Lμ / ny
 
     boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
-    # boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
 
     for i in 1:nx, j in 1:ny
         κc = κ_lo + (i - 0.5) * Δκ
@@ -72,7 +71,6 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     label_type=:root,
     ms=4
 )
-
 save("figures/numerics/f1_root_regions_numerics.png", fig1)
 
 
@@ -81,24 +79,6 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     root_index=1,
     ms=4
 )
-
 save("figures/numerics/f1_stability_numerics.png", fig2)
 
 
-# fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes1, 0.01;
-#     root_index=1,
-#     use=:stability,
-#     ms=4,
-# )
-
-# save("figures/numerics/f1_mu_minus_0_01_root1.png", fig3)
-
-# fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes1;
-#     root_index=1,
-#     use=:stability,
-#     ms=3.5,
-#     alpha=1.0,
-#     title="f4: θ/√κ (root 1)",
-# )
-
-# save("figures/numerics/f1_theta_over_sqrtkappa_3d_root1.png", fig3d)

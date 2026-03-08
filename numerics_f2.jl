@@ -88,7 +88,6 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     Δκ = Lκ / nx
     Δμ = Lμ / ny
 
-    #  boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Bool,Bool,Symbol,Symbol}[]
 
     boxes = Tuple{Symbol,Float64,Float64,Float64,Float64,Symbol,Symbol}[]
 
@@ -171,41 +170,3 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes2;
 save("figures/numerics/f2_stability_root2_numerics.png", fig3)
 
 
-
-# fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes2, 0.01;
-#     root_index=1,
-#     use=:stability,   # or :rootcount
-#     ms=4,
-# )
-
-# save("figures/numerics/f2_mu_minus_0_01_root1.png", fig4)
-
-# fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes2, 0.01;
-#     root_index=2,
-#     use=:stability,   # or :rootcount
-#     ms=4,
-# )
-
-# save("figures/numerics/f2_mu_minus_0_01_root2.png", fig5)
-
-# fig3d, ax3d = plot_theta_over_sqrtkappa_3d_from_boxes(boxes2;
-#     root_index=1,
-#     use=:stability,
-#     ms=3.5,
-#     alpha=1.0,
-#     title="f2: θ/√κ (root 1)",
-# )
-
-# save("figures/numerics/f2_theta_over_sqrtkappa_3d_root1.png", fig3d)
-
-# fig3d2, ax3d2 = plot_theta_over_sqrtkappa_3d_from_boxes(boxes2;
-#     root_index=2,
-#     use=:stability,
-#     ms=3.5,
-#     alpha=1.0,
-#     title="f2: θ/√κ (root 2)",
-# )
-
-# save("figures/numerics/f2_theta_over_sqrtkappa_3d_root2.png", fig3d2)
-
-# curve2 = existence_switches_all(boxes2)

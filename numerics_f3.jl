@@ -105,22 +105,3 @@ save("figures/numerics/f3_stability_root2_numerics.png", fig3)
 
 
 
-# fig4, ax4, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes3, 0.01;
-#     root_index=1,
-#     use=:stability,   
-#     ms=4,
-# )
-
-# save("figures/numerics/f3_mu_0_01_root1.png", fig4)
-
-
-# fig5, ax5, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes3, 0.01;
-#     root_index=2,
-#     use=:stability,   # or :rootcount
-#     ms=4,
-# )
-
-# save("figures/numerics/f3_mu_0_01_root2.png", fig5)
-
-
-# curve3 = existence_switches_all(boxes3)

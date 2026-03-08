@@ -6,17 +6,6 @@ isneg(I) = sup(I) < 0
 nonzero(I) = ispos(I) || isneg(I)
 
 
-"""
-    eval_subdiv(f, Iθ::Interval, Iκ::Interval, Iμ::Interval; ntiles::Int=16)
-
-Evaluate an interval function `f(Iθ, Iκ, Iμ)` by subdividing `Iθ` into
-`ntiles` equal subintervals and taking the hull of all evaluations.
-
-This is the simplest, non-adaptive scheme:
-    [a,b] → [a, a+h], [a+h, a+2h], …, [a+(n-1)h, b]
-
-Returns the hull of f on all tiles.
-"""
 function eval_subdiv(f::Function,
     Iθ::Interval,
     Iκ::Interval,
@@ -45,45 +34,6 @@ function eval_subdiv(f::Function,
     return H
 end
 
-"""
-    certify_sign_interval_centered(
-        f, θc, Iθ, Iκ, Iμ;
-        ntiles=16,
-        min_width=1e-12,
-        max_halvings=60,
-        verbose=false,
-    )
-
-Given:
-  • f(Iθloc, Iκ, Iμ)         – interval evaluation of a scalar quantity
-  • θc                       – center point (typically an approximate root)
-  • Iθ                       – allowed θ-interval
-  • Iκ, Iμ                   – parameter intervals
-
-Try symmetric intervals Ic = [θc-r, θc+r] ⊆ Iθ, starting from the largest
-possible radius r and halving r until we can certify that `f` has strict
-sign on Ic:
-
-  • `ispos(FI)` ⇒ f > 0 on Ic
-  • `isneg(FI)` ⇒ f < 0 on Ic
-
-For each Ic:
-  1) First try a direct call `f(Ic, Iκ, Iμ)`.
-  2) If that interval contains 0, refine via `eval_subdiv(f, Ic, Iκ, Iμ; ntiles)`.
-
-Stops when:
-  • strict sign is certified, or
-  • width(Ic) ≲ min_width (inconclusive).
-
-Returns:
-    (status::Symbol, Ic::Interval, FI::Interval)
-
-where:
-
-  • status = :pos  → f > 0 on Ic
-  • status = :neg  → f < 0 on Ic
-  • status = :unknown → no strict sign certified down to width ≈ min_width
-"""
 function certify_sign_interval_centered(
     f::Function,
     θc,
@@ -144,36 +94,6 @@ function certify_sign_interval_centered(
     return (:unknown, Ic, FI)
 end
 
-"""
-    find_sign_change_centered(
-        f, θc, J, Iκ, Iμ;
-        min_radius=1e-12,
-        max_halvings=60,
-        verbose=false,
-    )
-
-Given:
-  • f(Iθloc, Iκ, Iμ)        – interval evaluation of scalar f
-  • θc                      – center point (approximate root)
-  • J                       – θ-interval in which we search (typically a
-                              certified monotonicity interval)
-  • Iκ, Iμ                  – parameter intervals
-
-Search for a *symmetric* interval [θc - r, θc + r] ⊆ J such that
-f(θc - r, …) and f(θc + r, …) have **opposite strict signs**.
-
-Algorithm:
-  1) Start with the largest radius r that fits in J.
-  2) Evaluate f at θL = θc - r and θR = θc + r (thin intervals).
-  3) If signs are opposite → success.
-  4) Otherwise halve r and repeat until r ≤ min_radius.
-
-Returns:
-    (status::Symbol, Iexist::Interval, fL::Interval, fR::Interval)
-
-  • status = :ok       → sign change certified on Iexist = [θL, θR]
-  • status = :unknown  → no sign change certified down to radius≈min_radius
-"""
 function find_sign_change_centered(
     f::Function,
     θc,
@@ -526,7 +446,7 @@ we clip J to I instead of returning false.
 function complements_nonzero(
     f::Function,
     I::Interval,
-    J::Interval, 
+    J::Interval,
     Iκ::Interval,
     Iμ::Interval;
     ntiles::Int=16,
