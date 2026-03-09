@@ -40,7 +40,7 @@ end
 
 function θ4_min(κ, μ)
     πT = π * one(κ)
-    return πT
+    return -πT
 end
 
 function θ4_max(κ, μ)
@@ -60,7 +60,7 @@ function θ4_max(κ, μ)
     s = sqrt(rad)
 
     ones = one(s)
-    return πT + (ones - (q1 / q2) * s) * r * q2
+    return -πT + (ones - (q1 / q2) * s) * r * q2
 end
 
 function brackets_f₄(κ, μ; n::Integer=400, margin::Real=0.0)

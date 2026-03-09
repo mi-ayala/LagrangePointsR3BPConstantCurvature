@@ -179,7 +179,7 @@ nx, ny =  4*2464, 4*89
 
 
 # --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes_quick(boxes;
+fig1, ax1 = plot_regions_all_labels_from_boxes(boxes;
     label_type=:root,
     # title="Root-count",
     # κlims=(0.0, 0.24),
@@ -189,7 +189,7 @@ save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures
 
 # --- Stability plot (root 1) ---
 
-fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
+fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
     label_type=:stability,
     root_index=1,
     # title="Stability (root 1)",
@@ -198,7 +198,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_quick(boxes;
 save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
-fig3, ax3 = plot_regions_all_labels_from_boxes_quick(boxes;
+fig3, ax3 = plot_regions_all_labels_from_boxes(boxes;
     label_type=:stability,
     root_index=2,
     # title="Stability (root 2)",

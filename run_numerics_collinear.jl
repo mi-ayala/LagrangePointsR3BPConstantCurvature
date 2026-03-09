@@ -14,7 +14,6 @@ append!(boxes, boxes4)
 
 
 ### Plots f1
-
 fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes1;
     label_type=:root,
     ms=4

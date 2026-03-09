@@ -41,7 +41,7 @@ function plot_regions_all_labels_from_boxes(boxes;
     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
     μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
     resolution::Int=2000,
-    alpha::Real=0.1,
+    alpha::Real=1.0,
     title::AbstractString="",
     axis_box::Bool=true,
 
@@ -433,7 +433,7 @@ end
 function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     use::Symbol=:stability,
     μtol::Real=Inf,
-    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+    κlims::Tuple{<:Real,<:Real}=(0.0, 2.6),
     alpha::Real=1.0,
     ms::Real=4.0,
     title::AbstractString="",
@@ -484,12 +484,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     xlims!(ax, κlo, κhi)
     ylims!(ax, -3.5, 3.5)
 
-    # κspecial = (pi / 3)^2
-    # ax.xticks = (
-    #     [0.0, κspecial, (pi / 2)^2],
-    #     [L"0", L"(\pi/3)^2", L"(\pi/2)^2"]
-    # )
-
+ 
     # group points by label (one scatter per label)
     pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
 
@@ -549,21 +544,16 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         scatter!(ax, κs, ys; markersize=ms, color=col, alpha=α)
     end
 
-    # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
-    κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
+    # # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
+    # κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
 
-    q1vals = [q₁(κ, μstar) for κ in κplot]
-    q2vals = [q₂(κ, μstar) for κ in κplot]
+    # q1vals = [q₁(κ, μstar) for κ in κplot]
+    # q2vals = [q₂(κ, μstar) for κ in κplot]
 
-    lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
-    lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
+    # lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
+    # lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
 
-    # κspecial = (pi / 3)^2
-
-    # xticks!(ax,
-    #     [0, κspecial, (0.5 * pi)^2],
-    #     [L"0", L"(\pi/3)^2", L"(\pi/2)^2"]
-    # )
+ 
 
     return fig, ax, μstar
 end
