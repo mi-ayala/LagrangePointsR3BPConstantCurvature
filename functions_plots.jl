@@ -326,17 +326,17 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         )
     end
 
-    # lines!(ax, [κlo, κhi], [0.04, 0.04];
-    #     color=:black,
-    #     linewidth=2,
-    #     linestyle=:dash
-    # )
+    lines!(ax, [κlo, κhi], [0.040064205622887726, 0.040064205622887726];
+        color=:black,
+        linewidth=1,
+        # linestyle=:dot
+    )
 
-    #     lines!(ax, [0.0, 0.0], [μlo, μhi];
-    #     color=:black,
-    #     linewidth=2,
-    #     linestyle=:dash
-    # )
+        lines!(ax, [0.0, 0.0], [μlo, μhi];
+        color=:black,
+        linewidth=1,
+        # linestyle=:dot
+    )
     return fig, ax
 end
 
@@ -461,7 +461,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     fig = Figure()
     ax = Axis(fig[1, 1];
         xlabel=L"\mathbf{\kappa}",
-        ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{\kappa}}",
+        ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{|\kappa|}}",
         title=title == "" ? "μ ≈ $(μstar)" : title,
         topspinevisible=true,
         rightspinevisible=true,
@@ -502,11 +502,11 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     for bx in boxes
         root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
 
-        μc == μstar || continue
+        abs(μc - μstar) > 1e-9 && continue
         (κc < κlo || κc > κhi) && continue
         κc <= 0 && continue
 
-        invsqrtκ = inv(sqrt(κc))
+        invsqrtκ = inv(sqrt(abs(κc)))
 
         # root 1
         if isfinite(θ1)

@@ -1,7 +1,7 @@
 
-include("functions_plots.jl")
-include("numerics_f5.jl")
-include("numerics_f5neg.jl")
+# include("functions_plots.jl")
+# include("numerics_f5.jl")
+# include("numerics_f5neg.jl")
 
 
 
@@ -38,7 +38,8 @@ append!(boxes5, boxes5neg)
 
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
-    κlims=(-(0.5 * pi)^2, (0.5 * pi)^2),
+    # κlims=(-(0.5 * pi)^2, (0.5 * pi)^2),
+    κlims=(-0.5 , 0.5 ),
     label_type=:stability,
     root_index=1,
     ms=4
