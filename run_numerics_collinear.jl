@@ -188,6 +188,7 @@ boxes_total = combine_rootcount_boxes([boxes1, boxes2, boxes3, boxes4])
 fig, ax = plot_regions_all_labels_from_total_boxes(boxes_total;
     ms=4,
     title="Total number of roots",
+    κlims=(-1.0, (0.5 * pi)^2),
 )
 
 save("figures/numerics/total_root_regions.png", fig)

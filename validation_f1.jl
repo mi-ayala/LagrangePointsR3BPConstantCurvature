@@ -7,7 +7,7 @@ include("functions_helpers.jl")
 include("functions_validation.jl")
 include("functions_f1.jl")
 include("functions_plots.jl")
-
+include("functions_numerics.jl")
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;

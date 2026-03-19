@@ -24,14 +24,15 @@ end
 
 @inline function stability_color(lbl::Symbol)
 
-    pal = Makie.to_colormap(:redgreensplit)
+    pal = Makie.to_colormap(:rainbow)
 
     return (
         lbl === :unknown ? "#1A1A1A" :
-        lbl === :zero_roots ? "#F2F2F2" : lbl === :lyapunov_stable ? pal[5] :
-        lbl === :elliptic ? pal[4] :
-        lbl === :center_saddle_unstable ? pal[2] :
-        lbl === :complex_saddle_unstable ? pal[1] : "#000000"
+        lbl === :zero_roots ? "#F2F2F2" : 
+        lbl === :lyapunov_stable ? pal[2] :
+        lbl === :elliptic ? pal[3] :
+        lbl === :center_saddle_unstable ? pal[4] :
+        lbl === :complex_saddle_unstable ? pal[5] : "#000000"
     )
 end
 
@@ -326,17 +327,17 @@ function plot_regions_all_labels_from_boxes_numerics(boxes;
         )
     end
 
-    lines!(ax, [κlo, κhi], [0.040064205622887726, 0.040064205622887726];
-        color=:black,
-        linewidth=1,
-        # linestyle=:dot
-    )
+    # lines!(ax, [κlo, κhi], [0.040064205622887726, 0.040064205622887726];
+    #     color=:black,
+    #     linewidth=2,
+    #     # linestyle=:dot
+    # )
 
-        lines!(ax, [0.0, 0.0], [μlo, μhi];
-        color=:black,
-        linewidth=1,
-        # linestyle=:dot
-    )
+    #     lines!(ax, [0.0, 0.0], [μlo, μhi];
+    #     color=:black,
+    #     linewidth=2,
+    #     # linestyle=:dot
+    # )
     return fig, ax
 end
 
@@ -428,7 +429,6 @@ function plot_regions_all_labels_from_total_boxes(boxes;
 
     return fig, ax
 end
-
 
 function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     use::Symbol=:stability,

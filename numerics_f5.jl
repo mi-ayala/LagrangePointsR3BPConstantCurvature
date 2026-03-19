@@ -45,7 +45,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
             root = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
             stability_root = classify_center_equilibrium_num(root, κc, μc; verbose=false)
-            push!(boxes, (:one_root, κc, μc, root, NaN, stability_root, :zero_roots))
+            push!(boxes, (:two_roots, κc, μc, root, NaN, stability_root, :zero_roots))
 
         elseif num_roots == 2
 
@@ -56,7 +56,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             root2 = find_zero(θ -> f₅(θ, κc, μc), br[2]; atol=1e-12)
             stability_root2 = classify_center_equilibrium_num(root2, κc, μc; verbose=false)
 
-            push!(boxes, (:two_roots, κc, μc, root1, root2, stability_root1, stability_root2))
+            push!(boxes, (:four_roots, κc, μc, root1, root2, stability_root1, stability_root2))
         else
             push!(boxes, (:multiple_roots, κc, μc, NaN, NaN, :unknown, :unknown))
 
@@ -74,7 +74,7 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2000, 2000
+nx, ny = 4000, 4000
 
 
 boxes5 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
