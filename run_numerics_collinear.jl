@@ -1,4 +1,4 @@
- include("functions_plots.jl")
+using RC3BP
 
 include("numerics_f1.jl")
 include("numerics_f2.jl")
@@ -187,7 +187,7 @@ boxes_total = combine_rootcount_boxes([boxes1, boxes2, boxes3, boxes4])
 
 fig, ax = plot_regions_all_labels_from_total_boxes(boxes_total;
     ms=4,
-    title="Total number of roots",
+    # title="Total number of roots",
     κlims=(-1.0, (0.5 * pi)^2),
 )
 
@@ -211,4 +211,3 @@ fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa(boxes, 0.06;
 )
 
 save("figures/numerics/collinear_bif_plot_mu06.png", fig3)
-

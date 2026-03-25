@@ -2,11 +2,9 @@ using IntervalArithmetic
 using Printf
 using Roots
 using CairoMakie
+using RC3BP
 
-include("functions_helpers.jl")
-include("functions_validation.jl")
-include("functions_f4.jl")
-include("functions_plots.jl")
+# include("functions_validation.jl")
 
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
@@ -61,7 +59,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             interval(θmin_refined, θmax_refined),
             Iκ,
             Iμ;
-            ntiles=30,
+            ntiles=50,
             min_width=1e-12,
             min_radius=1e-12,
             verbose=false,
@@ -105,7 +103,8 @@ end
 κ_lo, κ_hi = 0.0001, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0001, 0.0886765
 
-nx, ny =  2*2464, 2*89
+# nx, ny =  2*2464, 2*89
+nx, ny =  2*1000, 2*1000
 boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
@@ -136,6 +135,5 @@ fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
 )
 
 save("figures/validated/f4_stability.png", fig2)
-
 
 

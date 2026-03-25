@@ -192,8 +192,8 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     # --- figure/axis ---
     fig = Figure()
     ax = Axis(fig[1, 1];
-        xlabel=L"\mathbf{\kappa}",
-        ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{|\kappa|}}",
+        # xlabel=L"\mathbf{\kappa}",
+        # ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{|\kappa|}}",
         title=title == "" ? "μ ≈ $(μstar)" : title,
         topspinevisible=true,
         rightspinevisible=true,
