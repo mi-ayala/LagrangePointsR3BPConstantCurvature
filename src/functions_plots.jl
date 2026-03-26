@@ -26,7 +26,7 @@ end
 
     return (
         lbl === :unknown ? "#1A1A1A" :
-        lbl === :zero_roots ? "#F2F2F2" : 
+        lbl === :zero_roots ? "#F2F2F2" :
         lbl === :lyapunov_stable ? pal[2] :
         lbl === :elliptic ? pal[3] :
         lbl === :center_saddle_unstable ? pal[4] :
@@ -122,15 +122,17 @@ function plot_regions_all_labels_from_boxes(boxes;
     # --- figure ---
     fig = Figure()
     ax = Axis(fig[1, 1];
-         xlabel=L"\mathbf{\kappa}",
-         ylabel=L"\mathbf{\mu}",
+        xlabel=L"\mathbf{\kappa}",
+        ylabel=L"\mathbf{\mu}",
         title=title,
         # xlabelsize=20,
         # ylabelsize=20,
-        xgridvisible=false,
-        ygridvisible=false,
         topspinevisible=true,
         rightspinevisible=true,
+        xgridvisible=false,
+        ygridvisible=false,
+        xtickalign=1,
+        ytickalign=1,
         xticksmirrored=true,
         yticksmirrored=true,
         spinewidth=2,
@@ -471,7 +473,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         ytickalign=1,
         xticksmirrored=true,
         yticksmirrored=true,
-        spinewidth=2,
+        spinewidth=3,
         xtickwidth=2,
         ytickwidth=2,
     )
@@ -482,7 +484,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     xlims!(ax, κlo, κhi)
     ylims!(ax, -3.5, 3.5)
 
- 
+
     # group points by label (one scatter per label)
     pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
 
@@ -543,15 +545,20 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     end
 
     # # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
-    # κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
+    κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
+    μplot = collect(range(μlo, μhi; length=800))
 
-    # q1vals = [q₁(κ, μstar) for κ in κplot]
-    # q2vals = [q₂(κ, μstar) for κ in κplot]
+    q1vals = [q₁(κ, μstar) for κ in κplot]
+    q2vals = [q₂(κ, μstar) for κ in κplot]
 
-    # lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
-    # lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
+    muval = [κhi for _ in κplot]
 
- 
+    lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
+    lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
+
+    lines!(ax, κplot,  muval ; color=:black, linewidth=2, linestyle=:dash)
+
+
 
     return fig, ax, μstar
 end

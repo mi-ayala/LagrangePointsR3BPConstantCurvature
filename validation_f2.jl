@@ -241,11 +241,11 @@ end
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 4 * 2464, 4 * 89
-boxes, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
 # --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes(boxes;
+fig1, ax1 = plot_regions_all_labels_from_boxes(boxes2_validated;
     label_type=:root,
     # title = "Root-count",
     # alpha = 0.9,
@@ -260,7 +260,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes(boxes;
 save("figures/validated/f2_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
+fig2, ax2 = plot_regions_all_labels_from_boxes(boxes2_validated;
     label_type=:stability,
     root_index=1,
     # alpha = 0.9,
@@ -276,7 +276,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes(boxes;
 save("figures/validated/f2_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
-fig3, ax3 = plot_regions_all_labels_from_boxes(boxes;
+fig3, ax3 = plot_regions_all_labels_from_boxes(boxes2_validated;
     label_type=:stability,
     root_index=2,
     overlay_rect=(0.0, (pi^2 / 36), 0.0, 0.0886765),
