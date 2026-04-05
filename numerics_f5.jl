@@ -1,12 +1,6 @@
 using Roots
 using CairoMakie
-
-
-include("functions_helpers.jl")
-include("functions_validation.jl")
-include("functions_f5.jl")
-include("functions_plots.jl")
-include("functions_numerics.jl")
+using RC3BP
 
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,

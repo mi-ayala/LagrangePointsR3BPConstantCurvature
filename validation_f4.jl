@@ -4,7 +4,6 @@ using Roots
 using CairoMakie
 using RC3BP
 
-# include("functions_validation.jl")
 
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,

@@ -185,7 +185,99 @@ end
 
 boxes_total = combine_rootcount_boxes([boxes1, boxes2, boxes3, boxes4])
 
-fig, ax = plot_regions_all_labels_from_total_boxes(boxes_total;
+
+
+function plot_regions_all_labels_from_total_boxes2(boxes;
+    κlims::Tuple{<:Real,<:Real}=(-(0.5 * pi)^2, (0.5 * pi)^2),
+    μlims::Tuple{<:Real,<:Real}=(0.0, 0.0886765),
+    alpha::Real=0.1,
+    ms::Real=3.0,
+    title::AbstractString="",
+    axis_box::Bool=true,
+)
+    κlo, κhi = κlims
+    μlo, μhi = μlims
+    @assert κhi > κlo
+    @assert μhi > μlo
+
+    fig = Figure()
+    ax = Axis(fig[1, 1];
+        xlabel=L"\mathbf{\kappa}",
+        ylabel=L"\mathbf{\mu}",
+        title=title,
+        topspinevisible=true,
+        rightspinevisible=true,
+        xgridvisible=false,
+        ygridvisible=false,
+        xtickalign=1,
+        ytickalign=1,
+        xticksmirrored=true,
+        yticksmirrored=true,
+        spinewidth=2,
+        xtickwidth=2,
+        ytickwidth=2,
+    )
+    if axis_box
+        ax.topspinevisible = true
+        ax.rightspinevisible = true
+    end
+    xlims!(ax, κlo, κhi)
+    ylims!(ax, μlo, μhi)
+
+    pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
+
+    for bx in boxes
+        lbl, κc, μc = bx
+
+        (κc < κlo || κc > κhi || μc < μlo || μc > μhi) && continue
+
+        xy = get!(pts_by_lbl, lbl) do
+            (Float64[], Float64[])
+        end
+        push!(xy[1], κc)
+        push!(xy[2], μc)
+    end
+
+    # --- add the left region [-((0.5π)^2), 0] as :three_roots ---
+    left_col = Makie.to_color(rootcount_color(:three_roots))
+    if κlo < 0
+        poly!(ax,
+            Point2f[
+                (κlo, μlo),
+                (0.0, μlo),
+                (0.0, μhi),
+                (κlo, μhi),
+            ];
+            color=left_col,
+            alpha=0.5,
+            strokewidth=0,
+        )
+    end
+
+    labels = collect(keys(pts_by_lbl))
+    labels_plot = [filter(!=(:unknown), labels)...]
+    if :unknown in labels
+        push!(labels_plot, :unknown)
+    end
+
+    for lbl in labels_plot
+        κvals, μvals = pts_by_lbl[lbl]
+
+        col = (lbl === :unknown) ? RGBf(0, 0, 0) : Makie.to_color(rootcount_color(lbl))
+        α = (lbl === :unknown) ? 1.0 : float(alpha)
+
+        scatter!(ax, κvals, μvals;
+            markersize=ms,
+            color=col,
+            alpha=α,
+        )
+    end
+
+    return fig, ax
+end
+
+
+fig, ax = plot_regions_all_labels_from_total_boxes2(boxes_total;
     ms=4,
     # title="Total number of roots",
     κlims=(-1.0, (0.5 * pi)^2),

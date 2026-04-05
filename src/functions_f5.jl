@@ -8,18 +8,6 @@
 end
 
 
-# function Λ(κ, μ)
-#     κ, μ = promote(κ, μ)
-#     r = sqrt(κ)
-#     q1 = q₁(κ, μ)
-#     q2 = q₂(κ, μ)
-
-#     s2 = sin(r * q2)
-
-#     num = r * (q1 / μ) * sinc_t(r * q1)
-#     return cbrt_t(num / s2)
-# end
-
 function f₅(x, κ, μ)
     x, κ, μ = promote(x, κ, μ)
 

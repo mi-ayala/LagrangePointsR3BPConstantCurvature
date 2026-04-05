@@ -28,9 +28,9 @@ function plot_unknown_boxes(boxes;
     overlay_ny::Int=0,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1),
     overlay_line_color=RGBAf(1, 1, 1, 1),
-    overlay_line_alpha::Real=0.95,
-    overlay_line_lw::Real=0.9,
-    overlay_bg_alpha::Real=0.30,
+    overlay_line_alpha::Real=1.0,
+    overlay_line_lw::Real=1.0,
+    overlay_bg_alpha::Real=1.0,
 )
     κlo, κhi = κlims
     μlo, μhi = μlims
@@ -183,3 +183,6 @@ fig, ax = plot_unknown_boxes(boxes;
     overlay_nx=10,
     overlay_ny=10,
 )
+
+save("regions.png", fig)
+

@@ -462,7 +462,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
     ax = Axis(fig[1, 1];
         # xlabel=L"\mathbf{\kappa}",
         # ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{|\kappa|}}",
-        title=title == "" ? "μ ≈ $(μstar)" : title,
+        # title=title == "" ? "μ ≈ $(μstar)" : title,
         topspinevisible=true,
         rightspinevisible=true,
         xgridvisible=true,
@@ -473,7 +473,7 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         ytickalign=1,
         xticksmirrored=true,
         yticksmirrored=true,
-        spinewidth=3,
+        spinewidth=2,
         xtickwidth=2,
         ytickwidth=2,
     )
@@ -544,19 +544,19 @@ function plot_mu_slice_theta_over_sqrtkappa(boxes, μ;
         scatter!(ax, κs, ys; markersize=ms, color=col, alpha=α)
     end
 
-    # # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
-    κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
-    μplot = collect(range(μlo, μhi; length=800))
+    # # # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
+    # κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
+    # μplot = collect(range(μlo, μhi; length=800))
 
-    q1vals = [q₁(κ, μstar) for κ in κplot]
-    q2vals = [q₂(κ, μstar) for κ in κplot]
+    # q1vals = [q₁(κ, μstar) for κ in κplot]
+    # q2vals = [q₂(κ, μstar) for κ in κplot]
 
-    muval = [κhi for _ in κplot]
+    # muval = [κhi for _ in κplot]
 
-    lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
-    lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
+    # lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
+    # lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
 
-    lines!(ax, κplot,  muval ; color=:black, linewidth=2, linestyle=:dash)
+    # lines!(ax, κplot,  muval ; color=:black, linewidth=2, linestyle=:dash)
 
 
 
