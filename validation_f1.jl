@@ -1,14 +1,6 @@
- using IntervalArithmetic
-# using Printf
- using Roots
+using Roots
 using CairoMakie
-
-# include("functions_helpers.jl")
-# include("functions_validation.jl")
-# include("functions_f1.jl")
-# include("functions_plots.jl")
-# include("functions_numerics.jl")
-
+using IntervalArithmetic
 using RC3BP
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
@@ -102,11 +94,19 @@ end
 
 
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
-μ_lo, μ_hi = 0.0, 0.0886765
+μ_lo, μ_hi = 0.02, 0.0886765
 
-nx, ny = 3 * 2464, 3 * 89
+nx, ny = 2*2464,  2*89
 boxes1_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+
+κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.02
+
+nx, ny = 2* 2464, 2 * 89
+boxes1_validated2, stats2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+append!(boxes1_validated, boxes1_validated2)
 
 fig1, ax1 = plot_regions_all_labels_from_boxes(
     boxes1_validated;
@@ -116,7 +116,6 @@ fig1, ax1 = plot_regions_all_labels_from_boxes(
 )
 save("figures/validated/f1_root_regions.png", fig1)
 
-# --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes(boxes1_validated;
     label_type=:stability,
     root_index=1,
