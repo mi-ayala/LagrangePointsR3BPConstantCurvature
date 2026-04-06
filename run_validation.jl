@@ -12,6 +12,8 @@ append!(boxes, boxes3_validated)
 append!(boxes, boxes4_validated)
 
 
+const AXIS_LABEL_SIZE = 18
+const AXIS_TICK_SIZE = 16
 function plot_unknown_boxes(boxes;
     label_type::Symbol=:root,
     root_index::Int=1,
@@ -87,6 +89,10 @@ function plot_unknown_boxes(boxes;
         title=title,
         topspinevisible=true,
         rightspinevisible=true,
+        ylabelsize=AXIS_LABEL_SIZE,
+        xlabelsize=AXIS_LABEL_SIZE,
+        xticklabelsize=AXIS_TICK_SIZE,
+        yticklabelsize=AXIS_TICK_SIZE,
         xgridvisible=false,
         ygridvisible=false,
         xtickalign=1,

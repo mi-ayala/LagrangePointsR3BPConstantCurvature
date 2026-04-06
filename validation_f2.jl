@@ -3,10 +3,6 @@ using Printf
 using Roots
 using CairoMakie
 
-include("functions_helpers.jl")
-include("functions_validation.jl")
-include("functions_f2.jl")
-include("functions_plots.jl")
 
 
 """
@@ -236,12 +232,30 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     return boxes, stats
 end
 
+### First region
+κ_lo, κ_hi = 0.0, 0.5
+μ_lo, μ_hi = 0.0, 0.0886765
 
-κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+nx, ny =  2464, 89
+boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+### Second region 
+κ_lo, κ_hi = 0.5, 1.25
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 4 * 2464, 4 * 89
-boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes2_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+### Third region 
+κ_lo, κ_hi = 1.25, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.0886765
+
+nx, ny = 2464,  89
+boxes2_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+
+append!(boxes2_validated, boxes2_validated2)
+append!(boxes2_validated, boxes2_validated3)
 
 
 # --- Root count plot ---

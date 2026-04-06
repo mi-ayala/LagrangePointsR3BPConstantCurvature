@@ -1,12 +1,7 @@
-using IntervalArithmetic
-using Printf
 using Roots
 using CairoMakie
-
-include("functions_helpers.jl")
-include("functions_validation.jl")
-include("functions_f3.jl")
-include("functions_plots.jl")
+using IntervalArithmetic
+using RC3BP
 
 
 function classify_f3_rootcount(Iθm::Interval, Iκ::Interval, Iμ::Interval; verbose::Bool=false)
@@ -207,11 +202,32 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+### First region
+κ_lo, κ_hi = 0.0, 0.5
+μ_lo, μ_hi = 0.0, 0.0886765
+
+nx, ny =  2464, 89
+boxes3_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+### Second region 
+κ_lo, κ_hi = 0.5, 2.0
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 4 * 2464, 4 * 89
-boxes3_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes3_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+### Third region 
+κ_lo, κ_hi = 2.0, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.0886765
+
+nx, ny = 2*2464,  2*89
+boxes3_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+
+append!(boxes3_validated, boxes3_validated2)
+append!(boxes3_validated, boxes3_validated3)
+
+
 
 
 

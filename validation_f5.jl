@@ -1,12 +1,7 @@
-using IntervalArithmetic
-using Printf
 using Roots
 using CairoMakie
-
-include("functions_helpers.jl")
-include("functions_validation.jl")
-include("functions_f5.jl")
-include("functions_plots.jl")
+using IntervalArithmetic
+using RC3BP
 
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
@@ -176,6 +171,18 @@ end
 
 nx, ny =  4*2464, 4*89
 @time boxes5_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # --- Root count plot ---
