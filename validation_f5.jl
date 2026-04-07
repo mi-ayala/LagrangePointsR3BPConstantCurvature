@@ -166,21 +166,25 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+κ_lo, κ_hi = 0.0, 0.5
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny =  4*2464, 4*89
-@time boxes5_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+### Second region 
+κ_lo, κ_hi = 0.5, 1.5
+μ_lo, μ_hi = 0.0, 0.0886765
 
+nx, ny = 4 * 2464, 4 * 89
+boxes2_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+### Third region 
+κ_lo, κ_hi = 1.5, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.0886765
 
-
-
-
-
-
-
+nx, ny = 4*2464,  4*89
+boxes2_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
 

@@ -7,7 +7,6 @@ append!(boxes5, boxes5neg)
 
 include("functions_plots.jl")
 # # Plot
-
 fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type=:root,
     ms=4,

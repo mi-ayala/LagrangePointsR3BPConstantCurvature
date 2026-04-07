@@ -62,7 +62,6 @@ function θm_from_br(br, κ, μ; atol=1e-12, verbose=false)
     return found ? bestθ : NaN
 end
 
-
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,
@@ -136,7 +135,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
             else
 
-                br = brackets_signchanges(θ -> f₃(θ, κc, μc), θmin, θmax)
+                br = brackets_signchanges(θ -> f₃(θ, κc, μc), θmin, θmax; n=2000)
 
 
                 root1 = find_zero(θ -> f₃(θ, κc, μc), br[1]; atol=1e-12)
@@ -206,21 +205,21 @@ end
 κ_lo, κ_hi = 0.0, 0.5
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny =  2464, 89
+nx, ny =  3*2464, 3*89
 boxes3_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 ### Second region 
 κ_lo, κ_hi = 0.5, 2.0
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 4 * 2464, 4 * 89
+nx, ny = 3 * 2464, 3 * 89
 boxes3_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 ### Third region 
 κ_lo, κ_hi = 2.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 2*2464,  2*89
+nx, ny = 3*2464,  3*89
 boxes3_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
