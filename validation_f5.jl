@@ -170,24 +170,25 @@ end
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny =  4*2464, 4*89
-boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes5_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 ### Second region 
 κ_lo, κ_hi = 0.5, 1.5
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 4 * 2464, 4 * 89
-boxes2_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes5_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 ### Third region 
 κ_lo, κ_hi = 1.5, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
 nx, ny = 4*2464,  4*89
-boxes2_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+boxes5_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
-
+append!(boxes5_validated, boxes5_validated2)
+append!(boxes5_validated, boxes5_validated3)
 
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes(boxes5_validated;
@@ -196,7 +197,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes(boxes5_validated;
     # κlims=(0.0, 0.24),
 )
 
-save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_root_regions.png", fig1)
+save("figures/validated/f5_root_regions.png", fig1)
 
 # --- Stability plot (root 1) ---
 
@@ -206,7 +207,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes(boxes5_validated;
     # title="Stability (root 1)",
 )
 
-save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_stability_root1.png", fig2)
+save("figures/validated/f5_stability_root1.png", fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes(boxes5_validated;
@@ -215,5 +216,5 @@ fig3, ax3 = plot_regions_all_labels_from_boxes(boxes5_validated;
     # title="Stability (root 2)",
 )
 
-save("/Users/miguelayala/Research/R3BP-on-spaces-with-constant-curvature/figures Miguel/validated/f5_stability_root2.png", fig3)
+save("figures/validated/f5_stability_root2.png", fig3)
 
