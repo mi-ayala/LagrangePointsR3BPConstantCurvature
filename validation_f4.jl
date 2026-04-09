@@ -99,13 +99,28 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-κ_lo, κ_hi = 0.0001, (0.5 * pi)^2
-μ_lo, μ_hi = 0.0001, 0.0886765
+# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+# μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny =  2*2464, 2*500
-# nx, ny =  2*2000, 2*2000
+# nx, ny =  4*2464, 4*500
+# # nx, ny =  2*2000, 2*2000
+# boxes4_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+
+κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+μ_lo, μ_hi = 0.02, 0.0886765
+
+nx, ny = 4*2464,  4*500
 boxes4_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
+
+κ_lo, κ_hi = 0.0, (0.5 * pi)^2
+μ_lo, μ_hi = 0.0, 0.02
+
+nx, ny = 4* 2464, 4 * 500
+boxes4_validated2, stats2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+
+append!(boxes4_validated, boxes4_validated2)
 
 # --- Root count plot ---
 fig1, ax1 = plot_regions_all_labels_from_boxes(boxes4_validated;

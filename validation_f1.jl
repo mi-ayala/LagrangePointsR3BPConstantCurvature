@@ -96,14 +96,14 @@ end
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.02, 0.0886765
 
-nx, ny = 2*2464,  2*89
+nx, ny = 4*2464,  4*89
 boxes1_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.02
 
-nx, ny = 2* 2464, 2 * 89
+nx, ny = 4* 2464, 4 * 89
 boxes1_validated2, stats2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 append!(boxes1_validated, boxes1_validated2)
