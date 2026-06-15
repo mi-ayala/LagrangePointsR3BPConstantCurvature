@@ -24,7 +24,6 @@ function print_eval(label, f)
 end
 
 println("Interval input check for helpers, functions, and derivatives")
-println("This file only prints outputs so we can inspect whether any interval evaluation looks problematic.")
 
 Iθ = interval(0.35, 1e-4; format=:midpoint)
 Ix = interval(0.35, 1e-4; format=:midpoint)
