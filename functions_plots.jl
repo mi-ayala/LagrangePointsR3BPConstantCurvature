@@ -310,148 +310,7 @@ function combine_rootcount_boxes(boxes_list; unknown_wins::Bool=true)
     return out
 end
 
-# function plot_mu_slice_theta_over_sqrtkappa_collinear(boxes, μ;
-#     use::Symbol=:stability,
-#     μtol::Real=Inf,
-#     κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
-#     alpha::Real=1.0,
-#     ms::Real=4.0,
-#     title::AbstractString="",
-#     axis_box::Bool=true,
-# )
-#     @assert use === :stability || use === :rootcount
 
-#     κlo, κhi = κlims
-#     μlo, μhi = 0.0, 0.0886765
-#     @assert κhi > κlo
-
-    
-#     μvals = Float64[]
-#     for bx in boxes
-#         _, _, μc, _, _, _, _ = bx
-#         push!(μvals, μc)
-#     end
-#     @assert !isempty(μvals) "boxes is empty"
-#     idx = argmin(abs.(μvals .- float(μ)))
-#     μstar = μvals[idx]
-#     if abs(μstar - float(μ)) > float(μtol)
-#         error("No μ slice within μtol=$(μtol). Closest is μstar=$(μstar).")
-#     end
-
-#     # --- figure/axis ---
-#     fig = Figure()
-#     ax = Axis(fig[1, 1];
-#         xlabel=L"\mathbf{\kappa}",
-#         # ylabel=L"\mathbf{\theta}/\sqrt{\mathbf{|\kappa|}}",
-#         # title=title == "" ? "μ ≈ $(μstar)" : title,
-#         titlesize=AXIS_TITLE_SIZE,
-#         ylabelsize=AXIS_LABEL_SIZE,
-#         xlabelsize=AXIS_LABEL_SIZE,
-#         xticklabelsize=AXIS_TICK_SIZE,
-#         yticklabelsize=AXIS_TICK_SIZE,
-#         topspinevisible=true,
-#         rightspinevisible=true,
-#         xgridvisible=true,
-#         ygridvisible=true,
-#         xgridstyle=:dot,
-#         ygridstyle=:dot,
-#         xgridwidth=GRID_LINE_WIDTH,
-#         ygridwidth=GRID_LINE_WIDTH,
-#         xgridcolor=GRID_LINE_COLOR,
-#         ygridcolor=GRID_LINE_COLOR,
-#         xtickalign=1,
-#         ytickalign=1,
-#         xticksmirrored=true,
-#         yticksmirrored=true,
-#         spinewidth=2,
-#         xtickwidth=2,
-#         ytickwidth=2,
-#     )
-#     if axis_box
-#         ax.topspinevisible = true
-#         ax.rightspinevisible = true
-#     end
-#     xlims!(ax, κlo, κhi)
-#     ylims!(ax, -3.5, 3.5)
-
-
-#     # group points by label (one scatter per label)
-#     pts_by_lbl = Dict{Symbol,Tuple{Vector{Float64},Vector{Float64}}}()
-
-#     # helper: add one root point
-#     function _add_point!(lbl::Symbol, κc::Float64, y::Float64)
-#         xy = get!(pts_by_lbl, lbl) do
-#             (Float64[], Float64[])
-#         end
-#         push!(xy[1], κc)
-#         push!(xy[2], y)
-#         return nothing
-#     end
-
-#     # (:two_roots, κc, μc, root1, root2, stability_root1, stability_root2)
-#     for bx in boxes
-#         root_lbl, κc, μc, θ1, θ2, stab1, stab2 = bx
-
-#         abs(μc - μstar) > 1e-9 && continue
-#         (κc < κlo || κc > κhi) && continue
-#         κc <= 0 && continue
-
-#         invsqrtκ = inv(sqrt(abs(κc)))
-
-#         # root 1
-#         if isfinite(θ1)
-#             y1 = θ1 * invsqrtκ
-#             lbl1 = (use === :stability) ? stab1 : root_lbl
-#             _add_point!(lbl1, κc, y1)
-#         end
-
-#         # root 2
-#         if isfinite(θ2)
-#             y2 = θ2 * invsqrtκ
-#             lbl2 = (use === :stability) ? stab2 : root_lbl
-#             _add_point!(lbl2, κc, y2)
-#         end
-#     end
-
-#     labels = collect(keys(pts_by_lbl))
-#     labels_plot = [filter(!=(:unknown), labels)...]
-#     if :unknown in labels
-#         push!(labels_plot, :unknown)
-#     end
-
-#     for lbl in labels_plot
-#         κs, ys = pts_by_lbl[lbl]
-
-#         col = if lbl === :unknown
-#             RGBf(0, 0, 0)
-#         elseif use === :stability
-#             Makie.to_color(stability_color(lbl))
-#         else
-#             Makie.to_color(rootcount_color(lbl))
-#         end
-#         α = (lbl === :unknown) ? 1.0 : float(alpha)
-
-#         scatter!(ax, κs, ys; markersize=ms, color=col, alpha=α)
-#     end
-
-#     # # --- overlay q1/sqrt(κ) and q2/sqrt(κ) ---
-#     κplot = collect(range(max(κlo, 1e-8), κhi; length=800))
-#     μplot = collect(range(μlo, μhi; length=800))
-
-#     q1vals = [q₁(κ, μstar) for κ in κplot]
-#     q2vals = [q₂(κ, μstar) for κ in κplot]
-
-#     muval = [(pi / 2)^2 for _ in κplot]
-
-#     lines!(ax, κplot, q1vals; color=:black, linewidth=2, linestyle=:dash)
-#     lines!(ax, κplot, q2vals; color=:black, linewidth=2, linestyle=:dash)
-
-#     # vlines!(ax,[(pi/2)^2] ; color=:black, linewidth=2)
-
-
-
-#     return fig, ax, μstar
-# end
 
 function plot_mu_slice_theta_over_sqrtkappa_collinear(boxes, μ;
     use::Symbol=:stability,
@@ -665,8 +524,9 @@ function plot_mu_slice_theta_over_sqrtkappa_collinear(boxes, μ;
         lines!(ax,
             [κs, κs],
             [ybottom, ys];
-            color=:black,
-            linewidth=4.0,
+            color=:grey,
+            linestyle=:dot,
+            linewidth=2.5,
         )
     end
 
@@ -1121,16 +981,18 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
         lines!(ax,
             [κ1, κ2],
             [y1, y2];
-            color=:black,
-            linewidth=4.0,
+            color=:grey,
+            linewidth=2.5,
+            linestyle=:dot,
         )
 
         # vertical line from floor of box to the chosen switch point
         lines!(ax,
             [κs, κs],
             [ybottom, ys];
-            color=:black,
-            linewidth=4.0,
+            color=:grey,
+            linewidth=2.5,
+            linestyle=:dot,
         )
     end
 
@@ -1158,8 +1020,9 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
             lines!(ax,
                 [κs, κs],
                 [ybottom, ys];
-                color=:black,
-                linewidth=4.0,
+                color=:grey,
+            linewidth=2.5,
+            linestyle=:dot,
             )
         else
             println("yellow_lbl = ", yellow_lbl, " was not found in pts_by_lbl.")
