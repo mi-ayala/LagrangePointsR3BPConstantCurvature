@@ -50,7 +50,9 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         θmax_refined = sup(θ4_max(Iκ, Iμ))
         θmin_refined = inf(θ4_min(Iκ, Iμ))
 
-
+        ### Domain checking
+        (I_left, I_right) = Intθ_4(Iκ, Iμ)
+        
         ok_root, data = validate_root_sign_mono(
             f₄,
             f₄θ,
@@ -63,6 +65,10 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             min_radius=1e-12,
             verbose=false,
         )
+
+        if sup(I_left) > inf(data.Iθ) || inf(I_right) < sup(data.Iθ)
+            ok_root = false
+        end
 
         keep_invalid = true
 

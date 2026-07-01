@@ -135,6 +135,10 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         θmax_refined = sup(Intθ_2(Iκ, Iμ)[2])
         θmin_refined = inf(Intθ_2(Iκ, Iμ)[1])
 
+        ### Domain checking
+        (I_left, I_right) = Intθ_2(Iκ, Iμ)
+
+
         ok_root, data = validate_root_sign_mono(
             f₂θ,
             f₂θθ,
@@ -191,6 +195,11 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                     verbose=false,
                 )
 
+                if sup(I_left) > inf(data1.Iexist) || inf(I_right) < sup(data1.Iexist)
+                    ok_root1 = false
+                end
+
+
                 ok_root2, data2 = validate_root_sign_mono(
                     f₂,
                     f₂θ,
@@ -204,8 +213,13 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                     verbose=false,
                 )
 
+                if sup(I_left) > inf(data2.Iexist) || inf(I_right) < sup(data2.Iexist)
+                    ok_root2 = false
+                end
+
                 _, stability_label1 = classify_equilibrium(data1.Iexist, Iκ, Iμ)
                 _, stability_label2 = classify_equilibrium(data2.Iexist, Iκ, Iμ)
+
 
 
 
@@ -236,7 +250,7 @@ end
 κ_lo, κ_hi = 0.0, 0.5
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny =  4*2464,  4*89
+nx, ny = 4*2464, 4*89
 boxes2_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 ### Second region 
@@ -250,7 +264,7 @@ boxes2_validated2, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi;
 κ_lo, κ_hi = 1.25, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.0886765
 
-nx, ny = 4*2464,  4*89
+nx, ny = 4*2464, 4*89
 boxes2_validated3, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 

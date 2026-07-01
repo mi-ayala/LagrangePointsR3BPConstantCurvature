@@ -60,6 +60,14 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         keep_invalid = true
 
+
+        ### Domain checking
+        (I_left,I_right) = Intθ_1(Iκ, Iμ)
+        if sup(I_left) > inf(data.Iθ) || inf(I_right) < sup(data.Iθ)
+            ok_root = false
+        end
+
+
         if ok_root
 
             _, root_label = finalize_root_label(complements_nonzero(f₁, interval(0.0, θmax_refined), data.J, Iκ, Iμ))
@@ -98,7 +106,6 @@ end
 
 nx, ny = 4*2464,  4*89
 boxes1_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
-
 
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.02
