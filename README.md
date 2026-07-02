@@ -2,12 +2,8 @@
 
 This repository contains the Julia codes associated with the paper: "
 Lagrange points of the restricted 3 body problem on spaces with
-constant curvature" by M Ayala, R Choksi and B Wirth.
+constant curvature" 
 
- [🔗 arXiv:2506.22614](https://arxiv.org/abs/2506.22614) 
-From Crystallization to Carbon Nanotubes" by Miguel Ayala, Carlos Barrera-Anzaldo and Luis García-Naranjo.
-
- <!-- [🔗 arXiv:2506.22614](https://arxiv.org/abs/2506.22614)    -->
 
 ## Abstract
 We continue the study initiated by Kilin ({\em Reg. Chaot. Dyn.} 4, (1999)) and by Mart\'inez and Sim\'o  ({\em Celest. Mech. Dynam. Astronom.} 128, (2017)) 
@@ -18,8 +14,5 @@ These results provide rigorous confirmation of phenomena for which previously on
 differences between the behavior of relative equilibria in positive curvature and that observed in the planar and negative-curvature cases. 
 Our analysis focuses on the regime of small $\mu$ and indicates that positive curvature has a stabilizing effect on the triangular equilibria 
 $\Ll_4$ and $\Ll_5$, whereas negative curvature appears to have the opposite effect.
-\end{abstract}
-\tableofcontents
 
 
-<!-- ![Alt text](Poster.png)  -->
