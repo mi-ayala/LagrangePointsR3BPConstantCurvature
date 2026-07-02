@@ -73,6 +73,7 @@ boxes5neg = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, 
 
 fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     κlims=(κ_lo, κ_hi),
+    μlims=(μ_lo, μ_hi),
     label_type=:root,
     ms=4,
 )
@@ -82,6 +83,7 @@ save("figures/numerics/f5_root_regions_negative_numerics.png", fig1)
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     κlims=(κ_lo, κ_hi),
+    μlims=(μ_lo, μ_hi),
     label_type=:stability,
     root_index=1,
     ms=4
@@ -92,6 +94,7 @@ save("figures/numerics/f5_stability_root1_negative_numerics.png", fig2)
 
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     κlims=(κ_lo, κ_hi),
+    μlims=(μ_lo, μ_hi),
     label_type=:stability,
     root_index=2,
     ms=4

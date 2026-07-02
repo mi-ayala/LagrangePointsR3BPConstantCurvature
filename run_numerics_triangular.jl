@@ -1,15 +1,17 @@
 
-
+include("functions_plots.jl")
 include("numerics_f5.jl")
 include("numerics_f5neg.jl")
 append!(boxes5, boxes5neg)
 
 
-include("functions_plots.jl")
+
 # # Plot
 fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type=:root,
     ms=4,
+    κlims = (κ_lo, κ_hi),
+    μlims = (μ_lo, μ_hi)
 )
 
 save("figures/numerics/f5_root_regions_numerics2.png", fig1)
@@ -18,6 +20,8 @@ save("figures/numerics/f5_root_regions_numerics2.png", fig1)
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type=:stability,
     root_index=1,
+    κlims = (κ_lo, κ_hi),
+    μlims = (μ_lo, μ_hi),
     ms=4
 )
 
@@ -27,6 +31,8 @@ save("figures/numerics/f5_stability_root1_numerics2.png", fig2)
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     label_type=:stability,
     root_index=2,
+    κlims = (κ_lo, κ_hi),
+    μlims = (μ_lo, μ_hi),
     ms=4
 )
 
