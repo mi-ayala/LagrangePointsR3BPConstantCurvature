@@ -1,7 +1,6 @@
 using RC3BP
 using JLD2
 
-include("functions_plots.jl")
 include("validation_f1.jl")
 include("validation_f2.jl")
 include("validation_f3.jl")
@@ -23,7 +22,7 @@ fig, ax = plot_unknown_boxes(boxes;
     overlay_ny=10,
 )
 
-save("figures/validated/proof_regions.png", fig)
+save(joinpath(@__DIR__, "..", "figures", "validated", "proof_regions.png"), fig)
 
 using JLD2
 

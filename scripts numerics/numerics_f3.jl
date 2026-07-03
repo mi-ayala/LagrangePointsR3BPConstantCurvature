@@ -77,7 +77,7 @@ boxes3 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, ver
 #     ms = 4,
 # )
 
-# save("figures/numerics/f3_root_regions_numerics.png", fig1)
+# save(joinpath(@__DIR__, "..", "figures", "numerics", "f3_root_regions_numerics.png"), fig1)
 
 
 # fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes3;
@@ -86,7 +86,7 @@ boxes3 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, ver
 #         ms = 4
 # )
 
-# save("figures/numerics/f3_stability_root1_numerics.png", fig2)
+# save(joinpath(@__DIR__, "..", "figures", "numerics", "f3_stability_root1_numerics.png"), fig2)
 
 
 # fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes3;
@@ -95,7 +95,7 @@ boxes3 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, ver
 #         ms = 4
 # )
 
-# save("figures/numerics/f3_stability_root2_numerics.png", fig3)
+# save(joinpath(@__DIR__, "..", "figures", "numerics", "f3_stability_root2_numerics.png"), fig3)
 
 
 

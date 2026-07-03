@@ -207,7 +207,6 @@ else
 end
 
 
-include("functions_plots.jl")
 
 
 function plot_regions_all_labels_from_boxes5(boxes;
@@ -442,7 +441,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     # κlims=(0.0, 0.24),
 )
 
-save("figures/validated/f5_root_regions.png", fig1)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f5_root_regions.png"), fig1)
 
 # --- Stability plot (root 1) ---
 
@@ -452,7 +451,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     # title="Stability (root 1)",
 )
 
-save("figures/validated/f5_stability_root1.png", fig2)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f5_stability_root1.png"), fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes5(boxes5_validated;
@@ -461,6 +460,9 @@ fig3, ax3 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     # title="Stability (root 2)",
 )
 
-save("figures/validated/f5_stability_root2.png", fig3)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f5_stability_root2.png"), fig3)
 
 
+# boxes5_validated: smallest validated μ lower edge = 0.0
+#   label=one_root, center=(κ=7.609577922077922e-5, μ=0.00012454564606741573)
+#   κ interval=[5.073051948051948e-5, 0.00010146103896103897], μ interval=[0.0, 0.00024909129213483147]

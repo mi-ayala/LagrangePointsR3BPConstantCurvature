@@ -66,9 +66,9 @@ end
 
 
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
-μ_lo, μ_hi = 0.0, 1.0
+μ_lo, μ_hi = 0.0, .25
 
-nx, ny = 1000, 1000
+nx, ny = 2000, 2000
 
 
 boxes5 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
@@ -81,7 +81,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)
 )
 
-save("figures/numerics/f5_root_regions_numerics.png", fig1)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_root_regions_numerics.png"), fig1)
 
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -92,7 +92,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)    
 )
 
-save("figures/numerics/f5_stability_root1_numerics.png", fig2)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root1_numerics.png"), fig2)
 
 
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -103,6 +103,6 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)    
 )
 
-save("figures/numerics/f5_stability_root2_numerics.png", fig3)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root2_numerics.png"), fig3)
 
 

@@ -1,10 +1,7 @@
-using IntervalArithmetic
-using Printf
 using Roots
 using CairoMakie
+using IntervalArithmetic
 using RC3BP
-
-
 
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
@@ -32,49 +29,48 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         κc = κ_lo + (i - 0.5) * Δκ
         μc = μ_lo + (j - 0.5) * Δμ
 
-        (θmin, θmax) = Intθ_4(κc, μc)
+        (θmin, θmax) = Intθ_1(κc, μc)
 
-        br = brackets_signchanges(θ -> f₄(θ, κc, μc), θmin, θmax)
+        br = brackets_signchanges(θ -> f₁(θ, κc, μc), θmin, θmax)
 
         if isempty(br)
             continue
         end
-        seeded += 1 # Seeded means we found a root 
+        seeded += 1
 
-        # 2) refine the root 
-        root = find_zero(θ -> f₄(θ, κc, μc), br[1]; atol=1e-12)
+        root = find_zero(θ -> f₁(θ, κc, μc), br[1]; atol=1e-12)
 
         Iκ = interval(κc, rκ; format=:midpoint)
         Iμ = interval(μc, rμ; format=:midpoint)
 
-        θmax_refined = sup(θ4_max(Iκ, Iμ))
-        θmin_refined = inf(θ4_min(Iκ, Iμ))
+        θmax_refined = sup(θ1_max(Iκ, Iμ))
 
-        ### Domain checking
-        (I_left, I_right) = Intθ_4(Iκ, Iμ)
-        
         ok_root, data = validate_root_sign_mono(
-            f₄,
-            f₄θ,
+            f₁,
+            f₁θ,
             root,
-            interval(θmin_refined, θmax_refined),
+            interval(0.0, θmax_refined),
             Iκ,
             Iμ;
-            ntiles=50,
+            ntiles=16,
             min_width=1e-12,
             min_radius=1e-12,
             verbose=false,
         )
 
+        keep_invalid = true
+
+
+        ### Domain checking
+        (I_left,I_right) = Intθ_1(Iκ, Iμ)
         if sup(I_left) > inf(data.Iθ) || inf(I_right) < sup(data.Iθ)
             ok_root = false
         end
 
-        keep_invalid = true
 
         if ok_root
 
-            _, root_label = finalize_root_label(complements_nonzero(f₄, interval(θmin_refined, θmax_refined), data.J, Iκ, Iμ))
+            _, root_label = finalize_root_label(complements_nonzero(f₁, interval(0.0, θmax_refined), data.J, Iκ, Iμ))
 
             _, stability_label = classify_equilibrium(data.Iexist, Iκ, Iμ)
 
@@ -105,55 +101,33 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 end
 
 
-# κ_lo, κ_hi = 0.0, (0.5 * pi)^2
-# μ_lo, μ_hi = 0.0, 0.0886765
-
-# nx, ny =  4*2464, 4*500
-# # nx, ny =  2*2000, 2*2000
-# boxes4_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
-
-
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.02, 0.0886765
 
-nx, ny = 4*2464,  4*500
-boxes4_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
-
+nx, ny = 4*2464,  4*89
+boxes1_validated, stats = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
 κ_lo, κ_hi = 0.0, (0.5 * pi)^2
 μ_lo, μ_hi = 0.0, 0.02
 
-nx, ny = 4* 2464, 4 * 500
-boxes4_validated2, stats2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
+nx, ny = 4* 2464, 4 * 89
+boxes1_validated2, stats2 = cover_rectangle_grid_rect(κ_lo, κ_hi, μ_lo, μ_hi; nx=nx, ny=ny, verbose=true)
 
-append!(boxes4_validated, boxes4_validated2)
+append!(boxes1_validated, boxes1_validated2)
 
-# --- Root count plot ---
-fig1, ax1 = plot_regions_all_labels_from_boxes(boxes4_validated;
+fig1, ax1 = plot_regions_all_labels_from_boxes(
+    boxes1_validated;
     label_type=:root,
-    # title="Root-count",
-        overlay_rect = (0.0, (pi^2 / 16), 0.0, 0.0886765),
-    # overlay_nx=14,
-    # overlay_ny=10,
-    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha=1.0,
-    # overlay_lw=0.8,
+    overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
+    overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0)
 )
+save(joinpath(@__DIR__, "..", "figures", "validated", "f1_root_regions.png"), fig1)
 
-save("figures/validated/f4_root_regions.png", fig1)
-
-# --- Stability plot (root 1) ---
-fig2, ax2 = plot_regions_all_labels_from_boxes(boxes4_validated;
+fig2, ax2 = plot_regions_all_labels_from_boxes(boxes1_validated;
     label_type=:stability,
-    # title="Stability ",
-        overlay_rect = (0.0, (pi^2 / 16), 0.0, 0.0886765),
-    # overlay_nx=14,
-    # overlay_ny=10,
+    root_index=1,
+    overlay_rect=(0.0, pi^2 / 16, 0.0, 0.0886765),
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1.0),
-    # overlay_alpha=1.0,
-    # overlay_lw=0.8,
 )
-
-save("figures/validated/f4_stability.png", fig2)
-
+save(joinpath(@__DIR__, "..", "figures", "validated", "f1_stability.png"), fig2)
 

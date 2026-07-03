@@ -18,7 +18,7 @@ include("functions_f4.jl")
 include("functions_f4neg.jl")
 include("functions_f5.jl")
 include("functions_f5neg.jl")
-# include("functions_plots.jl")
+include("functions_plots.jl")
 
 export twice, csc, powabs3, sqr, three, inv3, cbrt_t
 export q₁, q₂, Γ, λ₁, λ₂, detλ, c₂, Δ, q₁μ, q₁κ, Γμ, Γκ, Λ, Λκ, Λμ
@@ -39,10 +39,12 @@ export f₄neg, f₄negθ
 export sinc_t, f₅, f₅θ, Intθ_5
 export q₁neg, q₂neg, Γneg, Λneg, f₅neg, classify_center_equilibrium_num_neg, Intθ_5neg
 
-# export rootcount_color, stability_color
-# export plot_regions_all_labels_from_boxes
-# export plot_regions_all_labels_from_boxes_numerics
-# export plot_regions_all_labels_from_total_boxes
-# export plot_mu_slice_theta_over_sqrtkappa
+export rootcount_color, stability_color
+export plot_regions_all_labels_from_boxes
+export plot_regions_all_labels_from_boxes_numerics
+export plot_regions_all_labels_from_total_boxes
+export plot_mu_slice_theta_over_sqrtkappa_collinear
+export plot_unknown_boxes
+export combine_rootcount_boxes
 
 end # module RC3BP

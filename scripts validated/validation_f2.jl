@@ -285,7 +285,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes(boxes2_validated;
     # overlay_lw=0.8,
 )
 
-save("figures/validated/f2_root_regions.png", fig1)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f2_root_regions.png"), fig1)
 
 # --- Stability plot (root 1) ---
 fig2, ax2 = plot_regions_all_labels_from_boxes(boxes2_validated;
@@ -301,7 +301,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes(boxes2_validated;
     # overlay_lw=0.8,
 )
 
-save("figures/validated/f2_stability_root1.png", fig2)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f2_stability_root1.png"), fig2)
 
 # --- Stability plot (root 2) ---
 fig3, ax3 = plot_regions_all_labels_from_boxes(boxes2_validated;
@@ -315,7 +315,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes(boxes2_validated;
     # title = "Stability (root 2)",
 )
 
-save("figures/validated/f2_stability_root2.png", fig3)
+save(joinpath(@__DIR__, "..", "figures", "validated", "f2_stability_root2.png"), fig3)
 
 
 

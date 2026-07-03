@@ -63,8 +63,7 @@ end
 
 
 κ_lo, κ_hi = -(0.5 * pi)^2, 0.0
-μ_lo, μ_hi = 0.0, 1.0
-
+μ_lo, μ_hi = 0.0, .25
 nx, ny = 2000, 2000
 
 
@@ -78,7 +77,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     ms=4,
 )
 
-save("figures/numerics/f5_root_regions_negative_numerics.png", fig1)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_root_regions_negative_numerics.png"), fig1)
 
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
@@ -89,7 +88,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     ms=4
 )
 
-save("figures/numerics/f5_stability_root1_negative_numerics.png", fig2)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root1_negative_numerics.png"), fig2)
 
 
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
@@ -100,7 +99,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5neg;
     ms=4
 )
 
-save("figures/numerics/f5_stability_root2_negative_numerics.png", fig3)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root2_negative_numerics.png"), fig3)
 
 
 
