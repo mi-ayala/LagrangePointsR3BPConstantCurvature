@@ -7,6 +7,7 @@ const AXIS_TICK_SIZE = RC3BP.AXIS_TICK_SIZE
 const AXIS_TITLE_SIZE = RC3BP.AXIS_TITLE_SIZE
 const GRID_LINE_WIDTH = RC3BP.GRID_LINE_WIDTH
 const GRID_LINE_COLOR = RC3BP.GRID_LINE_COLOR
+const AXIS_LABEL_SIZE = RC3BP.AXIS_LABEL_SIZE
 
 include("numerics_f5.jl")
 include("numerics_f5neg.jl")
@@ -297,8 +298,8 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
     return fig, ax, μstar
 end
 
-κ_lo, κ_hi = -(0.5 * pi)^2, (0.5 * pi)^2
-μ_lo, μ_hi = 0.0, .25
+κ_lo, κ_hi = -1.0, 1.0
+μ_lo, μ_hi = 0.0, 0.25
 
 
 # # Plot
@@ -338,7 +339,7 @@ save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root2_numeric
 function plot_regions_all_labels_from_boxes_numerics_cross(boxes;
     label_type::Symbol=:root,
     root_index::Int=1,
-    κlims::Tuple{<:Real,<:Real}=(0.0, (0.5 * pi)^2),
+    κlims::Tuple{<:Real,<:Real}=(-1.0, 1.0),
     μlims::Tuple{<:Real,<:Real}=(0.0, .25),
     alpha::Real=0.5,
     ms::Real=3.0,
@@ -433,13 +434,11 @@ function plot_regions_all_labels_from_boxes_numerics_cross(boxes;
     lines!(ax, [κlo, κhi], [0.04];
         color=:black,
         linewidth=2.2,
-        # linestyle=:dash
     )
 
-        lines!(ax, [ -0.01], [μlo, μhi];
+        lines!(ax, [ -0.0], [μlo, μhi];
         color=:black,
         linewidth=2.2,
-        # linestyle=:dash
     )
 
 
@@ -447,7 +446,6 @@ function plot_regions_all_labels_from_boxes_numerics_cross(boxes;
 end
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics_cross(boxes5;
-    κlims=(-(0.5 * pi)^2, (0.5 * pi)^2),
     label_type=:stability,
     root_index=1,
     ms=4
