@@ -1,7 +1,7 @@
 # LagrangePointsR3BPConstantCurvature
 
 This repository contains the Julia codes associated with the paper: "
-Lagrange points of the restricted 3 body problem on spaces with
+Lagrange points of the restricted 3 body problem in spaces with
 constant curvature" by Miguel Ayala, Carlos Barrera-Anzaldo and Luis C. García-Naranjo.
 
  [🔗 arXiv:]()   
