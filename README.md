@@ -16,3 +16,9 @@ differences between the behavior of relative equilibria in positive curvature an
 Our analysis focuses on the regime of small $\mu$ and indicates that positive curvature has a stabilizing effect on the triangular equilibria 
 $\text{L}_4$ and $\text{L}_5$, whereas negative curvature appears to have the opposite effect.
 
+
+## Running the code
+This repository is a [Julia](https://julialang.org/downloads/) project. From the repository root, first install the dependencies:
+
+```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
