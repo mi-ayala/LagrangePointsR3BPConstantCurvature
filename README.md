@@ -1,13 +1,11 @@
 # LagrangePointsR3BPConstantCurvature
 
-This repository contains the Julia codes associated with the paper: "
-Lagrange points of the restricted 3 body problem in spaces with
-constant curvature" by Miguel Ayala, Carlos Barrera-Anzaldo and Luis C. García-Naranjo.
-
- [🔗 arXiv:]()   
+This repository contains the Julia code associated with the paper
+*Lagrange points of the restricted three-body problem in spaces with
+constant curvature* by Miguel Ayala, Carlos Barrera-Anzaldo, and Luis C. García-Naranjo.
 
 ## Abstract
-We continue the study initiated by Kilin (Reg. Chaot. Dyn. 4, (1999)) and by Martínez and Simó (Celest. Mech. Dynam. Astronom. 128, (2017)))
+We continue the study initiated by Kilin (Reg. Chaot. Dyn. 4, (1999)) and by Martínez and Simó (Celest. Mech. Dynam. Astronom. 128, (2017))
 on the classification and stability of the relative equilibria of the restricted three-body problem in two-dimensional spaces of constant curvature, which generalize the
  classical Lagrange points of the planar problem. After formulating the problem as an autonomous Lagrangian system with two degrees of freedom, whose only parameters are the curvature 
 $\kappa$ and the mass ratio $\mu$ of the primaries, we establish several classification results for the case $\kappa>0$ by combining analytical methods with computer-assisted proofs. 
@@ -22,3 +20,4 @@ This repository is a [Julia](https://julialang.org/downloads/) project. From the
 
 ```bash
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```

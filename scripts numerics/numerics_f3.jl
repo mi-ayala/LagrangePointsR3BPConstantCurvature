@@ -2,8 +2,6 @@ using Roots
 using CairoMakie
 using RC3BP
 
-
-
 function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
     μ_lo::Float64, μ_hi::Float64;
     nx::Int, ny::Int,

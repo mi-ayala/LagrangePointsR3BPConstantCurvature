@@ -2,8 +2,6 @@ using Roots
 using CairoMakie
 using RC3BP
 
-
-
 function classify_f2_rootcount(θM::Real, κ::Real, μ::Real; verbose::Bool=false)
     θM = float(θM)
     κ = float(κ)
