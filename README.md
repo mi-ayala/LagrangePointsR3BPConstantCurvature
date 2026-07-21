@@ -15,7 +15,6 @@ Our analysis focuses on the regime of small $\mu$ and indicates that positive cu
 $\text{L}_4$ and $\text{L}_5$, whereas negative curvature appears to have the opposite effect.
 
 
-## Running the code
 This repository is a [Julia](https://julialang.org/downloads/) project. From the repository root, first install the dependencies:
 
 ```bash
