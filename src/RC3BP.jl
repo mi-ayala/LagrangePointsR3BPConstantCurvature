@@ -16,8 +16,8 @@ include("functions_f3.jl")
 include("functions_f3neg.jl")
 include("functions_f4.jl")
 include("functions_f4neg.jl")
-include("functions_f5.jl")
-include("functions_f5neg.jl")
+include("functions_g.jl")
+include("functions_gneg.jl")
 include("functions_plots.jl")
 
 export twice, csc, powabs3, sqr, three, inv3, cbrt_t
@@ -36,8 +36,8 @@ export f₃, f₃θ, f₃θθ, Intθ_3, brackets_f₃
 export f₃neg, f₃negθ, f₃negθθ
 export f₄, f₄θ, Intθ_4, θ4_min, θ4_max, brackets_f₄
 export f₄neg, f₄negθ
-export sinc_t, f₅, f₅θ, Intθ_5
-export q₁neg, q₂neg, Γneg, Λneg, f₅neg, classify_center_equilibrium_num_neg, Intθ_5neg
+export sinc_t, g, gθ, Intθ_g
+export q₁neg, q₂neg, Γneg, Λneg, gneg, classify_center_equilibrium_num_neg, Intθ_gneg
 
 export rootcount_color, stability_color
 export plot_regions_all_labels_from_boxes

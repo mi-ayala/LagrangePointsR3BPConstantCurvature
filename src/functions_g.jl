@@ -1,4 +1,4 @@
-### Functions and derivatives for f₅
+### Functions and derivatives for g
 @inline function sinc_t(x)
     if x isa Interval
         return (inf(x) <= 0.0 <= sup(x)) ? interval(-1.0, 1.0) : sin(x) / x
@@ -8,7 +8,7 @@
 end
 
 
-function f₅(x, κ, μ)
+function g(x, κ, μ)
     x, κ, μ = promote(x, κ, μ)
 
     r = sqrt(κ)
@@ -34,7 +34,7 @@ function f₅(x, κ, μ)
     return pref * bracket - tail
 end
 
-function f₅θ(θ, κ, μ)
+function gθ(θ, κ, μ)
     θ, κ, μ = promote(θ, κ, μ)
 
     r = sqrt(κ)
@@ -64,7 +64,7 @@ function f₅θ(θ, κ, μ)
     return prefθ * bracket + pref * bracketθ
 end
 
-function Intθ_5(κ, μ)
+function Intθ_g(κ, μ)
     κ, μ = promote(κ, μ)
     r = sqrt(κ)
 

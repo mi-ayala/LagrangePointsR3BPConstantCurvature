@@ -30,22 +30,22 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         κc = κ_lo + (i - 0.5) * Δκ
         μc = μ_lo + (j - 0.5) * Δμ
 
-        (θmin, θmax) = Intθ_5(κc, μc)
+        (θmin, θmax) = Intθ_g(κc, μc)
 
-        br = brackets_signchanges(θ -> f₅(θ, κc, μc), θmin, θmax)
+        br = brackets_signchanges(θ -> g(θ, κc, μc), θmin, θmax)
 
         Iκ = interval(κc, rκ; format=:midpoint)
         Iμ = interval(μc, rμ; format=:midpoint)
 
-        θmax_refined = sup(Intθ_5(Iκ, Iμ)[2])
-        θmin_refined = inf(Intθ_5(Iκ, Iμ)[1])
+        θmax_refined = sup(Intθ_g(Iκ, Iμ)[2])
+        θmin_refined = inf(Intθ_g(Iκ, Iμ)[1])
 
         # ------------------------
         # Case 0: no brackets
         # ------------------------
         if isempty(br)
-            # certify “no root” by proving f5 has fixed sign on the whole θ-interval
-            FI = eval_subdiv(f₅, interval(θmin_refined, θmax_refined), Iκ, Iμ; ntiles=50)
+            # certify “no root” by proving g has fixed sign on the whole θ-interval
+            FI = eval_subdiv(g, interval(θmin_refined, θmax_refined), Iκ, Iμ; ntiles=50)
 
             if ispos(FI) || isneg(FI)
                 push!(boxes, (:zero_roots, κc, μc, rκ, rμ, false, false, :zero_roots, :zero_roots))
@@ -58,11 +58,11 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             # Case 1: exactly one bracket
             # ------------------------
         elseif length(br) == 1
-            root = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
+            root = find_zero(θ -> g(θ, κc, μc), br[1]; atol=1e-12)
 
             ok_root, data = validate_root_sign_mono(
-                f₅,
-                f₅θ,
+                g,
+                gθ,
                 root,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
@@ -77,7 +77,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
             if ok_root
                 comp_ok = complements_nonzero(
-                    f₅,
+                    g,
                     interval(θmin_refined, θmax_refined),
                     data.J,
                     Iκ,
@@ -96,11 +96,11 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             end
 
             # ------------------------
-            # Case 2: two or more brackets (attempt “two roots”)
+            # Case 2: two or more brackets 
             # ------------------------
         else
-            root1 = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
-            root2 = find_zero(θ -> f₅(θ, κc, μc), br[2]; atol=1e-12)
+            root1 = find_zero(θ -> g(θ, κc, μc), br[1]; atol=1e-12)
+            root2 = find_zero(θ -> g(θ, κc, μc), br[2]; atol=1e-12)
 
             # order roots by absolute value
             if abs(root2) < abs(root1)
@@ -108,8 +108,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
             end
 
             ok_root1, data1 = validate_root_sign_mono(
-                f₅,
-                f₅θ,
+                g,
+                gθ,
                 root1,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
@@ -122,8 +122,8 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
 
             ok_root2, data2 = validate_root_sign_mono(
-                f₅,
-                f₅θ,
+                g,
+                gθ,
                 root2,
                 interval(θmin_refined, θmax_refined),
                 Iκ,
@@ -140,7 +140,7 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
                 _, stability_label2 = classify_center_equilibrium(data2.Iexist, Iκ, Iμ)
 
                 comp_ok = complements_nonzero2(
-                    f₅,
+                    g,
                     interval(θmin_refined, θmax_refined),
                     data1.J,
                     data2.J,
@@ -219,8 +219,8 @@ function plot_regions_all_labels_from_boxes5(boxes;
     title::AbstractString="",
     axis_box::Bool=true,
 
-    # --- pretty analytical region overlay ---
-    overlay_rect=nothing,                    # (κa, κb, μa, μb)
+   
+    overlay_rect=nothing,                    
     overlay_nx::Int=0,
     overlay_ny::Int=0,
     overlay_color=RGBAf(0.97, 0.98, 1.00, 1),
@@ -245,9 +245,7 @@ function plot_regions_all_labels_from_boxes5(boxes;
 
     @inline clampi(i) = ifelse(i < 1, 1, ifelse(i > resolution, resolution, i))
 
-    # custom root colors:
-    # one_root -> color of two_roots
-    # two_roots -> color of four_roots
+
     @inline function rootcount_color_fixed(lbl::Symbol)
         return (
             lbl === :unknown ? "#1A1A1A" :
@@ -260,7 +258,7 @@ function plot_regions_all_labels_from_boxes5(boxes;
 
     colorfn = (label_type === :root) ? rootcount_color_fixed : stability_color
 
-    # --- collect labels ---
+    
     labels = Symbol[]
     for bx in boxes
         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
@@ -283,13 +281,13 @@ function plot_regions_all_labels_from_boxes5(boxes;
     end
     labels = sort!(unique(labels); by=String)
 
-    # --- masks ---
+    
     masks = Dict{Symbol,Matrix{UInt8}}()
     for lbl in labels
         masks[lbl] = fill(UInt8(0), resolution, resolution)
     end
 
-    # --- rasterize boxes ---
+    
     for bx in boxes
         root_lbl, κc, μc, rκ, rμ, ok1, ok2, stab1, stab2 = bx
 
@@ -325,7 +323,7 @@ function plot_regions_all_labels_from_boxes5(boxes;
         end
     end
 
-    # --- figure ---
+    
     fig = Figure()
     ax = Axis(fig[1, 1];
         xlabel=L"\mathbf{\kappa}",
@@ -368,7 +366,7 @@ function plot_regions_all_labels_from_boxes5(boxes;
         )
     end
 
-    # --- analytical region overlay ---
+    
     if overlay_rect !== nothing
         κa, κb, μa, μb = overlay_rect
         κa = max(float(κa), κlo)
@@ -434,35 +432,28 @@ function plot_regions_all_labels_from_boxes5(boxes;
     return fig, ax
 end
 
-# --- Root count plot ---
+
 fig1, ax1 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     label_type=:root,
-    # title="Root-count",
-    # κlims=(0.0, 0.24),
 )
 
-save(joinpath(@__DIR__, "..", "figures", "validated", "f5_root_regions.png"), fig1)
+save(joinpath(@__DIR__, "..", "figures", "validated", "g_root_regions.png"), fig1)
 
-# --- Stability plot (root 1) ---
+
 
 fig2, ax2 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     label_type=:stability,
-    root_index=1,
-    # title="Stability (root 1)",
+    root_index=1
 )
 
-save(joinpath(@__DIR__, "..", "figures", "validated", "f5_stability_root1.png"), fig2)
+save(joinpath(@__DIR__, "..", "figures", "validated", "g_stability_root1.png"), fig2)
 
-# --- Stability plot (root 2) ---
+
 fig3, ax3 = plot_regions_all_labels_from_boxes5(boxes5_validated;
     label_type=:stability,
-    root_index=2,
-    # title="Stability (root 2)",
+    root_index=2
 )
 
-save(joinpath(@__DIR__, "..", "figures", "validated", "f5_stability_root2.png"), fig3)
+save(joinpath(@__DIR__, "..", "figures", "validated", "g_stability_root2.png"), fig3)
 
 
-# boxes5_validated: smallest validated μ lower edge = 0.0
-#   label=one_root, center=(κ=7.609577922077922e-5, μ=0.00012454564606741573)
-#   κ interval=[5.073051948051948e-5, 0.00010146103896103897], μ interval=[0.0, 0.00024909129213483147]

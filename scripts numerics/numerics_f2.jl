@@ -92,8 +92,6 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax; n=2000)
 
-        # br = brackets_signchanges(θ -> f₂(θ, κc, μc), θmin, θmax)
-
         num_roots = length(br)
 
         if num_roots == 0

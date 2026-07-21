@@ -18,12 +18,11 @@ function eval_subdiv(f::Function,
 
     h = (b - a) / ntiles
 
-    # first tile
     left = a
     right = a + h
     H = f(interval(left, right), Iκ, Iμ)
 
-    # remaining tiles
+
     for k in 1:ntiles-1
         left = a + k * h
         right = (k == ntiles - 1) ? b : a + (k + 1) * h  # last tile closes at b
@@ -47,20 +46,20 @@ function certify_sign_interval_centered(
 )
     a, b = inf(Iθ), sup(Iθ)
 
-    # θc must be strictly inside Iθ
+    
     if !(a < θc < b)
         verbose && println("θc = $θc not strictly inside Iθ = $Iθ")
         return (:unknown, interval(θc), interval(0))
     end
 
-    # largest symmetric radius allowed by Iθ
+    
     rmax = min(θc - a, b - θc)
     r = rmax
 
     for _ in 1:max_halvings
         Ic = interval(θc, r; format=:midpoint)
 
-        # 1) direct evaluation
+        
         FI = f(Ic, Iκ, Iμ)
         if ispos(FI)
             verbose && println("f > 0 on ", Ic, " (direct)")
@@ -70,7 +69,7 @@ function certify_sign_interval_centered(
             return (:neg, Ic, FI)
         end
 
-        # 2) fixed-partition refinement using the generic evaluator
+        
         FI_sub = eval_subdiv(f, Ic, Iκ, Iμ; ntiles=ntiles)
         if ispos(FI_sub)
             verbose && println("f > 0 on ", Ic, " (subdiv)")
@@ -80,7 +79,7 @@ function certify_sign_interval_centered(
             return (:neg, Ic, FI_sub)
         end
 
-        # stopping criterion
+        
         if 2r <= min_width
             verbose && println("inconclusive at width≈", 2r, "  f(Ic)=", FI_sub)
             return (:unknown, Ic, FI_sub)
@@ -106,17 +105,17 @@ function find_sign_change_centered(
 )
     a, b = inf(J), sup(J)
 
-    # θc must lie strictly inside J
+    
     if !(a < θc < b)
         verbose && println("θc = $θc not strictly inside J = $J")
         return (:unknown, interval(θc), interval(0), interval(0))
     end
 
-    # largest symmetric radius allowed by J
+    
     rmax = min(θc - a, b - θc)
     r = rmax
 
-    # keep track of last interval / values in case we fail
+    
     last_Iexist = interval(θc)
     last_fL = interval(0)
     last_fR = interval(0)
@@ -151,7 +150,7 @@ function find_sign_change_centered(
         r *= 0.5
     end
 
-    # Reached max_halvings without success
+    
     verbose && println("Stopping: reached max_halvings = $max_halvings")
     return (:unknown, last_Iexist, last_fL, last_fR)
 end
@@ -193,7 +192,7 @@ function find_sign_change_centered_refine(
         return (:unknown, interval(θc), interval(0), interval(0))
     end
 
-    # largest symmetric radius allowed by J
+    
     r = min(θc - a, b - θc)
 
     found = false
@@ -297,14 +296,14 @@ function validate_root_sign_mono(
 )
     a, b = inf(Iθ), sup(Iθ)
 
-    # guard: θc must lie inside Iθ
+    
     if !(a ≤ θc ≤ b)
         verbose && println("θc = $θc not inside Iθ = $Iθ")
         data = (Iκ=Iκ, Iμ=Iμ, Iθ=Iθ, reason=:root_outside_theta_interval)
         return false, data
     end
 
-    # 1) monotonicity interval J via derivative
+    
     status_J, J, _dI = certify_sign_interval_centered(
         fθ, θc, Iθ, Iκ, Iμ;
         ntiles=ntiles,
@@ -319,7 +318,7 @@ function validate_root_sign_mono(
         return false, data
     end
 
-    # 2) refined existence interval Iexist via sign change inside J
+    
     status_sc, Iexist, fL, fR = find_sign_change_centered_refine(
         f, θc, J, Iκ, Iμ;
         min_radius=min_radius,
@@ -350,8 +349,6 @@ end
 ##################################
 ### Stability validation functions
 ##################################
-
-# [0,0] with the same numeric type as I
 @inline zero_interval_like(I::Interval) = Interval(zero(inf(I)))
 
 @inline function sign_tag(I::Interval)
@@ -507,19 +504,7 @@ function finalize_root_label(
     end
 end
 
-"""
-    complements_nonzero2(f, I, J1, J2, Iκ, Iμ; ntiles=16)
 
-Return `true` iff `f(θ,κ,μ) ≠ 0` is certified on the complement
-`I \\ (J1 ∪ J2)`.
-
-Assumes `f` is interval-evaluable in θ,κ,μ.
-Uses direct interval evaluation first, then subdivision fallback if needed.
-
-Notes:
-- J1 and J2 may overlap or be in any order.
-- Requires both J1 ⊆ I and J2 ⊆ I (otherwise returns false).
-"""
 function complements_nonzero2(
     f::Function,
     I::Interval,
@@ -531,11 +516,9 @@ function complements_nonzero2(
 )
     a, b = inf(I), sup(I)
 
-    # ensure J1,J2 are inside I
     a ≤ inf(J1) ≤ sup(J1) ≤ b || return false
     a ≤ inf(J2) ≤ sup(J2) ≤ b || return false
 
-    # sort them by left endpoint
     if inf(J2) < inf(J1)
         J1, J2 = J2, J1
     end
@@ -543,7 +526,6 @@ function complements_nonzero2(
     c1, d1 = inf(J1), sup(J1)
     c2, d2 = inf(J2), sup(J2)
 
-    # merge if overlapping / touching (treat as one excluded block)
     if c2 ≤ d1
         c2 = c1
         d2 = max(d1, d2)
@@ -572,9 +554,6 @@ function complements_nonzero2(
         return true
     end
 
-    # disjoint excluded intervals: J1=[c1,d1], J2=[c2,d2] with d1 < c2
-
-    # left complement: [a, c1]
     if a < c1
         L = interval(a, c1)
         FL = f(L, Iκ, Iμ)
@@ -584,7 +563,7 @@ function complements_nonzero2(
         end
     end
 
-    # middle complement: [d1, c2]
+
     if d1 < c2
         M = interval(d1, c2)
         FM = f(M, Iκ, Iμ)
@@ -594,7 +573,7 @@ function complements_nonzero2(
         end
     end
 
-    # right complement: [d2, b]
+
     if d2 < b
         R = interval(d2, b)
         FR = f(R, Iκ, Iμ)
@@ -655,8 +634,6 @@ function classify_center_equilibrium(Ix0::Interval, Iκ::Interval, Iμ::Interval
     Id1 = asin(arg)
     Id2 = Ix0
 
-    # ---- det(d1,d2) ----------------------------------------------------
-
     sr = sin(r)
     sr4 = sr^4
 
@@ -672,8 +649,7 @@ function classify_center_equilibrium(Ix0::Interval, Iκ::Interval, Iμ::Interval
 
     Idet = pref * B1 * B2
 
-    # ---- tr(d1,d2) -----------------------------------------------------
-
+ 
     Itr = (oneI / (sr^2)) * (
         (oneI - fourI * cos(Id2)^2) * s_rq1^2
         -
@@ -682,14 +658,12 @@ function classify_center_equilibrium(Ix0::Interval, Iκ::Interval, Iμ::Interval
         (oneI - fourI * cos(Id1)^2) * s_rq2^2
     )
 
-    # ---- C(d1,d2) ------------------------------------------------------
 
     Im = -(sin(Id1)^2 * sin(Id2)^2) /
          ((cos(r) - cos(Id1 + Id2)) * (cos(r) - cos(Id1 - Id2)))
 
     IC = Im - fourI * Idet
 
-    # ---- Classification ------------------------------------------------
 
     tgdet = sign_tag(Idet)
     verbose && println("det ∈ ", Idet, " ⇒ ", tgdet)

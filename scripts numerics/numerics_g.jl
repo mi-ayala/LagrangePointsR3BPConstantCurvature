@@ -25,10 +25,10 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
         κc = κ_lo + (i - 0.5) * Δκ
         μc = μ_lo + (j - 0.5) * Δμ
 
-        θmin = Intθ_5(κc, μc)[1]
-        θmax = Intθ_5(κc, μc)[2]
+        θmin = Intθ_g(κc, μc)[1]
+        θmax = Intθ_g(κc, μc)[2]
 
-        br = brackets_signchanges(θ -> f₅(θ, κc, μc), θmin, θmax)
+        br = brackets_signchanges(θ -> g(θ, κc, μc), θmin, θmax)
 
         num_roots = length(br)
 
@@ -37,17 +37,17 @@ function cover_rectangle_grid_rect(κ_lo::Float64, κ_hi::Float64,
 
         elseif num_roots == 1
 
-            root = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
+            root = find_zero(θ -> g(θ, κc, μc), br[1]; atol=1e-12)
             stability_root = classify_center_equilibrium_num(root, κc, μc; verbose=false)
             push!(boxes, (:two_roots, κc, μc, root, NaN, stability_root, :zero_roots))
 
         elseif num_roots == 2
 
-            root1 = find_zero(θ -> f₅(θ, κc, μc), br[1]; atol=1e-12)
+            root1 = find_zero(θ -> g(θ, κc, μc), br[1]; atol=1e-12)
             stability_root1 = classify_center_equilibrium_num(root1, κc, μc; verbose=false)
 
 
-            root2 = find_zero(θ -> f₅(θ, κc, μc), br[2]; atol=1e-12)
+            root2 = find_zero(θ -> g(θ, κc, μc), br[2]; atol=1e-12)
             stability_root2 = classify_center_equilibrium_num(root2, κc, μc; verbose=false)
 
             push!(boxes, (:four_roots, κc, μc, root1, root2, stability_root1, stability_root2))
@@ -81,7 +81,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_root_regions_numerics.png"), fig1)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_root_regions_numerics.png"), fig1)
 
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -92,7 +92,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)    
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root1_numerics.png"), fig2)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_stability_root1_numerics.png"), fig2)
 
 
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -103,6 +103,4 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)    
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root2_numerics.png"), fig3)
-
-
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_stability_root2_numerics.png"), fig3)

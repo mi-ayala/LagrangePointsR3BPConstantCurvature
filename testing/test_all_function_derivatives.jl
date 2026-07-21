@@ -7,8 +7,8 @@ include("../src/functions_f1.jl")
 include("../src/functions_f2.jl")
 include("../src/functions_f3.jl")
 include("../src/functions_f4.jl")
-include("../src/functions_f5.jl")
-include("../src/functions_f5neg.jl")
+include("../src/functions_g.jl")
+include("../src/functions_gneg.jl")
 include("../src/functions_f1neg.jl")
 include("../src/functions_f2neg.jl")
 include("../src/functions_f3neg.jl")
@@ -83,9 +83,9 @@ end
         )
 
         check_derivative(
-            "f₅θ",
-            ForwardDiff.derivative(t -> f₅(t, κ0, μ0), x0),
-            f₅θ(x0, κ0, μ0),
+            "gθ",
+            ForwardDiff.derivative(t -> g(t, κ0, μ0), x0),
+            gθ(x0, κ0, μ0),
         )
     end
 

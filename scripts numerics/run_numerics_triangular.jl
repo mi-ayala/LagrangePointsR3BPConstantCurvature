@@ -9,8 +9,8 @@ const GRID_LINE_WIDTH = RC3BP.GRID_LINE_WIDTH
 const GRID_LINE_COLOR = RC3BP.GRID_LINE_COLOR
 const AXIS_LABEL_SIZE = RC3BP.AXIS_LABEL_SIZE
 
-include("numerics_f5.jl")
-include("numerics_f5neg.jl")
+include("numerics_g.jl")
+include("numerics_gneg.jl")
 append!(boxes5, boxes5neg)
 
 function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
@@ -310,7 +310,7 @@ fig1, ax1 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     μlims = (μ_lo, μ_hi)
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_root_regions_numerics.png"), fig1)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_root_regions_numerics.png"), fig1)
 
 
 fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -321,7 +321,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     ms=4
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root1_numerics.png"), fig2)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_stability_root1_numerics.png"), fig2)
 
 
 fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
@@ -332,7 +332,7 @@ fig3, ax3 = plot_regions_all_labels_from_boxes_numerics(boxes5;
     ms=4
 )
 
-save(joinpath(@__DIR__, "..", "figures", "numerics", "f5_stability_root2_numerics.png"), fig3)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "g_stability_root2_numerics.png"), fig3)
 
 
 
@@ -451,7 +451,7 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics_cross(boxes5;
     ms=4
 )
 
-save("figures/numerics/f5_stability_root1_negative_numerics_together.png", fig2)
+save("figures/numerics/g_stability_root1_negative_numerics_together.png", fig2)
 
 
 # fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa_triangular(boxes5, 0.01;
@@ -469,5 +469,4 @@ save("figures/numerics/f5_stability_root1_negative_numerics_together.png", fig2)
 # )
 
 # save(joinpath(@__DIR__, "..", "figures", "numerics", "triangular_bif_plot_mu06.png"), fig3)
-
 

@@ -31,7 +31,7 @@ function Λneg(κ, μ)
     return cbrt_t(s1 / (μ * s2))
 end
 
-function f₅neg(x, κ, μ)
+function gneg(x, κ, μ)
     x, κ, μ = promote(x, κ, μ)
 
     r = sqrt(-κ)
@@ -125,7 +125,7 @@ function classify_center_equilibrium_num_neg(x0::Real, κ::Real, μ::Real; verbo
     end
 end
 
-function Intθ_5neg(κ, μ)
+function Intθ_gneg(κ, μ)
     κ, μ = promote(κ, μ)
     r = sqrt(-κ)
     L = Λneg(κ, μ)
