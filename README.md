@@ -4,6 +4,9 @@ This repository contains the Julia code associated with the paper
 *Lagrange points of the restricted three-body problem in spaces with
 constant curvature* by Miguel Ayala, Carlos Barrera-Anzaldo, and Luis C. García-Naranjo.
 
+ [🔗 arXiv:2607.19148](https://arxiv.org/abs/2607.19148)   
+
+
 ## Abstract
 We continue the study initiated by Kilin (Reg. Chaot. Dyn. 4, (1999)) and by Martínez and Simó (Celest. Mech. Dynam. Astronom. 128, (2017))
 on the classification and stability of the relative equilibria of the restricted three-body problem in two-dimensional spaces of constant curvature, which generalize the
