@@ -27,7 +27,7 @@ function eval_subdiv(f::Function,
         left = a + k * h
         right = (k == ntiles - 1) ? b : a + (k + 1) * h  # last tile closes at b
         J = interval(left, right)
-        H = hull(H, f(J, Iκ, Iμ))
+        H = hull(H, f(J, Iκ, Iμ); dec=:auto)
     end
 
     return H
@@ -437,8 +437,7 @@ end
 
 Return true iff f(θ,κ,μ) ≠ 0 is certified on both complements I \\ J.
 
-Robust to tiny rounding where J is not exactly a subset of I:
-we clip J to I instead of returning false.
+
 """
 function complements_nonzero(
     f::Function,

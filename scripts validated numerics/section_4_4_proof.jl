@@ -1,6 +1,7 @@
+using RC3BP
 using RadiiPolynomial
 
-include("functions_helpers.jl")
+
 
 function F_appendix_D(x)
     θ, κ, μ = x
@@ -44,7 +45,7 @@ function J_equilibrium(x)
     three = two + oneθ
 
     # derivatives of r
-    rκ = inv(two * r)      # dr/dκ = 1/(2√κ)
+    rκ = inv(two * r)     
 
     # derivatives of q1,q2, L, G
     q1κv = q₁κ(κ, μ)
@@ -58,10 +59,10 @@ function J_equilibrium(x)
     Gμv = Γμ(κ, μ)
 
     # phase variables
-    a = θ + r * q1           # θ + √κ q1
-    b = θ - r * q2           # θ - √κ q2
-    c = r * q2               # √κ q2
-    d = r                  # √κ
+    a = θ + r * q1           
+    b = θ - r * q2           
+    c = r * q2               
+    d = r                 
 
     s = sin(a)
     ca = cos(a)
@@ -89,16 +90,12 @@ function J_equilibrium(x)
     cμ = r * q2μv
     dμ = zero(T)
 
-    # -------------------------
-    # F1 = sin(a) - L*sin(b)
-    # -------------------------
+
     F1θ = ca * aθ - L * cb * bθ
     F1κ = ca * aκ - (Lκv * sb + L * cb * bκ)
     F1μ = ca * aμ - (Lμv * sb + L * cb * bμ)
 
-    # -----------------------------------------------
-    # F2 = sin(2θ) * sin(a)^2 + 2G*(1 + μ L^2)
-    # -----------------------------------------------
+   
     s_sq = s * s
     ds_dθ = ca * aθ
     ds_dκ = ca * aκ
@@ -114,9 +111,7 @@ function J_equilibrium(x)
     # μ-derivative
     F2μ = s2θ * (two * s * ds_dμ) + (two * Gμv) * term_allowed + (two * G) * ((L * L) + μ * (two * L * Lμv))
 
-    # -------------------------------------------------------
-    # F3 = cos(2θ)*sin(a)^3*sin(c) - 2G*cos(θ)*sin(√κ)
-    # -------------------------------------------------------
+
     s_cu = s * s * s
 
     # θ-derivative first term:

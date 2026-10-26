@@ -61,8 +61,8 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
         ygridstyle=:dot,
         xgridwidth=GRID_LINE_WIDTH,
         ygridwidth=GRID_LINE_WIDTH,
-        xgridcolor=GRID_LINE_COLOR,
-        ygridcolor=GRID_LINE_COLOR,
+        xgridcolor=RGBAf(0.75, 0.75, 0.75, 0.45),
+        ygridcolor=RGBAf(0.75, 0.75, 0.75, 0.45),
         xtickalign=1,
         ytickalign=1,
         xticksmirrored=true,
@@ -260,7 +260,8 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
     end
 
     # ------------------------------------------------------------
-    # Extra vertical line at the highest point of the chosen yellow label.
+    # Extra vertical and horizontal lines at the top-left endpoint of the
+    # chosen yellow label: maximize y, then choose the smallest κ on ties.
     #
     # Important:
     # yellow_lbl must be the actual label symbol, not the color name.
@@ -272,7 +273,10 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
         if haskey(pts_by_lbl, yellow_lbl)
             κ_yellow, y_yellow = pts_by_lbl[yellow_lbl]
 
-            idx_yellow_top = argmax(y_yellow)
+            idx_yellow_top = argmin(
+                i -> (-y_yellow[i], κ_yellow[i]),
+                eachindex(y_yellow),
+            )
 
             κs = κ_yellow[idx_yellow_top]
             ys = y_yellow[idx_yellow_top]
@@ -284,15 +288,23 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
                 [κs, κs],
                 [ybottom, ys];
                 color=:grey,
-            linewidth=2.5,
-            linestyle=:dot,
+                linewidth=2.5,
+                linestyle=:dot,
+            )
+
+            lines!(ax,
+                [κlo, κs],
+                [ys, ys];
+                color=:grey,
+                linewidth=2.5,
+                linestyle=:dot,
             )
         else
             println("yellow_lbl = ", yellow_lbl, " was not found in pts_by_lbl.")
             println("Available labels are: ", collect(keys(pts_by_lbl)))
         end
     else
-        println("yellow_lbl is nothing, so no extra yellow vertical line was drawn.")
+        println("yellow_lbl is nothing, so no extra yellow guide lines were drawn.")
     end
 
     return fig, ax, μstar
@@ -454,19 +466,19 @@ fig2, ax2 = plot_regions_all_labels_from_boxes_numerics_cross(boxes5;
 save("figures/numerics/g_stability_root1_negative_numerics_together.png", fig2)
 
 
-# fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa_triangular(boxes5, 0.01;
-#     use=:stability,
-#     ms=5,
-#     κlims=(-1.0, 1.0)
-# )
+fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa_triangular(boxes5, 0.01;
+    use=:stability,
+    ms=5,
+    κlims=(-1.0, 1.0)
+)
 
-# save(joinpath(@__DIR__, "..", "figures", "numerics", "triangular_bif_plot_mu01.png"), fig3)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "triangular_bif_plot_mu01.png"), fig3)
 
-# fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa_triangular(boxes5, 0.06;
-#     use=:stability,
-#     ms=5,
-#     κlims=(-1.0, 1.0)
-# )
+fig3, ax3, μstar = plot_mu_slice_theta_over_sqrtkappa_triangular(boxes5, 0.06;
+    use=:stability,
+    ms=5,
+    κlims=(-1.0, 1.0)
+)
 
-# save(joinpath(@__DIR__, "..", "figures", "numerics", "triangular_bif_plot_mu06.png"), fig3)
+save(joinpath(@__DIR__, "..", "figures", "numerics", "triangular_bif_plot_mu06.png"), fig3)
 
