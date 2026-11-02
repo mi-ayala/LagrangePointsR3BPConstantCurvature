@@ -21,7 +21,7 @@ include("functions_gneg.jl")
 include("functions_plots.jl")
 
 export twice, csc, powabs3, sqr, three, inv3, cbrt_t
-export q₁, q₂, Γ, λ₁, λ₂, detλ, c₂, Δ, q₁μ, q₁κ, Γμ, Γκ, Λ, Λκ, Λμ
+export q₁, q₂, Γ, λ₁, λ₂, detλ, c₂, Δ, q₁μ, q₁κ, Γμ, Γκ, Λ, Λκ, Λμ, Θₓ, dₓ
 export brackets_signchanges, classify_equilibrium_f, classify_center_equilibrium_num
 export ispos, isneg, nonzero, eval_subdiv, certify_sign_interval_centered
 export find_sign_change_centered, find_sign_change_centered_refine

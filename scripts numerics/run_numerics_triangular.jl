@@ -307,6 +307,16 @@ function plot_mu_slice_theta_over_sqrtkappa_triangular(boxes, μ;
         println("yellow_lbl is nothing, so no extra yellow guide lines were drawn.")
     end
 
+    # Plot Θₓ strictly inside 0 < κ < 1, excluding both endpoints.
+    κplot_Θₓ = collect(range(0.0, 1.0; length=802))[2:end-1]
+    Θₓvals = [Θₓ(κ, μstar) for κ in κplot_Θₓ]
+
+    lines!(ax, κplot_Θₓ, Θₓvals;
+        color=:grey,
+        linewidth=2,
+        linestyle=:dot,
+    )
+
     return fig, ax, μstar
 end
 

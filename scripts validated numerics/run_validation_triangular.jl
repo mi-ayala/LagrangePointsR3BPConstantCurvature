@@ -266,7 +266,8 @@ function plot_regions_all_labels_from_boxes5(boxes;
         if label_type === :root
             push!(labels, root_lbl)
         else
-            if root_lbl === :zero_roots
+            if root_lbl === :zero_roots || (root_index == 2 && root_lbl === :one_root)
+                # Grey means that the selected root does not exist.
                 push!(labels, :zero_roots)
             else
                 if root_index == 1
@@ -294,7 +295,8 @@ function plot_regions_all_labels_from_boxes5(boxes;
         lbl = if label_type === :root
             root_lbl
         else
-            if root_lbl === :zero_roots
+            if root_lbl === :zero_roots || (root_index == 2 && root_lbl === :one_root)
+                # Reuse the zero-root grey for an absent selected root.
                 :zero_roots
             else
                 if root_index == 1

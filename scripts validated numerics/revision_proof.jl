@@ -20,8 +20,8 @@ x2 = find_zero(θ -> g(θ, κ, μ), 1.73155; atol=1e-12)
 x3 = find_zero(θ -> g(θ, κ, μ), 1.79198; atol=1e-12)
 x4 = find_zero(θ -> g(θ, κ, μ), 1.85231; atol=1e-12)
 
-Iκ = interval(κ, 1e-6; format=:midpoint)
-Iμ = interval(μ, 1e-6; format=:midpoint)
+Iκ = interval(κ, 1e-5; format=:midpoint)
+Iμ = interval(μ, 1e-5; format=:midpoint)
 
 #### Plot numerics
 using CairoMakie

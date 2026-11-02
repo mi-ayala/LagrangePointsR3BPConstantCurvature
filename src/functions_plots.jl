@@ -363,8 +363,8 @@ function plot_mu_slice_theta_over_sqrtkappa_collinear(boxes, μ;
         ygridstyle=:dot,
         xgridwidth=GRID_LINE_WIDTH,
         ygridwidth=GRID_LINE_WIDTH,
-        xgridcolor=GRID_LINE_COLOR,
-        ygridcolor=GRID_LINE_COLOR,
+        xgridcolor=RGBAf(0.75, 0.75, 0.75, 0.45),
+        ygridcolor=RGBAf(0.75, 0.75, 0.75, 0.45),
         xtickalign=1,
         ytickalign=1,
         xticksmirrored=true,
@@ -546,6 +546,16 @@ function plot_mu_slice_theta_over_sqrtkappa_collinear(boxes, μ;
         color=:black,
         linewidth=2,
         linestyle=:dash,
+    )
+
+    # Plot Θₓ strictly inside 0 < κ < π²/4, excluding both endpoints.
+    κplot_Θₓ = collect(range(0.0, pi^2 / 4; length=802))[2:end-1]
+    Θₓvals = [Θₓ(κ, μstar) for κ in κplot_Θₓ]
+
+    lines!(ax, κplot_Θₓ, Θₓvals;
+        color=:grey,
+        linewidth=2,
+        linestyle=:dot,
     )
 
     return fig, ax, μstar

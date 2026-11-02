@@ -251,5 +251,25 @@ function Λμ(κ, μ)
 end
 
 
+function Θₓ(κ, μ)
+    κ, μ = promote(κ, μ)
+
+    r = sqrt(κ)
+    q1 = q₁(κ, μ)
+    q2 = q₂(κ, μ)
+    L = Λ(κ, μ)
+
+    y = sin(r * q1) + L * sin(r * q2)
+    x = cos(r * q1) - L * cos(r * q2)
+
+    return -(one(r) / r) * atan(y, x)
+end
+
+function dₓ(κ, μ)
+    κ, μ = promote(κ, μ)
+    return q₂(κ, μ) - Θₓ(κ, μ)
+end
+
+
 
 
