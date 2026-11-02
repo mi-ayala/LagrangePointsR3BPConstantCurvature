@@ -328,6 +328,7 @@ function plot_regions_all_labels_from_boxes5(boxes;
     
     fig = Figure()
     ax = Axis(fig[1, 1];
+        backgroundcolor=Makie.to_color("#F2F2F2"),
         xlabel=L"\mathbf{\kappa}",
         ylabel=L"\mathbf{\mu}",
         title=title,
